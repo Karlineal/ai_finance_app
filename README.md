@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI记账助手 - Flutter Android 版
 
 基于 Flutter 开发的 Android 智能记账应用，集成 AI 发票识别和自动分类功能。
@@ -134,3 +135,7 @@ flutter build apk --release
 ## 许可
 
 MIT License
+=======
+# ai_finance_app
+AI记账软件
+>>>>>>> b6f95f05e6352172b6facc42b95d5f9633bd6b7d
