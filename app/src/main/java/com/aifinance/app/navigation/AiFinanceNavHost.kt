@@ -12,7 +12,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
-import com.aifinance.feature.add_transaction.navigation.ADD_TRANSACTION_ROUTE
 import com.aifinance.feature.add_transaction.navigation.addTransactionScreen
 import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.ADD_ASSET_ACCOUNT_ROUTE
@@ -63,9 +62,6 @@ fun AiFinanceNavHost(
         homeScreen(
             onNavigateToTransactions = {
                 navController.navigate(TRANSACTIONS_ROUTE)
-            },
-            onNavigateToAddTransaction = {
-                navController.navigate(ADD_TRANSACTION_ROUTE)
             },
             onNavigateToAssetManagement = {
                 navController.navigate(ASSET_MANAGEMENT_ROUTE)

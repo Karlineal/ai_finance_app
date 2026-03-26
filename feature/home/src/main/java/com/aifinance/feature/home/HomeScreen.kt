@@ -50,8 +50,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -89,12 +87,8 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
-    onNavigateToTransactions: () -> Unit = {},
-    onNavigateToAddTransaction: () -> Unit = {},
+fun RecordHomeContent(
     onNavigateToAssetManagement: () -> Unit = {},
-    onNavigateToImport: () -> Unit = {},
-    onNavigateToAIInsight: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val spacing = IcokieTheme.spacing
@@ -125,20 +119,6 @@ fun HomeScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    MonthSelector(
-                        selectedMonth = selectedMonth,
-                        onPreviousMonth = { selectedMonth = selectedMonth.minusMonths(1) },
-                        onNextMonth = { selectedMonth = selectedMonth.plusMonths(1) }
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SurfacePrimary
-                )
-            )
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddTransaction = true },
@@ -931,11 +911,13 @@ private val SurfaceSecondary = Color(0xFFF8FAFC)
 
 @Composable
 private fun MonthSelector(
+    modifier: Modifier = Modifier,
     selectedMonth: LocalDate,
     onPreviousMonth: () -> Unit,
     onNextMonth: () -> Unit
 ) {
     Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
