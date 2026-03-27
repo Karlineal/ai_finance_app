@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.Category
+import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.CurrencyCode
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionSourceType
@@ -41,54 +42,12 @@ class AddTransactionViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AddTransactionUiState())
     val uiState: StateFlow<AddTransactionUiState> = _uiState.asStateFlow()
 
-    val categories = listOf(
-        Category(
-            id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
-            name = "餐饮",
-            icon = "🍔",
-            color = 0xFFEF4444.toInt()
-        ),
-        Category(
-            id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
-            name = "交通",
-            icon = "🚗",
-            color = 0xFF3B82F6.toInt()
-        ),
-        Category(
-            id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
-            name = "购物",
-            icon = "🛒",
-            color = 0xFF10B981.toInt()
-        ),
-        Category(
-            id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
-            name = "工资",
-            icon = "💰",
-            color = 0xFFF59E0B.toInt()
-        ),
-        Category(
-            id = UUID.fromString("55555555-5555-5555-5555-555555555555"),
-            name = "住房",
-            icon = "🏠",
-            color = 0xFF8B5CF6.toInt()
-        ),
-        Category(
-            id = UUID.fromString("66666666-6666-6666-6666-666666666666"),
-            name = "通讯",
-            icon = "📱",
-            color = 0xFF14B8A6.toInt()
-        ),
-        Category(
-            id = UUID.fromString("77777777-7777-7777-7777-777777777777"),
-            name = "其他",
-            icon = "📦",
-            color = 0xFF6B7280.toInt()
-        )
-    )
+    val categories: List<Category>
+        get() = CategoryCatalog.categoriesForType(_uiState.value.type)
 
     init {
         _uiState.value = AddTransactionUiState(
-            categoryId = categories.first().id
+            categoryId = CategoryCatalog.fallback(TransactionType.EXPENSE).id,
         )
     }
 
@@ -121,7 +80,15 @@ class AddTransactionViewModel @Inject constructor(
     }
 
     fun onTypeChanged(type: TransactionType) {
-        _uiState.value = _uiState.value.copy(type = type)
+        val categoryIdForType = _uiState.value.categoryId
+            ?.takeIf { selectedId -> CategoryCatalog.resolve(selectedId, type).id == selectedId }
+            ?: CategoryCatalog.fallback(type).id
+
+        _uiState.value = _uiState.value.copy(
+            type = type,
+            categoryId = categoryIdForType,
+            categoryError = null,
+        )
     }
 
     fun onDateChanged(date: LocalDate) {
@@ -167,7 +134,7 @@ class AddTransactionViewModel @Inject constructor(
                     ?: accountRepository.getFirstActiveAccount()?.id
                     ?: UUID.randomUUID()
 
-                val selectedCategory = categories.find { it.id == currentState.categoryId }
+                val selectedCategory = CategoryCatalog.findById(currentState.categoryId)
                 val autoTitle = currentState.title.takeIf { it.isNotBlank() }
                     ?: selectedCategory?.name
                     ?: "未分类"
@@ -203,7 +170,7 @@ class AddTransactionViewModel @Inject constructor(
 
     fun resetState() {
         _uiState.value = AddTransactionUiState(
-            categoryId = categories.first().id
+            categoryId = CategoryCatalog.fallback(TransactionType.EXPENSE).id,
         )
     }
 }

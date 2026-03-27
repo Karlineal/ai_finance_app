@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -23,7 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    transactionRepository: TransactionRepository,
+    private val transactionRepository: TransactionRepository,
     accountRepository: AccountRepository,
 ) : ViewModel() {
 
@@ -158,7 +159,57 @@ class HomeViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = null
             )
+
+    fun deleteTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            transactionRepository.deleteTransaction(transaction)
+        }
+    }
+
+    fun updateTransactionCategory(
+        transaction: Transaction,
+        categoryId: UUID,
+        categoryName: String? = null,
+    ) {
+        viewModelScope.launch {
+            transactionRepository.updateTransaction(
+                transaction.copy(
+                    categoryId = categoryId,
+                    title = categoryName?.takeIf { it.isNotBlank() } ?: transaction.title,
+                )
+            )
+        }
+    }
+
+    fun updateTransactionDetails(
+        transaction: Transaction,
+        editedFields: HomeTransactionEditedFields,
+    ) {
+        viewModelScope.launch {
+            transactionRepository.updateTransaction(
+                transaction.copy(
+                    amount = editedFields.amount,
+                    accountId = editedFields.accountId,
+                    date = editedFields.date,
+                    type = editedFields.type,
+                    title = editedFields.title?.takeIf { it.isNotBlank() } ?: transaction.title,
+                    description = editedFields.description ?: transaction.description,
+                    isPending = !editedFields.includeInExpense,
+                )
+            )
+        }
+    }
 }
+
+data class HomeTransactionEditedFields(
+    val amount: BigDecimal,
+    val accountId: UUID,
+    val date: LocalDate,
+    val type: TransactionType,
+    val includeInExpense: Boolean,
+    val title: String? = null,
+    val description: String? = null,
+)
 
 data class MonthlyStats(
     val income: BigDecimal,

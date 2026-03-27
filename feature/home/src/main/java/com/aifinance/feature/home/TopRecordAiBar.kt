@@ -1,35 +1,51 @@
 package com.aifinance.feature.home
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.OnSurfacePrimary
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
-private val InactiveTopTabText = Color(0xFFB8C0CC)
-private val HandDrawBlue = Color(0xFF4F7EFF)
+private val TabSurface = Color(0xFFEFF3FB)
+private val TabIndicator = BrandPrimary
 
 @Composable
 fun TopRecordAiBar(
@@ -41,10 +57,13 @@ fun TopRecordAiBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(start = 10.dp, end = 14.dp, top = 10.dp, bottom = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = onMenuClick) {
+        IconButton(
+            onClick = onMenuClick,
+            modifier = Modifier.size(40.dp),
+        ) {
             Icon(
                 imageVector = Icons.Default.Menu,
                 contentDescription = "菜单",
@@ -52,85 +71,134 @@ fun TopRecordAiBar(
             )
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(start = 10.dp, end = 16.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            liquidTopTabBar(
+                selectedTab = selectedTab,
+                onTabSelected = onTabSelected,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 276.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun liquidTopTabBar(
+    selectedTab: HomeTopTab,
+    onTabSelected: (HomeTopTab) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val tabs = listOf(HomeTopTab.RECORD to "记录", HomeTopTab.AI_ASSISTANT to "AI助手")
+    val selectedIndex = tabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
+
+    val leadingBlob by animateFloatAsState(
+        targetValue = selectedIndex.toFloat(),
+        animationSpec = spring(
+            dampingRatio = 0.78f,
+            stiffness = 520f,
+        ),
+        label = "liquid_tab_leading_blob",
+    )
+    val trailingBlob by animateFloatAsState(
+        targetValue = selectedIndex.toFloat(),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = 260f,
+        ),
+        label = "liquid_tab_trailing_blob",
+    )
+
+    Box(
+        modifier = Modifier
+            .then(modifier)
+            .clip(RoundedCornerShape(24.dp))
+            .background(TabSurface)
+            .padding(4.dp)
+            .fillMaxWidth()
+            .height(48.dp),
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val slotWidth = size.width / tabs.size
+            val centerY = size.height / 2f
+            val leadX = (leadingBlob + 0.5f) * slotWidth
+            val trailX = (trailingBlob + 0.5f) * slotWidth
+
+            val capsuleHeight = size.height * 0.88f
+            val capsuleWidth = slotWidth * 0.72f
+            val corner = capsuleHeight / 2f
+            val leadLeft = leadX - capsuleWidth / 2f
+            val trailLeft = trailX - capsuleWidth / 2f
+            val minLeft = min(leadLeft, trailLeft)
+            val maxLeft = max(leadLeft, trailLeft)
+            val spread = abs(maxLeft - minLeft)
+            val capsuleTop = centerY - capsuleHeight / 2f
+            val stretchedWidth = capsuleWidth + spread
+
+            drawRoundRect(
+                color = TabIndicator,
+                topLeft = Offset(minLeft, capsuleTop),
+                size = Size(stretchedWidth, capsuleHeight),
+                cornerRadius = CornerRadius(corner, corner),
+            )
+
+            val glossWidth = capsuleWidth * 0.34f
+            val glossHeight = capsuleHeight * 0.24f
+            val glossX = leadLeft + capsuleWidth * 0.14f
+            val glossY = capsuleTop + capsuleHeight * 0.14f
+            drawRoundRect(
+                color = Color.White.copy(alpha = 0.22f),
+                topLeft = Offset(glossX, glossY),
+                size = Size(glossWidth, glossHeight),
+                cornerRadius = CornerRadius(glossHeight / 2f, glossHeight / 2f),
+            )
+        }
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(0.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TopTabItem(
-                text = "记录",
-                selected = selectedTab == HomeTopTab.RECORD,
-                onClick = { onTabSelected(HomeTopTab.RECORD) },
-            )
-            Spacer(modifier = Modifier.width(40.dp))
-            TopTabItem(
-                text = "AI助手",
-                selected = selectedTab == HomeTopTab.AI_ASSISTANT,
-                onClick = { onTabSelected(HomeTopTab.AI_ASSISTANT) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun TopTabItem(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(horizontal = 2.dp, vertical = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = text,
-            style = IcokieTextStyles.titleLarge,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (selected) OnSurfacePrimary else InactiveTopTabText,
-        )
-
-        Spacer(modifier = Modifier.height(2.dp))
-
-        if (selected) {
-            HandDrawUnderline()
-        } else {
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
-}
-
-@Composable
-private fun HandDrawUnderline() {
-    Box(modifier = Modifier.height(8.dp)) {
-        Canvas(modifier = Modifier.size(width = 42.dp, height = 8.dp)) {
-            val path = Path().apply {
-                moveTo(0f, size.height * 0.72f)
-                quadraticBezierTo(
-                    size.width * 0.25f,
-                    size.height * 0.22f,
-                    size.width * 0.5f,
-                    size.height * 0.68f,
+            tabs.forEachIndexed { index, tab ->
+                val selected = index == selectedIndex
+                val textColor by animateColorAsState(
+                    targetValue = if (selected) Color.White else OnSurfacePrimary,
+                    animationSpec = spring(
+                        dampingRatio = 0.9f,
+                        stiffness = 480f,
+                    ),
+                    label = "liquid_tab_text_color_$index",
                 )
-                quadraticBezierTo(
-                    size.width * 0.74f,
-                    size.height * 0.97f,
-                    size.width,
-                    size.height * 0.58f,
-                )
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(20.dp))
+                        .selectable(
+                            selected = selected,
+                            onClick = { onTabSelected(tab.first) },
+                            role = Role.Tab,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = tab.second,
+                        style = IcokieTextStyles.titleLarge.copy(
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                            letterSpacing = if (selected) 0.18.sp else 0.32.sp,
+                        ),
+                        color = textColor,
+                    )
+                }
             }
-            drawPath(
-                path = path,
-                color = HandDrawBlue,
-            )
-            drawCircle(
-                color = HandDrawBlue,
-                radius = 1.6.dp.toPx(),
-                center = Offset(size.width * 0.95f, size.height * 0.58f),
-            )
         }
     }
 }

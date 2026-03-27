@@ -61,6 +61,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.Category
+import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import kotlinx.coroutines.launch
@@ -76,6 +77,7 @@ import java.util.UUID
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TransactionsScreen(
+    onNavigateToTransactionDetail: (UUID) -> Unit = {},
     viewModel: TransactionsViewModel = hiltViewModel(),
 ) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
@@ -84,7 +86,6 @@ fun TransactionsScreen(
     val scope = rememberCoroutineScope()
 
     var categoryPickerTransaction by remember { mutableStateOf<Transaction?>(null) }
-    var detailTransaction by remember { mutableStateOf<Transaction?>(null) }
 
     val grouped = remember(transactions) { transactions.groupBy { YearMonthKey(it.date.year, it.date.monthValue) } }
     val showScrollTop by remember {
@@ -162,7 +163,7 @@ fun TransactionsScreen(
                                         account = accounts.firstOrNull { it.id == transaction.accountId },
                                         modifier = Modifier,
                                         onCategoryClick = { categoryPickerTransaction = transaction },
-                                        onClick = { detailTransaction = transaction },
+                                        onClick = { onNavigateToTransactionDetail(transaction.id) },
                                     )
                                 }
                             }
@@ -174,7 +175,7 @@ fun TransactionsScreen(
     val categoryTarget = categoryPickerTransaction
     if (categoryTarget != null) {
         CategoryPickerSheet(
-            categories = viewModel.categories,
+            categories = viewModel.categoriesForType(categoryTarget.type),
             selectedCategoryId = categoryTarget.categoryId,
             onDismiss = { categoryPickerTransaction = null },
             onSelect = { categoryId ->
@@ -184,25 +185,6 @@ fun TransactionsScreen(
         )
     }
 
-    val detailTarget = detailTransaction
-    if (detailTarget != null) {
-        TransactionDetailSheet(
-            transaction = detailTarget,
-            accounts = accounts,
-            onDismiss = { detailTransaction = null },
-            onSave = { amount, accountId, date, type, includeInExpense ->
-                viewModel.updateTransactionDetail(
-                    transaction = detailTarget,
-                    amount = amount,
-                    accountId = accountId,
-                    date = date,
-                    type = type,
-                    includeInExpense = includeInExpense,
-                )
-                detailTransaction = null
-            },
-        )
-    }
 }
 
 @Composable
@@ -631,14 +613,8 @@ private fun resolveCategory(transaction: Transaction, categories: List<Category>
     val byId = categories.firstOrNull { it.id == transaction.categoryId }
     if (byId != null) return byId
 
-    val inferred = when {
-        transaction.title.contains("餐") || transaction.title.contains("吃") -> "餐饮"
-        transaction.title.contains("购") || transaction.title.contains("超市") -> "购物"
-        transaction.title.contains("车") || transaction.title.contains("公交") || transaction.title.contains("地铁") -> "交通"
-        transaction.type == TransactionType.INCOME -> "收入"
-        else -> "其他"
-    }
-    return categories.firstOrNull { it.name == inferred } ?: categories.last()
+    val fallback = CategoryCatalog.fallback(transaction.type).asCategory()
+    return categories.firstOrNull { it.id == fallback.id } ?: fallback
 }
 
 private fun Instant.toLocalTimeText(): String {

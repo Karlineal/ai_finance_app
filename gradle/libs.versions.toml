@@ -4,7 +4,7 @@ targetSdk = "34"
 minSdk = "26"
 
 kotlin = "1.9.22"
-androidGradlePlugin = "8.2.2"
+androidGradlePlugin = "8.13.2"
 ksp = "1.9.22-1.0.17"
 
 composeBom = "2024.06.00"

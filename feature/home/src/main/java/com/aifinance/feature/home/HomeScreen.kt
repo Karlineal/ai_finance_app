@@ -1,6 +1,7 @@
 package com.aifinance.feature.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.CalendarToday
@@ -33,24 +35,27 @@ import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.LocalGroceryStore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Money
+import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Train
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,10 +63,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.BrandPrimaryLight
@@ -75,26 +86,38 @@ import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
 import com.aifinance.core.designsystem.theme.OnSurfaceTertiary
 import com.aifinance.core.designsystem.theme.SurfacePrimary
 import com.aifinance.core.model.AppDateTime
+import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
-import androidx.compose.material.icons.filled.ReceiptLong
+import com.aifinance.feature.home.component.CategoryPickerBottomSheet
+import com.aifinance.feature.home.component.RefinedTransactionItem
+import com.aifinance.feature.home.component.SwipeableTransactionItem
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import kotlinx.coroutines.delay
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordHomeContent(
     onNavigateToAssetManagement: () -> Unit = {},
+    onNavigateToStatistics: () -> Unit = {},
+    onNavigateToTransactionDetail: (UUID) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val spacing = IcokieTheme.spacing
 
     var showAddTransaction by remember { mutableStateOf(false) }
     var selectedMonth by remember { mutableStateOf(LocalDate.now()) }
+    var categoryPickerTransaction by remember { mutableStateOf<Transaction?>(null) }
+    var pendingDeleteTransaction by remember { mutableStateOf<Transaction?>(null) }
+    var transientSuccessMessage by remember { mutableStateOf<String?>(null) }
 
     val recentTransactions = viewModel.recentTransactions.collectAsStateWithLifecycle()
     val totalBalance = viewModel.totalBalance.collectAsStateWithLifecycle()
@@ -114,8 +137,12 @@ fun RecordHomeContent(
             .filter { it.type == TransactionType.EXPENSE && !it.isPending }
             .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount }
     }
-    val displayChange = remember(recentTransactions.value, selectedMonth) {
-        calculateChangeForMonth(recentTransactions.value, selectedMonth)
+
+    LaunchedEffect(transientSuccessMessage) {
+        if (transientSuccessMessage != null) {
+            delay(1600)
+            transientSuccessMessage = null
+        }
     }
 
     Scaffold(
@@ -133,54 +160,103 @@ fun RecordHomeContent(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(paddingValues),
-            contentPadding = PaddingValues(
-                horizontal = spacing.pagePadding,
-                vertical = spacing.pagePadding
-            ),
-            verticalArrangement = Arrangement.spacedBy(spacing.sectionSpacing)
+                .background(Color(0xFFF2F2F7))
+                .padding(paddingValues)
         ) {
-            item {
-                BalanceCard(
-                    balance = totalBalance.value.balance,
-                    selectedMonth = selectedMonth,
-                    assets = totalBalance.value.assets,
-                    liabilities = totalBalance.value.liabilities,
-                    income = displayIncome,
-                    expense = displayExpense,
-                    percentageChange = displayChange,
-                    onAssetManageClick = onNavigateToAssetManagement,
-                )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 12.dp,
+                    end = 12.dp,
+                    top = 8.dp,
+                    bottom = spacing.pagePadding,
+                ),
+                verticalArrangement = Arrangement.spacedBy(spacing.sectionSpacing)
+            ) {
+                item {
+                    BalanceCard(
+                        balance = totalBalance.value.balance,
+                        selectedMonth = selectedMonth,
+                        assets = totalBalance.value.assets,
+                        liabilities = totalBalance.value.liabilities,
+                        income = displayIncome,
+                        expense = displayExpense,
+                        onAssetManageClick = onNavigateToAssetManagement,
+                        onStatisticsClick = onNavigateToStatistics,
+                    )
+                }
+
+                if (filteredTransactions.isEmpty()) {
+                    item {
+                        EmptyRecentTransactions()
+                    }
+                } else {
+                    val groupedByDate = filteredTransactions.groupBy { it.date }
+                    groupedByDate.toSortedMap(compareByDescending<LocalDate> { it }).forEach { (date, dayTransactions) ->
+                        val sortedTransactions = dayTransactions.sortedByDescending { it.time }
+                        item(key = "home-day-$date") {
+                            DaySectionHeader(
+                                date = date,
+                                dayTransactions = dayTransactions,
+                                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+                            )
+
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 12.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFFF7F8FC),
+                                ),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.78f)),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                            ) {
+                                sortedTransactions.forEachIndexed { index, transaction ->
+                                    SwipeableTransactionItem(
+                                        transaction = transaction,
+                                        accountName = accountsById.value[transaction.accountId]?.name,
+                                        onClick = { onNavigateToTransactionDetail(transaction.id) },
+                                        onAmountClick = { onNavigateToTransactionDetail(transaction.id) },
+                                        onCategoryClick = { categoryPickerTransaction = transaction },
+                                        onDeleteClick = {
+                                            pendingDeleteTransaction = transaction
+                                        },
+                                    )
+                                    if (index < sortedTransactions.lastIndex) {
+                                        HorizontalDivider(
+                                            thickness = 1.dp,
+                                            color = Color(0x143C3C43),
+                                            modifier = Modifier.padding(start = 16.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
-            if (filteredTransactions.isEmpty()) {
-                item {
-                    EmptyRecentTransactions()
-                }
-            } else {
-                val groupedByDate = filteredTransactions.groupBy { it.date }
-                groupedByDate.toSortedMap(compareByDescending<LocalDate> { it }).forEach { (date, dayTransactions) ->
-                    item(key = "home-day-$date") {
-                        DaySectionHeader(
-                            date = date,
-                            dayTransactions = dayTransactions,
-                            modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
-                        )
-                    }
-                    items(
-                        items = dayTransactions.sortedByDescending { it.time },
-                        key = { it.id },
-                    ) { transaction ->
-                        TimelineTransactionRecord(
-                            transaction = transaction,
-                            accountName = accountsById.value[transaction.accountId]?.name,
-                            modifier = Modifier.padding(bottom = 10.dp),
-                        )
-                    }
+            transientSuccessMessage?.let { message ->
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 24.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xCC1F2937),
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                ) {
+                    Text(
+                        text = message,
+                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+                        style = IcokieTextStyles.labelMedium,
+                        color = Color.White,
+                    )
                 }
             }
         }
@@ -192,6 +268,59 @@ fun RecordHomeContent(
                     showAddTransaction = false
                 },
                 onNavigateToAssetManagement = onNavigateToAssetManagement,
+            )
+        }
+
+        categoryPickerTransaction?.let { transaction ->
+            CategoryPickerBottomSheet(
+                selectedCategoryId = transaction.categoryId,
+                transactionType = transaction.type,
+                onDismiss = { categoryPickerTransaction = null },
+                onSelect = { categoryId ->
+                    viewModel.updateTransactionCategory(
+                        transaction = transaction,
+                        categoryId = categoryId,
+                        categoryName = CategoryCatalog.findById(categoryId)?.name,
+                    )
+                    categoryPickerTransaction = null
+                },
+            )
+        }
+
+        pendingDeleteTransaction?.let { transaction ->
+            AlertDialog(
+                onDismissRequest = { pendingDeleteTransaction = null },
+                title = {
+                    Text(
+                        text = "删除记录",
+                        style = IcokieTextStyles.titleMedium,
+                    )
+                },
+                text = {
+                    Text(
+                        text = "确认删除这条账单记录吗？",
+                        style = IcokieTextStyles.bodyLarge,
+                        color = OnSurfaceSecondary,
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteTransaction(transaction)
+                            pendingDeleteTransaction = null
+                            transientSuccessMessage = "删除成功"
+                        }
+                    ) {
+                        Text(text = "删除", color = ExpenseDefault)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingDeleteTransaction = null }) {
+                        Text(text = "取消")
+                    }
+                },
+                containerColor = Color.White.copy(alpha = 0.95f),
+                shape = RoundedCornerShape(16.dp),
             )
         }
     }
@@ -284,163 +413,442 @@ private fun BalanceCard(
     liabilities: BigDecimal,
     income: BigDecimal,
     expense: BigDecimal,
-    percentageChange: PercentageChange,
     onAssetManageClick: () -> Unit,
+    onStatisticsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val spacing = IcokieTheme.spacing
     val elevation = IcokieTheme.elevation
     var hideAmount by remember { mutableStateOf(false) }
     val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
+    var indicatorVisible by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(1200)
+        indicatorVisible = false
+    }
+
+    LaunchedEffect(pagerState.isScrollInProgress) {
+        if (pagerState.isScrollInProgress) {
+            indicatorVisible = true
+        } else {
+            delay(900)
+            indicatorVisible = false
+        }
+    }
 
     fun secureMoney(value: BigDecimal): String {
         val amountText = value.setScale(2, RoundingMode.HALF_UP).toPlainString()
         return if (hideAmount) "******" else "¥$amountText"
     }
 
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation.cardElevation),
-        colors = CardDefaults.cardColors(
-            containerColor = SurfacePrimary
-        ),
-        shape = RoundedCornerShape(26.dp),
-    ) {
+    Box(modifier = modifier.fillMaxWidth()) {
         androidx.compose.foundation.pager.HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxWidth(),
         ) { page ->
-            val glassGradient = if (page == 0) {
-                Brush.linearGradient(listOf(Color(0xFFF5E6A1), Color(0xFFF0D773), Color(0xFFEBCB5D)))
-            } else {
-                Brush.linearGradient(listOf(Color(0xFF3E6DFF), Color(0xFF5684FF), Color(0xFF6EA6FF)))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(228.dp)
+            ) {
+                if (page == 0) {
+                    NetAssetGlassCard(
+                        balance = balance,
+                        assets = assets,
+                        liabilities = liabilities,
+                        hideAmount = hideAmount,
+                        onToggleHide = { hideAmount = !hideAmount },
+                        onAssetManageClick = onAssetManageClick,
+                        secureMoney = ::secureMoney,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 2.dp, vertical = 1.dp),
+                        elevation = elevation.cardElevation,
+                    )
+                } else {
+                    MonthlyExpenseGlassCard(
+                        selectedMonth = selectedMonth,
+                        income = income,
+                        expense = expense,
+                        hideAmount = hideAmount,
+                        onToggleHide = { hideAmount = !hideAmount },
+                        onStatisticsClick = onStatisticsClick,
+                        secureMoney = ::secureMoney,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 2.dp, vertical = 1.dp),
+                        elevation = elevation.cardElevation,
+                    )
+                }
             }
-            val titleColor = if (page == 0) Color(0xFF6E560A) else Color(0xFFEAF2FF)
+        }
+
+        val indicatorAlpha = if (indicatorVisible || pagerState.isScrollInProgress) 0.95f else 0.12f
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 4.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White.copy(alpha = 0.16f))
+                .padding(horizontal = 6.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            repeat(2) { index ->
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 2.dp)
+                        .size(width = if (pagerState.currentPage == index) 12.dp else 7.dp, height = 3.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(
+                            if (pagerState.currentPage == index) {
+                                OnSurfacePrimary.copy(alpha = indicatorAlpha)
+                            } else {
+                                OnSurfaceTertiary.copy(alpha = 0.35f * indicatorAlpha)
+                            }
+                        ),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun NetAssetGlassCard(
+    balance: BigDecimal,
+    assets: BigDecimal,
+    liabilities: BigDecimal,
+    hideAmount: Boolean,
+    onToggleHide: () -> Unit,
+    onAssetManageClick: () -> Unit,
+    secureMoney: (BigDecimal) -> String,
+    modifier: Modifier = Modifier,
+    elevation: androidx.compose.ui.unit.Dp,
+) {
+    val cardShape = RoundedCornerShape(28.dp)
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(elevation = elevation, shape = cardShape),
+        shape = cardShape,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(cardShape)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFF7D986),
+                            Color(0xFFF2CC68),
+                            Color(0xFFE7B953)
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(980f, 720f),
+                    )
+                )
+                .border(1.dp, Color.White.copy(alpha = 0.34f), cardShape),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.45f),
+                                Color.White.copy(alpha = 0.12f),
+                                Color.Transparent,
+                            ),
+                            center = Offset(170f, 120f),
+                            radius = 520f,
+                        )
+                    ),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.20f),
+                                Color.Transparent,
+                                Color(0xFFBC8D2E).copy(alpha = 0.20f),
+                            ),
+                            start = Offset(0f, 40f),
+                            end = Offset(1040f, 760f),
+                        )
+                    ),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .border(1.dp, Color.White.copy(alpha = 0.22f), cardShape)
+                    .padding(1.dp),
+            )
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(glassGradient)
-                    .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(26.dp))
-                    .padding(spacing.cardPadding),
-                horizontalAlignment = Alignment.Start,
+                    .padding(horizontal = 20.dp, vertical = 18.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            text = if (page == 0) "净资产" else "${selectedMonth.monthValue}月支出",
-                            style = IcokieTextStyles.labelMedium,
-                            color = titleColor,
-                        )
-                        Text(
-                            text = if (hideAmount) "🙈" else "👁️",
-                            modifier = Modifier.clickable { hideAmount = !hideAmount },
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = "净资产", style = IcokieTextStyles.titleMedium, color = Color(0xFF4A3A12))
+                        Icon(
+                            imageVector = if (hideAmount) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = "切换金额可见",
+                            tint = Color(0xFF6B5420),
+                            modifier = Modifier.size(16.dp).clickable(onClick = onToggleHide),
                         )
                     }
-                    Row(
+                    Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(Color.White.copy(alpha = 0.26f))
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White.copy(alpha = 0.24f))
+                            .border(1.dp, Color.White.copy(alpha = 0.34f), RoundedCornerShape(16.dp))
                             .clickable(onClick = onAssetManageClick)
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            .padding(horizontal = 11.dp, vertical = 6.dp),
                     ) {
-                        Text(text = "💳", style = IcokieTextStyles.labelSmall)
-                        Text(text = "资产管理", style = IcokieTextStyles.labelSmall, color = titleColor)
-                    }
-                }
-                Spacer(modifier = Modifier.height(spacing.itemSpacing))
-
-                if (page == 0) {
-                    Text(
-                        text = secureMoney(balance),
-                        style = IcokieTextStyles.headlineLarge,
-                        color = titleColor,
-                    )
-                    Spacer(modifier = Modifier.height(spacing.cardSpacing))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column {
-                            Text(text = "资产", style = IcokieTextStyles.labelSmall, color = titleColor.copy(alpha = 0.7f))
-                            Text(text = secureMoney(assets), style = IcokieTextStyles.titleMedium, color = titleColor)
-                        }
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(text = "负债", style = IcokieTextStyles.labelSmall, color = titleColor.copy(alpha = 0.7f))
-                            Text(text = secureMoney(liabilities), style = IcokieTextStyles.titleMedium, color = titleColor)
-                        }
-                    }
-                } else {
-                    val monthlyBalance = income - expense
-                    Text(
-                        text = secureMoney(expense),
-                        style = IcokieTextStyles.headlineLarge,
-                        color = titleColor,
-                    )
-                    Spacer(modifier = Modifier.height(spacing.cardSpacing))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Column {
-                            Text(text = "收入", style = IcokieTextStyles.labelSmall, color = titleColor.copy(alpha = 0.8f))
-                            Text(text = secureMoney(income), style = IcokieTextStyles.titleMedium, color = titleColor)
-                        }
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(text = "结余", style = IcokieTextStyles.labelSmall, color = titleColor.copy(alpha = 0.8f))
-                            Text(text = secureMoney(monthlyBalance), style = IcokieTextStyles.titleMedium, color = titleColor)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Money,
+                                contentDescription = "资产管理",
+                                tint = Color(0xFF5A4620),
+                                modifier = Modifier.size(13.dp),
+                            )
+                            Text(text = "资产管理", style = IcokieTextStyles.labelSmall, color = Color(0xFF5A4620))
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                contentDescription = null,
+                                tint = Color(0xFF6F5928),
+                                modifier = Modifier.size(10.dp),
+                            )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
-                Box(
+                Spacer(modifier = Modifier.height(14.dp))
+                HeroAmountText(
+                    amountText = secureMoney(balance),
+                    primaryColor = Color(0xFF3D2F10),
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White.copy(alpha = if (page == 0) 0.30f else 0.20f)),
-                    contentAlignment = Alignment.Center,
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.17f))
+                        .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(16.dp))
+                        .padding(horizontal = 14.dp, vertical = 11.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Icon(
-                            imageVector = if (percentageChange.isPositive) Icons.Default.TrendingUp else Icons.Default.TrendingDown,
-                            contentDescription = "Trend",
-                            tint = if (percentageChange.isPositive) IncomeDefault else ExpenseDefault,
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Text(
-                            text = "${if (percentageChange.isPositive) "+" else ""}${percentageChange.percentage.setScale(1, RoundingMode.HALF_UP)}% 较上月",
-                            style = IcokieTextStyles.labelMedium,
-                            color = if (page == 0) Color(0xFF2B6A34) else Color.White,
-                        )
+                    Column {
+                        Text(text = "资产", style = IcokieTextStyles.labelSmall, color = Color(0xFF735A28))
+                        Text(text = secureMoney(assets), style = IcokieTextStyles.titleMedium, color = Color(0xFF493812))
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(text = "负债", style = IcokieTextStyles.labelSmall, color = Color(0xFF735A28))
+                        Text(text = secureMoney(liabilities), style = IcokieTextStyles.titleMedium, color = Color(0xFF493812))
                     }
                 }
             }
         }
+    }
+}
 
-        Row(
+@Composable
+private fun MonthlyExpenseGlassCard(
+    selectedMonth: LocalDate,
+    income: BigDecimal,
+    expense: BigDecimal,
+    hideAmount: Boolean,
+    onToggleHide: () -> Unit,
+    onStatisticsClick: () -> Unit,
+    secureMoney: (BigDecimal) -> String,
+    modifier: Modifier = Modifier,
+    elevation: androidx.compose.ui.unit.Dp,
+) {
+    val monthlyBalance = income - expense
+    val cardShape = RoundedCornerShape(28.dp)
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(elevation = elevation, shape = cardShape),
+        shape = cardShape,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+    ) {
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            repeat(2) { index ->
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 3.dp)
-                        .size(width = 16.dp, height = 4.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(if (pagerState.currentPage == index) OnSurfacePrimary else OnSurfaceTertiary.copy(alpha = 0.4f)),
+                .clip(cardShape)
+                .background(
+                    Brush.linearGradient(
+                        listOf(Color(0xFF2E56D8), Color(0xFF3F6EEA), Color(0xFF5C8CF8)),
+                        start = Offset(0f, 0f),
+                        end = Offset(960f, 740f),
+                    )
                 )
+                .border(1.dp, Color.White.copy(alpha = 0.26f), cardShape),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.38f),
+                                Color.White.copy(alpha = 0.12f),
+                                Color.Transparent,
+                            ),
+                            center = Offset(190f, 110f),
+                            radius = 560f,
+                        )
+                    ),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = 0.17f),
+                                Color.Transparent,
+                                Color(0xFF1E3E98).copy(alpha = 0.20f),
+                            ),
+                            start = Offset(0f, 20f),
+                            end = Offset(1040f, 760f),
+                        )
+                    ),
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 18.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(text = "${selectedMonth.monthValue}月支出", style = IcokieTextStyles.titleMedium, color = Color(0xFFF2F6FF))
+                        Icon(
+                            imageVector = if (hideAmount) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = "切换金额可见",
+                            tint = Color(0xFFE2ECFF),
+                            modifier = Modifier.size(16.dp).clickable(onClick = onToggleHide),
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White.copy(alpha = 0.19f))
+                            .border(1.dp, Color.White.copy(alpha = 0.26f), RoundedCornerShape(16.dp))
+                            .clickable(onClick = onStatisticsClick)
+                            .padding(horizontal = 11.dp, vertical = 6.dp),
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PieChart,
+                                contentDescription = "统计",
+                                tint = Color(0xFFF5F9FF),
+                                modifier = Modifier.size(13.dp),
+                            )
+                            Text(text = "统计", style = IcokieTextStyles.labelSmall, color = Color(0xFFF5F9FF))
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                                contentDescription = null,
+                                tint = Color(0xFFEAF2FF),
+                                modifier = Modifier.size(10.dp),
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+                HeroAmountText(
+                    amountText = secureMoney(expense),
+                    primaryColor = Color(0xFFF9FCFF),
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.15f))
+                        .border(1.dp, Color.White.copy(alpha = 0.22f), RoundedCornerShape(16.dp))
+                        .padding(horizontal = 14.dp, vertical = 11.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column {
+                        Text(text = "收入", style = IcokieTextStyles.labelSmall, color = Color(0xFFE4ECFF))
+                        Text(text = secureMoney(income), style = IcokieTextStyles.titleMedium, color = Color(0xFFFCFEFF))
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(text = "结余", style = IcokieTextStyles.labelSmall, color = Color(0xFFE4ECFF))
+                        Text(text = secureMoney(monthlyBalance), style = IcokieTextStyles.titleMedium, color = Color(0xFFFCFEFF))
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun HeroAmountText(
+    amountText: String,
+    primaryColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    if (!amountText.startsWith("¥") || !amountText.contains(".")) {
+        Text(
+            text = amountText,
+            style = IcokieTextStyles.headlineLarge.copy(fontWeight = FontWeight.ExtraBold),
+            color = primaryColor,
+            modifier = modifier,
+        )
+        return
+    }
+
+    val numberPart = amountText.removePrefix("¥")
+    val integerPart = numberPart.substringBefore(".")
+    val decimalPart = numberPart.substringAfter(".", "00")
+
+    Row(modifier = modifier, verticalAlignment = Alignment.Bottom) {
+        Text(
+            text = "¥",
+            style = IcokieTextStyles.titleLarge,
+            color = primaryColor.copy(alpha = 0.9f),
+            modifier = Modifier.padding(bottom = 3.dp),
+        )
+        Text(
+            text = integerPart,
+            style = IcokieTextStyles.headlineLarge.copy(fontWeight = FontWeight.ExtraBold),
+            color = primaryColor,
+        )
+        Text(
+            text = ".$decimalPart",
+            style = IcokieTextStyles.titleLarge,
+            color = primaryColor.copy(alpha = 0.68f),
+            modifier = Modifier.padding(start = 1.dp, bottom = 2.dp),
+        )
     }
 }
 
@@ -603,17 +1011,44 @@ private fun DaySectionHeader(
         .filter { it.type == TransactionType.INCOME && !it.isPending }
         .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount }
 
+    val isToday = date == AppDateTime.today()
+    val datePart = date.format(DateTimeFormatter.ofPattern("M月d日（E）", Locale.CHINA))
+    val title = if (isToday) {
+        buildAnnotatedString {
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = OnSurfacePrimary)) {
+                append("今天")
+            }
+            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = OnSurfacePrimary.copy(alpha = 0.9f))) {
+                append(datePart)
+            }
+        }
+    } else {
+        buildAnnotatedString {
+            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = OnSurfacePrimary)) {
+                append(datePart)
+            }
+        }
+    }
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = date.format(DateTimeFormatter.ofPattern("M月d日（E）", Locale.CHINA)),
-            style = IcokieTextStyles.titleMedium,
-            color = OnSurfacePrimary,
+            text = title,
+            style = IcokieTextStyles.titleMedium.copy(
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                letterSpacing = 0.sp,
+            ),
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = "支出¥${expense.pretty()} | 收入¥${income.pretty()}",
-            style = IcokieTextStyles.labelMedium,
-            color = OnSurfaceSecondary,
+            style = IcokieTextStyles.labelMedium.copy(
+                fontSize = 12.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.Normal,
+                letterSpacing = 0.sp,
+            ),
+            color = OnSurfaceSecondary.copy(alpha = 0.78f),
         )
     }
 }
@@ -710,7 +1145,7 @@ private fun TimelineTransactionRecord(
             Spacer(modifier = Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Default.ReceiptLong,
+                    imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                     contentDescription = null,
                     tint = OnSurfaceSecondary,
                     modifier = Modifier.size(14.dp),
@@ -822,51 +1257,6 @@ private fun java.time.Instant.toClockText(): String {
         .format(DateTimeFormatter.ofPattern("HH:mm"))
 }
 
-private fun calculateChangeForMonth(
-    transactions: List<Transaction>,
-    selectedMonth: LocalDate,
-): PercentageChange {
-    val currentMonthTotal = transactions
-        .filter {
-            it.date.year == selectedMonth.year &&
-                it.date.monthValue == selectedMonth.monthValue &&
-                !it.isPending
-        }
-        .fold(BigDecimal.ZERO) { sum, item ->
-            when (item.type) {
-                TransactionType.INCOME -> sum + item.amount
-                TransactionType.EXPENSE -> sum - item.amount
-                TransactionType.TRANSFER -> sum
-            }
-        }
-
-    val previousMonth = selectedMonth.minusMonths(1)
-    val previousMonthTotal = transactions
-        .filter {
-            it.date.year == previousMonth.year &&
-                it.date.monthValue == previousMonth.monthValue &&
-                !it.isPending
-        }
-        .fold(BigDecimal.ZERO) { sum, item ->
-            when (item.type) {
-                TransactionType.INCOME -> sum + item.amount
-                TransactionType.EXPENSE -> sum - item.amount
-                TransactionType.TRANSFER -> sum
-            }
-        }
-
-    if (previousMonthTotal.compareTo(BigDecimal.ZERO) == 0) {
-        return PercentageChange(BigDecimal.ZERO, isPositive = true)
-    }
-
-    val diff = currentMonthTotal - previousMonthTotal
-    val pct = diff
-        .divide(previousMonthTotal.abs(), 4, RoundingMode.HALF_UP)
-        .multiply(BigDecimal(100))
-
-    return PercentageChange(percentage = pct, isPositive = pct >= BigDecimal.ZERO)
-}
-
 @Composable
 private fun EmptyRecentTransactions(
     modifier: Modifier = Modifier
@@ -884,7 +1274,7 @@ private fun EmptyRecentTransactions(
             verticalArrangement = Arrangement.spacedBy(spacing.itemSpacing)
         ) {
             Icon(
-                imageVector = Icons.Default.ReceiptLong,
+                imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
                 tint = OnSurfaceTertiary

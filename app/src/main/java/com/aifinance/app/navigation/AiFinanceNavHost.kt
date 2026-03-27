@@ -22,12 +22,18 @@ import com.aifinance.feature.home.AssetManagementScreen
 import com.aifinance.feature.home.addAssetDetailRoute
 import com.aifinance.feature.home.navigation.HOME_ROUTE
 import com.aifinance.feature.home.navigation.homeScreen
+import com.aifinance.feature.statistics.navigation.navigateToStatistics
+import com.aifinance.feature.settings.navigation.settingsScreen
+import com.aifinance.feature.statistics.navigation.statisticsScreen
 import com.aifinance.feature.transactions.navigation.TRANSACTIONS_ROUTE
+import com.aifinance.feature.transactions.navigation.navigateToTransactionDetail
+import com.aifinance.feature.transactions.navigation.transactionDetailScreen
 import com.aifinance.feature.transactions.navigation.transactionsScreen
 
 @Composable
 fun AiFinanceNavHost(
     navController: NavHostController,
+    onOpenDrawer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -60,12 +66,16 @@ fun AiFinanceNavHost(
         }
     ) {
         homeScreen(
-            onNavigateToTransactions = {
-                navController.navigate(TRANSACTIONS_ROUTE)
-            },
+            onOpenDrawer = onOpenDrawer,
             onNavigateToAssetManagement = {
                 navController.navigate(ASSET_MANAGEMENT_ROUTE)
-            }
+            },
+            onNavigateToStatistics = {
+                navController.navigateToStatistics()
+            },
+            onNavigateToTransactionDetail = { transactionId ->
+                navController.navigateToTransactionDetail(transactionId)
+            },
         )
 
         composable(ASSET_MANAGEMENT_ROUTE) {
@@ -98,7 +108,17 @@ fun AiFinanceNavHost(
             )
         }
 
-        transactionsScreen()
+        transactionsScreen(
+            onNavigateToTransactionDetail = { transactionId ->
+                navController.navigateToTransactionDetail(transactionId)
+            }
+        )
+        transactionDetailScreen(
+            onBack = { navController.popBackStack() },
+            onSaved = { navController.popBackStack() },
+        )
+        statisticsScreen(onBack = { navController.popBackStack() })
+        settingsScreen(onBack = { navController.popBackStack() })
         addTransactionScreen(
             onBack = { navController.popBackStack() },
             onSuccess = { navController.popBackStack() }

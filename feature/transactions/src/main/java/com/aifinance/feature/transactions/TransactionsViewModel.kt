@@ -6,6 +6,7 @@ import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.Category
+import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +16,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.UUID
 import javax.inject.Inject
 
@@ -38,41 +41,14 @@ class TransactionsViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
-    val categories: List<Category> = listOf(
-        Category(
-            id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
-            name = "餐饮",
-            icon = "🍜",
-            color = 0xFF4F7BFF.toInt(),
-        ),
-        Category(
-            id = UUID.fromString("22222222-2222-2222-2222-222222222222"),
-            name = "购物",
-            icon = "🛍️",
-            color = 0xFF4F7BFF.toInt(),
-        ),
-        Category(
-            id = UUID.fromString("33333333-3333-3333-3333-333333333333"),
-            name = "交通",
-            icon = "🚗",
-            color = 0xFF4F7BFF.toInt(),
-        ),
-        Category(
-            id = UUID.fromString("44444444-4444-4444-4444-444444444444"),
-            name = "收入",
-            icon = "📦",
-            color = 0xFFE39A3A.toInt(),
-        ),
-        Category(
-            id = UUID.fromString("55555555-5555-5555-5555-555555555555"),
-            name = "其他",
-            icon = "📦",
-            color = 0xFF9CA3AF.toInt(),
-        ),
-    )
+    val categories: List<Category> = CategoryCatalog.allCategories()
+
+    fun categoriesForType(type: TransactionType): List<Category> {
+        return CategoryCatalog.categoriesForType(type)
+    }
 
     fun updateTransactionCategory(transaction: Transaction, categoryId: UUID) {
-        val category = categories.firstOrNull { it.id == categoryId } ?: return
+        val category = CategoryCatalog.resolve(categoryId = categoryId, type = transaction.type).asCategory()
         viewModelScope.launch {
             transactionRepository.updateTransaction(
                 transaction.copy(
@@ -99,6 +75,28 @@ class TransactionsViewModel @Inject constructor(
                     date = date,
                     type = type,
                     isPending = !includeInExpense,
+                )
+            )
+        }
+    }
+
+    fun updateTransactionEditor(
+        transaction: Transaction,
+        amount: BigDecimal,
+        accountId: UUID,
+        dateTime: LocalDateTime,
+        type: TransactionType,
+        remark: String?,
+    ) {
+        viewModelScope.launch {
+            transactionRepository.updateTransaction(
+                transaction.copy(
+                    amount = amount,
+                    accountId = accountId,
+                    date = dateTime.toLocalDate(),
+                    time = dateTime.atZone(ZoneId.systemDefault()).toInstant(),
+                    type = type,
+                    description = remark,
                 )
             )
         }
