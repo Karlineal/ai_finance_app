@@ -90,6 +90,9 @@ import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import com.aifinance.feature.home.component.CategoryPickerBottomSheet
+import com.aifinance.feature.home.component.GradientGlassCard
+import com.aifinance.feature.home.component.NetAssetGradientCard
+import com.aifinance.feature.home.component.MonthlyExpenseGradientCard
 import com.aifinance.feature.home.component.RefinedTransactionItem
 import com.aifinance.feature.home.component.SwipeableTransactionItem
 import androidx.compose.material.icons.filled.Visibility
@@ -524,75 +527,7 @@ private fun NetAssetGlassCard(
     modifier: Modifier = Modifier,
     elevation: androidx.compose.ui.unit.Dp,
 ) {
-    val cardShape = RoundedCornerShape(28.dp)
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(elevation = elevation, shape = cardShape),
-        shape = cardShape,
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(cardShape)
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFFF7D986),
-                            Color(0xFFF2CC68),
-                            Color(0xFFE7B953)
-                        ),
-                        start = Offset(0f, 0f),
-                        end = Offset(980f, 720f),
-                    )
-                )
-                .border(1.dp, Color.White.copy(alpha = 0.34f), cardShape),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                Color.White.copy(alpha = 0.45f),
-                                Color.White.copy(alpha = 0.12f),
-                                Color.Transparent,
-                            ),
-                            center = Offset(170f, 120f),
-                            radius = 520f,
-                        )
-                    ),
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                Color.White.copy(alpha = 0.20f),
-                                Color.Transparent,
-                                Color(0xFFBC8D2E).copy(alpha = 0.20f),
-                            ),
-                            start = Offset(0f, 40f),
-                            end = Offset(1040f, 760f),
-                        )
-                    ),
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .border(1.dp, Color.White.copy(alpha = 0.22f), cardShape)
-                    .padding(1.dp),
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 18.dp),
-            ) {
+    NetAssetGradientCard(modifier = modifier) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -679,132 +614,75 @@ private fun MonthlyExpenseGlassCard(
     elevation: androidx.compose.ui.unit.Dp,
 ) {
     val monthlyBalance = income - expense
-    val cardShape = RoundedCornerShape(28.dp)
 
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(elevation = elevation, shape = cardShape),
-        shape = cardShape,
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(cardShape)
-                .background(
-                    Brush.linearGradient(
-                        listOf(Color(0xFF2E56D8), Color(0xFF3F6EEA), Color(0xFF5C8CF8)),
-                        start = Offset(0f, 0f),
-                        end = Offset(960f, 740f),
-                    )
-                )
-                .border(1.dp, Color.White.copy(alpha = 0.26f), cardShape),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                Color.White.copy(alpha = 0.38f),
-                                Color.White.copy(alpha = 0.12f),
-                                Color.Transparent,
-                            ),
-                            center = Offset(190f, 110f),
-                            radius = 560f,
-                        )
-                    ),
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                Color.White.copy(alpha = 0.17f),
-                                Color.Transparent,
-                                Color(0xFF1E3E98).copy(alpha = 0.20f),
-                            ),
-                            start = Offset(0f, 20f),
-                            end = Offset(1040f, 760f),
-                        )
-                    ),
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 18.dp),
+    MonthlyExpenseGradientCard(modifier = modifier) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = "${selectedMonth.monthValue}月支出", style = IcokieTextStyles.titleMedium, color = Color(0xFFF2F6FF))
+                    Icon(
+                        imageVector = if (hideAmount) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = "切换金额可见",
+                        tint = Color(0xFFE2ECFF),
+                        modifier = Modifier.size(16.dp).clickable(onClick = onToggleHide),
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.19f))
+                        .border(1.dp, Color.White.copy(alpha = 0.26f), RoundedCornerShape(16.dp))
+                        .clickable(onClick = onStatisticsClick)
+                        .padding(horizontal = 11.dp, vertical = 6.dp),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = "${selectedMonth.monthValue}月支出", style = IcokieTextStyles.titleMedium, color = Color(0xFFF2F6FF))
-                        Icon(
-                            imageVector = if (hideAmount) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = "切换金额可见",
-                            tint = Color(0xFFE2ECFF),
-                            modifier = Modifier.size(16.dp).clickable(onClick = onToggleHide),
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.White.copy(alpha = 0.19f))
-                            .border(1.dp, Color.White.copy(alpha = 0.26f), RoundedCornerShape(16.dp))
-                            .clickable(onClick = onStatisticsClick)
-                            .padding(horizontal = 11.dp, vertical = 6.dp),
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PieChart,
-                                contentDescription = "统计",
-                                tint = Color(0xFFF5F9FF),
-                                modifier = Modifier.size(13.dp),
-                            )
-                            Text(text = "统计", style = IcokieTextStyles.labelSmall, color = Color(0xFFF5F9FF))
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                                contentDescription = null,
-                                tint = Color(0xFFEAF2FF),
-                                modifier = Modifier.size(10.dp),
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.PieChart,
+                            contentDescription = "统计",
+                            tint = Color(0xFFF5F9FF),
+                            modifier = Modifier.size(13.dp),
+                        )
+                        Text(text = "统计", style = IcokieTextStyles.labelSmall, color = Color(0xFFF5F9FF))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                            contentDescription = null,
+                            tint = Color(0xFFEAF2FF),
+                            modifier = Modifier.size(10.dp),
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(14.dp))
-                HeroAmountText(
-                    amountText = secureMoney(expense),
-                    primaryColor = Color(0xFFF9FCFF),
-                )
+            Spacer(modifier = Modifier.height(14.dp))
+            HeroAmountText(
+                amountText = secureMoney(expense),
+                primaryColor = Color(0xFFF9FCFF),
+            )
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White.copy(alpha = 0.15f))
-                        .border(1.dp, Color.White.copy(alpha = 0.22f), RoundedCornerShape(16.dp))
-                        .padding(horizontal = 14.dp, vertical = 11.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column {
-                        Text(text = "收入", style = IcokieTextStyles.labelSmall, color = Color(0xFFE4ECFF))
-                        Text(text = secureMoney(income), style = IcokieTextStyles.titleMedium, color = Color(0xFFFCFEFF))
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(text = "结余", style = IcokieTextStyles.labelSmall, color = Color(0xFFE4ECFF))
-                        Text(text = secureMoney(monthlyBalance), style = IcokieTextStyles.titleMedium, color = Color(0xFFFCFEFF))
-                    }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White.copy(alpha = 0.15f))
+                    .border(1.dp, Color.White.copy(alpha = 0.22f), RoundedCornerShape(16.dp))
+                    .padding(horizontal = 14.dp, vertical = 11.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text(text = "收入", style = IcokieTextStyles.labelSmall, color = Color(0xFFE4ECFF))
+                    Text(text = secureMoney(income), style = IcokieTextStyles.titleMedium, color = Color(0xFFFCFEFF))
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(text = "结余", style = IcokieTextStyles.labelSmall, color = Color(0xFFE4ECFF))
+                    Text(text = secureMoney(monthlyBalance), style = IcokieTextStyles.titleMedium, color = Color(0xFFFCFEFF))
                 }
             }
         }
