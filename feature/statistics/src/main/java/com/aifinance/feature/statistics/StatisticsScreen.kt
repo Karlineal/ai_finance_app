@@ -64,6 +64,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.TransactionRepository
+import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -1279,31 +1280,47 @@ private data class CategoryGroup(
 )
 
 private fun Transaction.toCategoryKey(mode: CompositionMode): String {
-    val text = title + " " + (description ?: "")
-    return when {
-        mode == CompositionMode.INCOME && text.contains("工资") -> "工资"
-        mode == CompositionMode.INCOME && text.contains("奖金") -> "奖金"
-        mode == CompositionMode.INCOME -> "其他收入"
-        text.contains("餐") || text.contains("外卖") -> "餐饮"
-        text.contains("购") || text.contains("超市") -> "购物"
-        text.contains("房") || text.contains("租") -> "住房"
-        text.contains("交通") || text.contains("地铁") || text.contains("打车") -> "交通"
-        text.contains("充") || text.contains("话费") -> "充值"
-        else -> "其他支出"
+    val catalogCategory = categoryId?.let { CategoryCatalog.findById(it) }
+    return if (catalogCategory != null) {
+        catalogCategory.name
+    } else {
+        val text = title + " " + (description ?: "")
+        when {
+            mode == CompositionMode.INCOME && text.contains("工资") -> "工资"
+            mode == CompositionMode.INCOME && text.contains("奖金") -> "奖金"
+            mode == CompositionMode.INCOME -> "其他收入"
+            text.contains("餐") || text.contains("外卖") -> "餐饮"
+            text.contains("购") || text.contains("超市") -> "购物"
+            text.contains("房") || text.contains("租") -> "住房"
+            text.contains("交通") || text.contains("地铁") || text.contains("打车") -> "交通"
+            text.contains("充") || text.contains("话费") -> "充值"
+            else -> "其他支出"
+        }
     }
 }
 
 private fun String.toVisual(mode: CompositionMode): CategoryVisual {
-    return when (this) {
-        "餐饮" -> CategoryVisual("餐饮", "🍜")
-        "购物" -> CategoryVisual("购物", "🛒")
-        "住房" -> CategoryVisual("住房", "🏠")
-        "交通" -> CategoryVisual("交通", "🚗")
-        "充值" -> CategoryVisual("充值", "📱")
-        "工资" -> CategoryVisual("工资", "💼")
-        "奖金" -> CategoryVisual("奖金", "🎁")
-        "其他收入" -> CategoryVisual("其他收入", "📦")
-        else -> CategoryVisual(if (mode == CompositionMode.EXPENSE) "其他支出" else "其他收入", if (mode == CompositionMode.EXPENSE) "📦" else "📦")
+    val catalogCategory = CategoryCatalog.all.firstOrNull { it.name == this }
+    return if (catalogCategory != null) {
+        CategoryVisual(catalogCategory.name, catalogCategory.icon)
+    } else {
+        when (this) {
+            "餐饮" -> CategoryVisual("餐饮", "🍜")
+            "购物" -> CategoryVisual("购物", "🛒")
+            "住房" -> CategoryVisual("住房", "🏠")
+            "交通" -> CategoryVisual("交通", "🚗")
+            "通讯" -> CategoryVisual("通讯", "📱")
+            "医疗" -> CategoryVisual("医疗", "💊")
+            "教育" -> CategoryVisual("教育", "📚")
+            "娱乐" -> CategoryVisual("娱乐", "🎮")
+            "工资" -> CategoryVisual("工资", "💼")
+            "奖金" -> CategoryVisual("奖金", "🎁")
+            "其他收入" -> CategoryVisual("其他收入", "📦")
+            else -> CategoryVisual(
+                if (mode == CompositionMode.EXPENSE) "其他支出" else "其他收入",
+                "📦"
+            )
+        }
     }
 }
 
