@@ -219,10 +219,17 @@ private fun Transaction.resolveRefinedVisual(): VisualTheme {
             background = Color(0xFFFFF8E1),
             amount = Color(0xFFF57C00)
         )
-        TransactionType.TRANSFER -> TypeColors(
-            background = Color(0xFFE8F5E9),
-            amount = Color(0xFF388E3C)
-        )
+        TransactionType.TRANSFER -> {
+            val amountColor = if (title.startsWith("转出至")) {
+                Color(0xFF1976D2)
+            } else {
+                Color(0xFFF57C00)
+            }
+            TypeColors(
+                background = Color(0xFFE8F5E9),
+                amount = amountColor
+            )
+        }
     }
 
     return VisualTheme(
@@ -246,7 +253,15 @@ private fun Transaction.prettyAmount(): String {
     return when (type) {
         TransactionType.INCOME -> "+¥$value"
         TransactionType.EXPENSE -> "-¥$value"
-        TransactionType.TRANSFER -> "¥$value"
+        TransactionType.TRANSFER -> {
+            if (title.startsWith("转出至")) {
+                "-¥$value"
+            } else if (title.startsWith("转入自")) {
+                "+¥$value"
+            } else {
+                "¥$value"
+            }
+        }
     }
 }
 

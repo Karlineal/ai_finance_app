@@ -2,6 +2,7 @@ package com.aifinance.core.data.repository
 
 import com.aifinance.core.model.Category
 import com.aifinance.core.model.Transaction
+import com.aifinance.core.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -17,6 +18,7 @@ interface TransactionRepository {
 
 interface CategoryRepository {
     fun getAllCategories(): Flow<List<Category>>
+    fun getCategoriesByType(type: TransactionType): Flow<List<Category>>
     suspend fun getCategoryById(id: UUID): Category?
     suspend fun insertCategory(category: Category)
     suspend fun updateCategory(category: Category)

@@ -12,6 +12,7 @@ data class CategoryEntity(
     val name: String,
     val icon: String,
     val color: Int,
+    val type: String,
     val parentId: UUID?,
     val isDefault: Boolean,
     val order: Int,

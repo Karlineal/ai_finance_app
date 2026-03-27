@@ -22,13 +22,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.EventRepeat
-import androidx.compose.material.icons.filled.Label
-import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Settings
@@ -219,20 +216,14 @@ fun HomeDrawerContent(
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
                     Text("常用功能", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                         DrawerFeature("图表统计", Icons.Default.BarChart) { onNavigateToStatistics() }
                         DrawerFeature("资产管理", Icons.Default.Wallet) { onNavigateToAssetManagement() }
-                        DrawerFeature("账本管理", Icons.Default.BookmarkBorder) { onNavigateToTransactions() }
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                         DrawerFeature("预算管理", Icons.Default.Calculate) { }
-                        DrawerFeature("攒钱计划", Icons.Default.NotificationsActive) { }
                         DrawerFeature("分类管理", Icons.Default.Category) { }
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                        DrawerFeature("标签管理", Icons.Default.Label) { }
                     }
                 }
             }

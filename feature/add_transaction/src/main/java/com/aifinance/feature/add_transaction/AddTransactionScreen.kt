@@ -153,8 +153,9 @@ fun AddTransactionScreen(
             )
 
             // Category Chips - Horizontal scrollable
+            val categories by viewModel.categories.collectAsStateWithLifecycle()
             CategoryChipsSection(
-                categories = viewModel.categories,
+                categories = categories,
                 selectedCategoryId = uiState.categoryId,
                 onCategorySelected = viewModel::onCategorySelected,
                 error = uiState.categoryError

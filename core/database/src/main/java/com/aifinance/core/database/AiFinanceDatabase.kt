@@ -16,7 +16,7 @@ import com.aifinance.core.database.entity.TransactionEntity
         CategoryEntity::class,
         TransactionEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

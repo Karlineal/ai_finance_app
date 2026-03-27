@@ -20,14 +20,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AutoGraph
-import androidx.compose.material.icons.filled.Bookmarks
-import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -64,6 +61,8 @@ fun HomeSidebarDrawerContent(
     onNavigateStatistics: () -> Unit,
     onNavigateTransactions: () -> Unit,
     onNavigateSettings: () -> Unit,
+    onNavigateAssetManagement: () -> Unit,
+    onNavigateCategoryManagement: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -108,6 +107,8 @@ fun HomeSidebarDrawerContent(
             FunctionGridCard(
                 onNavigateStatistics = onNavigateStatistics,
                 onNavigateTransactions = onNavigateTransactions,
+                onNavigateAssetManagement = onNavigateAssetManagement,
+                onNavigateCategoryManagement = onNavigateCategoryManagement,
             )
 
             QuickAccountingCard()
@@ -320,16 +321,14 @@ private fun HeatmapStatItem(value: String, label: String) {
 private fun FunctionGridCard(
     onNavigateStatistics: () -> Unit,
     onNavigateTransactions: () -> Unit,
+    onNavigateAssetManagement: () -> Unit,
+    onNavigateCategoryManagement: () -> Unit,
 ) {
     val items = listOf(
         DrawerFunctionItem("图表统计", Icons.Default.PieChart, onNavigateStatistics),
-        DrawerFunctionItem("资产管理", Icons.Default.CreditCard, {}),
-        DrawerFunctionItem("账本管理", Icons.Default.Bookmarks, onNavigateTransactions),
+        DrawerFunctionItem("资产管理", Icons.Default.CreditCard, onNavigateAssetManagement),
         DrawerFunctionItem("预算管理", Icons.Default.AutoGraph, {}),
-        DrawerFunctionItem("攒钱计划", Icons.Default.Calculate, {}),
-        DrawerFunctionItem("AI功能", Icons.Default.SmartToy, {}),
-        DrawerFunctionItem("分类管理", Icons.Default.Category, {}),
-        DrawerFunctionItem("标签管理", Icons.Default.CalendarMonth, {}),
+        DrawerFunctionItem("分类管理", Icons.Default.Category, onNavigateCategoryManagement),
     )
 
     Card(

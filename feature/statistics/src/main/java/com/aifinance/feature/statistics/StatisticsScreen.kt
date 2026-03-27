@@ -63,6 +63,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
@@ -84,6 +85,10 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
+import io.github.koalaplot.core.pie.BezierLabelConnector
+import io.github.koalaplot.core.pie.DefaultSlice
+import io.github.koalaplot.core.pie.PieChart
+import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 
 private val ExpenseBlue = Color(0xFF2F67DE)
 private val IncomeOrange = Color(0xFFFF8A00)
@@ -151,6 +156,7 @@ data class StatisticsUiState(
 
 private data class StatisticsInputs(
     val transactions: List<Transaction>,
+    val categories: List<com.aifinance.core.model.Category>,
     val period: StatisticsPeriod,
     val anchorDate: LocalDate,
     val trendMetric: TrendMetric,
@@ -160,6 +166,7 @@ private data class StatisticsInputs(
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
     transactionRepository: TransactionRepository,
+    private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
 
     private val periodFlow = MutableStateFlow(StatisticsPeriod.MONTH)
@@ -168,27 +175,43 @@ class StatisticsViewModel @Inject constructor(
     private val compositionModeFlow = MutableStateFlow(CompositionMode.EXPENSE)
     private val rankingExpandedFlow = MutableStateFlow(false)
 
-    private val baseInputs = combine(
-        transactionRepository.getAllTransactions(),
+    private val transactionsFlow = transactionRepository.getAllTransactions()
+    private val categoriesFlow = categoryRepository.getAllCategories()
+
+    private val baseInputs: StateFlow<StatisticsInputs> = combine(
+        combine(transactionsFlow, categoriesFlow) { t, c -> t to c },
         periodFlow,
         anchorDateFlow,
         trendMetricFlow,
         compositionModeFlow,
-    ) { transactions, period, anchorDate, trendMetric, compositionMode ->
+    ) { transPair, period, anchorDate, trendMetric, compositionMode ->
         StatisticsInputs(
-            transactions = transactions,
+            transactions = transPair.first,
+            categories = transPair.second,
             period = period,
             anchorDate = anchorDate,
             trendMetric = trendMetric,
             compositionMode = compositionMode,
         )
-    }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = StatisticsInputs(
+            transactions = emptyList(),
+            categories = emptyList(),
+            period = StatisticsPeriod.MONTH,
+            anchorDate = LocalDate.now(),
+            trendMetric = TrendMetric.EXPENSE,
+            compositionMode = CompositionMode.EXPENSE,
+        )
+    )
 
     val uiState: StateFlow<StatisticsUiState> = combine(
         baseInputs,
         rankingExpandedFlow,
     ) { inputs, rankingExpanded ->
         val transactions = inputs.transactions
+        val categories = inputs.categories
         val period = inputs.period
         val anchorDate = inputs.anchorDate
         val trendMetric = inputs.trendMetric
@@ -202,7 +225,7 @@ class StatisticsViewModel @Inject constructor(
             income = filtered.sumAmount(TransactionType.INCOME),
         )
         val trendBuckets = buildTrendBuckets(filtered, period, anchorDate)
-        val compositionItems = buildCategoryItems(filtered, compositionMode)
+        val compositionItems = buildCategoryItems(filtered, compositionMode, categories)
         val divisor = period.divisor(anchorDate)
         val summaryRows = SummaryRows(
             total = aggregate,
@@ -657,203 +680,72 @@ private fun CompositionCard(
     }
 }
 
+@OptIn(ExperimentalKoalaPlotApi::class)
 @Composable
 private fun DonutChart(items: List<CategoryItem>, centerTitle: String) {
     val total = items.fold(BigDecimal.ZERO) { acc, item -> acc + item.amount }
+    val values = items.map { it.amount.toFloatSafe() }
+    val labelColor = Color(0xFF8B97AA)
+
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-        Canvas(modifier = Modifier
-            .fillMaxWidth()
-            .height(296.dp)) {
-            val center = Offset(x = size.width / 2f, y = size.height * 0.57f)
-            val outerRadius = minOf(size.width * 0.23f, size.height * 0.24f)
-            val ringWidth = 30.dp.toPx()
-            var startAngle = -90f
-            val stroke = Stroke(width = ringWidth, cap = StrokeCap.Butt)
-            val outerGlowStroke = Stroke(width = (ringWidth + 6.dp.toPx()), cap = StrokeCap.Butt)
-            val labelBandWidth = size.width * 0.22f
-            val leftTextX = 12.dp.toPx()
-            val rightTextX = size.width - labelBandWidth - 12.dp.toPx()
-            val leftLineEndX = leftTextX + labelBandWidth - 12.dp.toPx()
-            val rightLineEndX = rightTextX - 12.dp.toPx()
-
-            drawArc(
-                color = Color(0xFFF2F4FA),
-                startAngle = -90f,
-                sweepAngle = 360f,
-                useCenter = false,
-                style = stroke,
-                topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                size = Size(outerRadius * 2, outerRadius * 2),
-            )
-
-            if (items.isEmpty()) {
+        if (items.isEmpty()) {
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(296.dp)
+            ) {
+                val center = Offset(x = size.width / 2f, y = size.height * 0.57f)
+                val outerRadius = minOf(size.width * 0.23f, size.height * 0.24f)
+                val ringWidth = 30.dp.toPx()
                 drawArc(
                     color = Color(0xFFDDE2EE),
                     startAngle = -90f,
                     sweepAngle = 360f,
                     useCenter = false,
-                    style = stroke,
+                    style = Stroke(width = ringWidth, cap = StrokeCap.Butt),
                     topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
                     size = Size(outerRadius * 2, outerRadius * 2),
                 )
-            } else {
-                val calloutCandidates = mutableListOf<Triple<CategoryItem, Float, Boolean>>()
-                items.forEach { item ->
-                    val sweep = 360f * item.ratio
-                    val gapAngle = if (items.size > 1) 2.8f else 0f
-                    val arcStart = startAngle + gapAngle / 2f
-                    val visibleSweep = (sweep - gapAngle).coerceAtLeast(0.8f)
-
-                    drawArc(
-                        color = item.color.copy(alpha = 0.16f),
-                        startAngle = arcStart,
-                        sweepAngle = visibleSweep,
-                        useCenter = false,
-                        style = outerGlowStroke,
-                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                        size = Size(outerRadius * 2, outerRadius * 2),
-                    )
-
-                    val gradient = Brush.sweepGradient(
-                        colors = listOf(
-                            item.color.copy(alpha = 0.88f),
-                            item.color,
-                            Color.White.copy(alpha = 0.12f),
-                            item.color.copy(alpha = 0.92f),
-                        ),
-                        center = center,
-                    )
-                    drawArc(
-                        brush = gradient,
-                        startAngle = arcStart,
-                        sweepAngle = visibleSweep,
-                        useCenter = false,
-                        style = stroke,
-                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                        size = Size(outerRadius * 2, outerRadius * 2),
-                    )
-
-                    drawArc(
-                        color = Color.White.copy(alpha = 0.16f),
-                        startAngle = arcStart,
-                        sweepAngle = visibleSweep * 0.36f,
-                        useCenter = false,
-                        style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round),
-                        topLeft = Offset(center.x - outerRadius, center.y - outerRadius),
-                        size = Size(outerRadius * 2, outerRadius * 2),
-                    )
-
-                    val midAngle = arcStart + visibleSweep / 2f
-                    val isRight = cos(midAngle / 180f * PI).toFloat() >= 0f
-                    calloutCandidates += Triple(item, midAngle, isRight)
-
-                    startAngle += sweep
-                }
-
-                val labelRadius = outerRadius + 22.dp.toPx()
-                val minGap = 30.dp.toPx()
-                val topBound = 24.dp.toPx()
-                val bottomBound = center.y + outerRadius - 8.dp.toPx()
-
-                fun adjustedYs(source: List<Pair<Int, Float>>): Map<Int, Float> {
-                    val sorted = source.sortedBy { it.second }
-                    val adjusted = mutableMapOf<Int, Float>()
-                    var cursor = topBound
-                    sorted.forEach { (index, y) ->
-                        val clamped = y.coerceIn(topBound, bottomBound)
-                        val finalY = maxOf(clamped, cursor)
-                        adjusted[index] = finalY
-                        cursor = finalY + minGap
-                    }
-                    return adjusted
-                }
-
-                val rightSource = calloutCandidates.mapIndexedNotNull { index, (_, angle, right) ->
-                    if (!right) return@mapIndexedNotNull null
-                    val radians = angle / 180f * PI
-                    index to (center.y + sin(radians).toFloat() * labelRadius)
-                }
-                val leftSource = calloutCandidates.mapIndexedNotNull { index, (_, angle, right) ->
-                    if (right) return@mapIndexedNotNull null
-                    val radians = angle / 180f * PI
-                    index to (center.y + sin(radians).toFloat() * labelRadius)
-                }
-
-                val adjustedYMap = adjustedYs(rightSource) + adjustedYs(leftSource)
-
-                val namePaint = android.graphics.Paint().apply {
-                    color = Color(0xFF1F2937).toArgb()
-                    textSize = 12.sp.toPx()
-                    isFakeBoldText = true
-                    isAntiAlias = true
-                }
-                val percentPaint = android.graphics.Paint().apply {
-                    color = Color(0xFF8B97AA).toArgb()
-                    textSize = 10.sp.toPx()
-                    isAntiAlias = true
-                }
-
-                fun ellipsize(text: String, paint: android.graphics.Paint, maxWidth: Float): String {
-                    if (paint.measureText(text) <= maxWidth) return text
-                    val ellipsis = "…"
-                    val safeWidth = (maxWidth - paint.measureText(ellipsis)).coerceAtLeast(0f)
-                    val count = paint.breakText(text, true, safeWidth, null)
-                    if (count <= 0) return ellipsis
-                    return text.take(count) + ellipsis
-                }
-
-                val labelTextMaxWidth = labelBandWidth - 18.dp.toPx()
-                val nameBaselineOffset = 2.dp.toPx()
-                val percentBaselineGap = 12.dp.toPx()
-
-                calloutCandidates.forEachIndexed { index, (item, angle, right) ->
-                    if (item.ratio <= 0f) return@forEachIndexed
-                    val radians = angle / 180f * PI
-                    val ringEdge = Offset(
-                        x = center.x + cos(radians).toFloat() * (outerRadius + 2.dp.toPx()),
-                        y = center.y + sin(radians).toFloat() * (outerRadius + 2.dp.toPx()),
-                    )
-                    val elbow = Offset(
-                        x = center.x + cos(radians).toFloat() * (outerRadius + 14.dp.toPx()),
-                        y = center.y + sin(radians).toFloat() * (outerRadius + 14.dp.toPx()),
-                    )
-                    val labelY = adjustedYMap[index] ?: elbow.y
-                    val lineEndX = if (right) rightLineEndX else leftLineEndX
-
-                    drawLine(color = item.color.copy(alpha = 0.62f), start = ringEdge, end = elbow, strokeWidth = 1.6.dp.toPx())
-                    drawLine(
-                        color = item.color.copy(alpha = 0.62f),
-                        start = Offset(elbow.x, labelY),
-                        end = Offset(lineEndX, labelY),
-                        strokeWidth = 1.6.dp.toPx(),
-                    )
-
-                    val percentText = "${(item.ratio * 100f).prettyPercent()}%"
-                    val titleText = ellipsize(item.name, namePaint, labelTextMaxWidth)
-                    val nameBaselineY = labelY - nameBaselineOffset
-                    val percentBaselineY = nameBaselineY + percentBaselineGap
-                    if (right) {
-                        val textX = rightTextX
-                        drawContext.canvas.nativeCanvas.drawText(titleText, textX, nameBaselineY, namePaint)
-                        drawContext.canvas.nativeCanvas.drawText(percentText, textX, percentBaselineY, percentPaint)
-                    } else {
-                        val textX = leftTextX
-                        drawContext.canvas.nativeCanvas.drawText(titleText, textX, nameBaselineY, namePaint)
-                        drawContext.canvas.nativeCanvas.drawText(percentText, textX, percentBaselineY, percentPaint)
-                    }
-                }
             }
-
-            drawCircle(
-                color = Color.White.copy(alpha = 0.9f),
-                radius = outerRadius - ringWidth / 2f + 2.dp.toPx(),
-                center = center,
-            )
-            drawCircle(
-                color = Color(0xFFEFF4FF),
-                radius = outerRadius - ringWidth / 2f - 1.dp.toPx(),
-                style = Stroke(width = 1.2.dp.toPx()),
-                center = center,
+        } else {
+            PieChart(
+                values = values,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(296.dp),
+                holeSize = 0.68f,
+                labelSpacing = 1.20f,
+                forceCenteredPie = true,
+                slice = { index ->
+                    DefaultSlice(
+                        color = items[index].color,
+                        gap = if (items.size > 1) 1.4f else 0f,
+                        antiAlias = true,
+                    )
+                },
+                label = { index ->
+                    val item = items[index]
+                    Column(horizontalAlignment = Alignment.Start) {
+                        Text(
+                            text = item.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Color(0xFF1F2937),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = "${(item.ratio * 100f).prettyPercent()}%",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = labelColor,
+                        )
+                    }
+                },
+                labelConnector = {
+                    BezierLabelConnector(
+                        connectorColor = Color(0xFF98A6BF),
+                        connectorStroke = Stroke(width = 1.6f),
+                    )
+                },
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -990,7 +882,7 @@ private fun TransactionDetailRow(
                     color = Color(0xFF1F2937),
                 )
                 Text(
-                    text = transaction.date.toDisplayLabel() + (transaction.description?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
+                    text = transaction.date.toDisplayLabel() + " " + transaction.time.toTimeLabel() + (transaction.description?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -1225,13 +1117,14 @@ private fun buildTrendBuckets(
 private fun buildCategoryItems(
     filtered: List<Transaction>,
     mode: CompositionMode,
+    customCategories: List<com.aifinance.core.model.Category>,
 ): List<CategoryItem> {
     val targetType = if (mode == CompositionMode.EXPENSE) TransactionType.EXPENSE else TransactionType.INCOME
     val target = filtered.filter { it.type == targetType }
     val total = target.fold(BigDecimal.ZERO) { acc, transaction -> acc + transaction.amount }
     if (target.isEmpty() || total == BigDecimal.ZERO) return emptyList()
 
-    val grouped = target.groupBy { it.toCategoryKey(mode) }
+    val grouped = target.groupBy { it.toCategoryKey(mode, customCategories) }
     val palette = if (mode == CompositionMode.EXPENSE) {
         listOf(Color(0xFF2F67DE), Color(0xFFFF8A00), Color(0xFF4CCB93), Color(0xFF8B5CF6), Color(0xFFF04452), Color(0xFF10B8D4))
     } else {
@@ -1242,7 +1135,7 @@ private fun buildCategoryItems(
         .map { entry ->
             val amount = entry.value.fold(BigDecimal.ZERO) { acc, transaction -> acc + transaction.amount }
             val ratio = if (total == BigDecimal.ZERO) 0f else amount.divide(total, 4, RoundingMode.HALF_UP).toFloatSafe()
-            val visual = entry.key.toVisual(mode)
+            val visual = entry.key.toVisual(mode, customCategories)
             CategoryGroup(
                 visual = visual,
                 amount = amount,
@@ -1279,48 +1172,56 @@ private data class CategoryGroup(
     val transactions: List<Transaction>,
 )
 
-private fun Transaction.toCategoryKey(mode: CompositionMode): String {
+private fun Transaction.toCategoryKey(mode: CompositionMode, customCategories: List<com.aifinance.core.model.Category>): String {
     val catalogCategory = categoryId?.let { CategoryCatalog.findById(it) }
-    return if (catalogCategory != null) {
-        catalogCategory.name
-    } else {
-        val text = title + " " + (description ?: "")
-        when {
-            mode == CompositionMode.INCOME && text.contains("工资") -> "工资"
-            mode == CompositionMode.INCOME && text.contains("奖金") -> "奖金"
-            mode == CompositionMode.INCOME -> "其他收入"
-            text.contains("餐") || text.contains("外卖") -> "餐饮"
-            text.contains("购") || text.contains("超市") -> "购物"
-            text.contains("房") || text.contains("租") -> "住房"
-            text.contains("交通") || text.contains("地铁") || text.contains("打车") -> "交通"
-            text.contains("充") || text.contains("话费") -> "充值"
-            else -> "其他支出"
-        }
+    if (catalogCategory != null) {
+        return catalogCategory.name
+    }
+    val customCategory = categoryId?.let { id ->
+        customCategories.firstOrNull { it.id == id }
+    }
+    if (customCategory != null) {
+        return customCategory.name
+    }
+    val text = title + " " + (description ?: "")
+    return when {
+        mode == CompositionMode.INCOME && text.contains("工资") -> "工资"
+        mode == CompositionMode.INCOME && text.contains("奖金") -> "奖金"
+        mode == CompositionMode.INCOME -> "其他收入"
+        text.contains("餐") || text.contains("外卖") -> "餐饮"
+        text.contains("购") || text.contains("超市") -> "购物"
+        text.contains("房") || text.contains("租") -> "住房"
+        text.contains("交通") || text.contains("地铁") || text.contains("打车") -> "交通"
+        text.contains("充") || text.contains("话费") -> "充值"
+        else -> "其他支出"
     }
 }
 
-private fun String.toVisual(mode: CompositionMode): CategoryVisual {
+private fun String.toVisual(mode: CompositionMode, customCategories: List<com.aifinance.core.model.Category>): CategoryVisual {
     val catalogCategory = CategoryCatalog.all.firstOrNull { it.name == this }
-    return if (catalogCategory != null) {
-        CategoryVisual(catalogCategory.name, catalogCategory.icon)
-    } else {
-        when (this) {
-            "餐饮" -> CategoryVisual("餐饮", "🍜")
-            "购物" -> CategoryVisual("购物", "🛒")
-            "住房" -> CategoryVisual("住房", "🏠")
-            "交通" -> CategoryVisual("交通", "🚗")
-            "通讯" -> CategoryVisual("通讯", "📱")
-            "医疗" -> CategoryVisual("医疗", "💊")
-            "教育" -> CategoryVisual("教育", "📚")
-            "娱乐" -> CategoryVisual("娱乐", "🎮")
-            "工资" -> CategoryVisual("工资", "💼")
-            "奖金" -> CategoryVisual("奖金", "🎁")
-            "其他收入" -> CategoryVisual("其他收入", "📦")
-            else -> CategoryVisual(
-                if (mode == CompositionMode.EXPENSE) "其他支出" else "其他收入",
-                "📦"
-            )
-        }
+    if (catalogCategory != null) {
+        return CategoryVisual(catalogCategory.name, catalogCategory.icon)
+    }
+    val customCategory = customCategories.firstOrNull { it.name == this }
+    if (customCategory != null) {
+        return CategoryVisual(customCategory.name, customCategory.icon)
+    }
+    return when (this) {
+        "餐饮" -> CategoryVisual("餐饮", "🍜")
+        "购物" -> CategoryVisual("购物", "🛒")
+        "住房" -> CategoryVisual("住房", "🏠")
+        "交通" -> CategoryVisual("交通", "🚗")
+        "通讯" -> CategoryVisual("通讯", "📱")
+        "医疗" -> CategoryVisual("医疗", "💊")
+        "教育" -> CategoryVisual("教育", "📚")
+        "娱乐" -> CategoryVisual("娱乐", "🎮")
+        "工资" -> CategoryVisual("工资", "💼")
+        "奖金" -> CategoryVisual("奖金", "🎁")
+        "其他收入" -> CategoryVisual("其他收入", "📦")
+        else -> CategoryVisual(
+            if (mode == CompositionMode.EXPENSE) "其他支出" else "其他收入",
+            "📦"
+        )
     }
 }
 
@@ -1358,5 +1259,10 @@ private fun BigDecimal.toFloatSafe(): Float = try {
 }
 
 private fun LocalDate.toDisplayLabel(): String = "${monthValue}月${dayOfMonth}日"
+
+private fun java.time.Instant.toTimeLabel(): String {
+    val localTime = atZone(java.time.ZoneId.systemDefault()).toLocalTime()
+    return String.format("%02d:%02d", localTime.hour, localTime.minute)
+}
 
 private fun Float.prettyPercent(): String = String.format("%.2f", this)

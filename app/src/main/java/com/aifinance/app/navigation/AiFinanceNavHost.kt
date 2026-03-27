@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import com.aifinance.feature.add_transaction.navigation.addTransactionScreen
+import com.aifinance.feature.category_management.navigation.categoryManagementScreen
 import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.ADD_ASSET_ACCOUNT_ROUTE
 import com.aifinance.feature.home.ADD_ASSET_DETAIL_ROUTE
@@ -119,6 +120,7 @@ fun AiFinanceNavHost(
         )
         statisticsScreen(onBack = { navController.popBackStack() })
         settingsScreen(onBack = { navController.popBackStack() })
+        categoryManagementScreen(onBack = { navController.popBackStack() })
         addTransactionScreen(
             onBack = { navController.popBackStack() },
             onSuccess = { navController.popBackStack() }

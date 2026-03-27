@@ -3,17 +3,20 @@ package com.aifinance.feature.add_transaction
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
+import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.Category
 import com.aifinance.core.model.CategoryCatalog
-import com.aifinance.core.model.CurrencyCode
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionSourceType
 import com.aifinance.core.model.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -37,13 +40,22 @@ data class AddTransactionUiState(
 class AddTransactionViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val accountRepository: AccountRepository,
+    categoryRepository: CategoryRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddTransactionUiState())
     val uiState: StateFlow<AddTransactionUiState> = _uiState.asStateFlow()
 
-    val categories: List<Category>
-        get() = CategoryCatalog.categoriesForType(_uiState.value.type)
+    val categories: StateFlow<List<Category>> = combine(
+        _uiState,
+        categoryRepository.getAllCategories()
+    ) { state, customCategories ->
+        mergeCategories(state.type, customCategories)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = CategoryCatalog.categoriesForType(TransactionType.EXPENSE)
+    )
 
     init {
         _uiState.value = AddTransactionUiState(
@@ -173,4 +185,10 @@ class AddTransactionViewModel @Inject constructor(
             categoryId = CategoryCatalog.fallback(TransactionType.EXPENSE).id,
         )
     }
+}
+
+private fun mergeCategories(type: TransactionType, customCategories: List<Category>): List<Category> {
+    val defaults = CategoryCatalog.categoriesForType(type)
+    val customForType = customCategories.filter { it.type == type && !it.isDefault }
+    return defaults + customForType
 }

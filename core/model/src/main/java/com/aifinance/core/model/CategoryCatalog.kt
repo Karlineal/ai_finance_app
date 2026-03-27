@@ -16,6 +16,7 @@ data class CatalogCategory(
             name = name,
             icon = icon,
             color = color,
+            type = type,
             isDefault = true,
             order = order,
         )

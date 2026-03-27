@@ -143,8 +143,11 @@ private fun AddTransactionSheetContent(
     var showDateTimePicker by remember { mutableStateOf(false) }
     var accountPickerMode by remember { mutableStateOf(AccountPickerMode.SINGLE) }
     var showTransferSuccessDialog by remember { mutableStateOf(false) }
+    var isSaving by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
+    val categories by viewModel.categories.collectAsStateWithLifecycle()
 
     LaunchedEffect(accounts) {
         if (selectedAccountId == null && accounts.isNotEmpty()) {
@@ -163,16 +166,6 @@ private fun AddTransactionSheetContent(
             if (sourceId != null && selectedTransferInAccountId == null) {
                 selectedTransferInAccountId = accounts.firstOrNull { it.id != sourceId }?.id
             }
-        }
-    }
-
-    val categories = remember(selectedType) {
-        CategoryCatalog.forType(selectedType).map { catalogCategory ->
-            CategoryItem(
-                name = catalogCategory.name,
-                icon = catalogCategory.icon,
-                color = Color(catalogCategory.color)
-            )
         }
     }
 
@@ -269,7 +262,7 @@ private fun AddTransactionSheetContent(
                         CategoryIconWithLabel(
                             icon = category.icon,
                             label = category.name,
-                            backgroundColor = category.color,
+                            backgroundColor = Color(category.color),
                             selected = selectedCategory == category.name,
                             onClick = { selectedCategory = category.name }
                         )
@@ -481,6 +474,7 @@ private fun AddTransactionSheetContent(
                     }
                 },
                 onConfirmClick = {
+                    if (isSaving || uiState.isLoading) return@NumberKeyboard
                     val accountId = selectedAccountId
                     val transferInAccountId = selectedTransferInAccountId
                     val category = selectedCategory
@@ -522,6 +516,7 @@ private fun AddTransactionSheetContent(
                         }
 
                         else -> {
+                            isSaving = true
                             viewModel.saveTransaction(
                                 amount = amount,
                                 type = selectedType,
@@ -540,6 +535,7 @@ private fun AddTransactionSheetContent(
                     }
                 },
                 onSaveAndNewClick = {
+                    if (isSaving || uiState.isLoading) return@NumberKeyboard
                     val accountId = selectedAccountId
                     val transferInAccountId = selectedTransferInAccountId
                     val category = selectedCategory
@@ -581,6 +577,7 @@ private fun AddTransactionSheetContent(
                         }
 
                         else -> {
+                            isSaving = true
                             viewModel.saveTransaction(
                                 amount = amount,
                                 type = selectedType,
@@ -590,6 +587,7 @@ private fun AddTransactionSheetContent(
                                 accountId = accountId,
                                 targetAccountId = transferInAccountId,
                             )
+                            isSaving = false
                             amount = ""
                             selectedCategory = null
                             note = ""
@@ -641,10 +639,12 @@ private fun AddTransactionSheetContent(
             TransferSuccessDialog(
                 dateTime = selectedDateTime,
                 onDismiss = {
+                    isSaving = false
                     showTransferSuccessDialog = false
                     onSuccess()
                 },
                 onGoSee = {
+                    isSaving = false
                     showTransferSuccessDialog = false
                     onSuccess()
                 }

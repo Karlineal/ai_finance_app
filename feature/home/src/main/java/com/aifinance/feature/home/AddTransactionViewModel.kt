@@ -3,18 +3,21 @@ package com.aifinance.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
+import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AppDateTime
+import com.aifinance.core.model.Category
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionSourceType
 import com.aifinance.core.model.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -37,6 +40,7 @@ data class AddTransactionUiState(
 class AddTransactionViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val accountRepository: AccountRepository,
+    categoryRepository: CategoryRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddTransactionUiState())
@@ -48,6 +52,19 @@ class AddTransactionViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList(),
         )
+
+    val categories: StateFlow<List<Category>> = combine(
+        _uiState,
+        categoryRepository.getAllCategories()
+    ) { state, customCategories ->
+        val defaults = CategoryCatalog.categoriesForType(state.selectedType)
+        val customForType = customCategories.filter { it.type == state.selectedType && !it.isDefault }
+        defaults + customForType
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = CategoryCatalog.categoriesForType(TransactionType.EXPENSE)
+    )
 
     fun updateAmount(amount: String) {
         _uiState.value = _uiState.value.copy(amount = amount)
@@ -126,9 +143,13 @@ class AddTransactionViewModel @Inject constructor(
                     transactionRepository.insertTransaction(transferIn)
                 } else {
                     val categoryId = category?.let { categoryName ->
-                        CategoryCatalog.forType(type)
+                        val catalogMatch = CategoryCatalog.forType(type)
                             .firstOrNull { it.name == categoryName }
-                            ?.id
+                        if (catalogMatch != null) {
+                            catalogMatch.id
+                        } else {
+                            categories.value.firstOrNull { it.name == categoryName }?.id
+                        }
                     }
 
                     val transaction = Transaction(

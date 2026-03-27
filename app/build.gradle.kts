@@ -70,6 +70,7 @@ dependencies {
     implementation(project(":feature:add_transaction"))
     implementation(project(":feature:statistics"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:category_management"))
     implementation(project(":feature:importer"))
     implementation(project(":feature:ai"))
     implementation(project(":feature:ocr"))

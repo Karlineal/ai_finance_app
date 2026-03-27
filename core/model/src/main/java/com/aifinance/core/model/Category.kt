@@ -8,6 +8,7 @@ data class Category(
     val name: String,
     val icon: String,
     val color: Int,
+    val type: TransactionType = TransactionType.EXPENSE,
     val parentId: UUID? = null,
     val isDefault: Boolean = false,
     val order: Int = 0,

@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.aifinance.feature.statistics"
+    namespace = "com.aifinance.feature.category_management"
     compileSdk = 34
 
     defaultConfig {
@@ -42,7 +42,6 @@ dependencies {
     implementation(libs.bundles.compose)
 
     implementation(libs.kotlinx.serialization.json)
-    implementation("io.github.koalaplot:koalaplot-core:0.6.2")
 
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)

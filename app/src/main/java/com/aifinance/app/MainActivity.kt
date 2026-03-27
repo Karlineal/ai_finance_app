@@ -17,7 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.aifinance.app.navigation.AiFinanceNavHost
 import com.aifinance.core.designsystem.theme.AiFinanceTheme
+import com.aifinance.feature.category_management.navigation.CATEGORY_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.HomeSidebarDrawerContent
+import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.navigation.HOME_ROUTE
 import com.aifinance.feature.settings.navigation.SETTINGS_ROUTE
 import com.aifinance.feature.statistics.navigation.STATISTICS_ROUTE
@@ -64,6 +66,18 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateSettings = {
                                     navController.navigate(SETTINGS_ROUTE) {
+                                        launchSingleTop = true
+                                    }
+                                    scope.launch { drawerState.close() }
+                                },
+                                onNavigateAssetManagement = {
+                                    navController.navigate(ASSET_MANAGEMENT_ROUTE) {
+                                        launchSingleTop = true
+                                    }
+                                    scope.launch { drawerState.close() }
+                                },
+                                onNavigateCategoryManagement = {
+                                    navController.navigate(CATEGORY_MANAGEMENT_ROUTE) {
                                         launchSingleTop = true
                                     }
                                     scope.launch { drawerState.close() }

@@ -52,6 +52,7 @@ class DatabaseCallback(
                 name = "餐饮美食",
                 icon = "restaurant",
                 color = 0xFFE91E63.toInt(),
+                type = "EXPENSE",
                 parentId = null,
                 isDefault = false,
                 order = 1,
