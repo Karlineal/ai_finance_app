@@ -73,6 +73,7 @@ import com.aifinance.core.designsystem.theme.SurfacePrimary
 import com.aifinance.core.designsystem.theme.SurfaceSecondary
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AppDateTime
+import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.TransactionType
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -152,6 +153,10 @@ private fun AddTransactionSheetContent(
         }
     }
 
+    LaunchedEffect(selectedType) {
+        selectedCategory = null
+    }
+
     LaunchedEffect(selectedType, accounts, selectedAccountId) {
         if (selectedType == TransactionType.TRANSFER && accounts.size >= 2) {
             val sourceId = selectedAccountId
@@ -161,17 +166,14 @@ private fun AddTransactionSheetContent(
         }
     }
 
-    val categories = remember {
-        listOf(
-            CategoryItem("餐饮", "\uD83C\uDF54", ExpenseLight),
-            CategoryItem("购物", "\uD83D\uDECD\uFE0F", Color(0xFFE8F4FD)),
-            CategoryItem("交通", "\uD83D\uDE97", Color(0xFFFFF3E0)),
-            CategoryItem("住房", "\uD83C\uDFE0", Color(0xFFF3E5F5)),
-            CategoryItem("娱乐", "\uD83C\uDFAE", Color(0xFFE8F5E9)),
-            CategoryItem("医疗", "\uD83D\uDC8A", Color(0xFFFFEBEE)),
-            CategoryItem("教育", "\uD83D\uDCDA", Color(0xFFE3F2FD)),
-            CategoryItem("其他", "\uD83D\uDCCC", SurfaceSecondary)
-        )
+    val categories = remember(selectedType) {
+        CategoryCatalog.forType(selectedType).map { catalogCategory ->
+            CategoryItem(
+                name = catalogCategory.name,
+                icon = catalogCategory.icon,
+                color = Color(catalogCategory.color)
+            )
+        }
     }
 
     Column(

@@ -62,13 +62,15 @@ fun RefinedTransactionItem(
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .background(visual.itemBackground, RoundedCornerShape(16.dp))
             .combinedClickable(
                 interactionSource = rowInteractionSource,
                 indication = null,
-                onClick = onClick
-                ,onLongClick = onLongPress
+                onClick = onClick,
+                onLongClick = onLongPress
             )
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -193,21 +195,43 @@ private fun InfoItem(
 private data class VisualTheme(
     val label: String,
     val emoji: String,
+    val itemBackground: Color,
     val chipBackground: Color,
     val chipText: Color,
     val amountColor: Color,
+)
+
+private data class TypeColors(
+    val background: Color,
+    val amount: Color,
 )
 
 private fun Transaction.resolveRefinedVisual(): VisualTheme {
     val category = CategoryCatalog.resolve(categoryId, type)
     val categoryColor = Color(category.color)
 
+    val typeColors = when (type) {
+        TransactionType.EXPENSE -> TypeColors(
+            background = Color(0xFFE3F2FD),
+            amount = Color(0xFF1976D2)
+        )
+        TransactionType.INCOME -> TypeColors(
+            background = Color(0xFFFFF8E1),
+            amount = Color(0xFFF57C00)
+        )
+        TransactionType.TRANSFER -> TypeColors(
+            background = Color(0xFFE8F5E9),
+            amount = Color(0xFF388E3C)
+        )
+    }
+
     return VisualTheme(
         label = category.name,
         emoji = category.icon,
-        chipBackground = categoryColor.copy(alpha = 0.14f),
+        itemBackground = typeColors.background,
+        chipBackground = categoryColor.copy(alpha = 0.12f),
         chipText = categoryColor,
-        amountColor = categoryColor,
+        amountColor = typeColors.amount,
     )
 }
 

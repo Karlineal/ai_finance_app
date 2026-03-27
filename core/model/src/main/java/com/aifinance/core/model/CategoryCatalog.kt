@@ -39,6 +39,15 @@ object CategoryCatalog {
         val IncomeReimbursement: UUID = UUID.fromString("99999999-9999-9999-9999-999999999994")
         val IncomeGift: UUID = UUID.fromString("99999999-9999-9999-9999-999999999995")
 
+        val IncomeCareer: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1")
+        val IncomeBusiness: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2")
+        val IncomeInsurance: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb3")
+        val IncomeTransfer: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb4")
+        val IncomeSecondHand: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb5")
+        val IncomeLucky: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb6")
+        val IncomeLiving: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb7")
+        val IncomeOther: UUID = UUID.fromString("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb8")
+
         val ExpenseMedical: UUID = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1")
         val ExpenseEducation: UUID = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2")
         val ExpenseEntertainment: UUID = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3")
@@ -57,12 +66,14 @@ object CategoryCatalog {
     )
 
     private val incomeCategories: List<CatalogCategory> = listOf(
-        CatalogCategory(Ids.IncomeSalary, "工资", "💼", 0xFFAF6A20.toInt(), TransactionType.INCOME, 0),
-        CatalogCategory(Ids.IncomeBonus, "奖金", "🎁", 0xFFB7791F.toInt(), TransactionType.INCOME, 1),
-        CatalogCategory(Ids.IncomePartTime, "兼职", "🧑‍💻", 0xFF0891B2.toInt(), TransactionType.INCOME, 2),
-        CatalogCategory(Ids.IncomeInvestment, "投资收益", "📈", 0xFF0D9488.toInt(), TransactionType.INCOME, 3),
-        CatalogCategory(Ids.IncomeReimbursement, "报销退款", "↩️", 0xFF2563EB.toInt(), TransactionType.INCOME, 4),
-        CatalogCategory(Ids.IncomeGift, "礼金", "🧧", 0xFFD97706.toInt(), TransactionType.INCOME, 5),
+        CatalogCategory(Ids.IncomeCareer, "职业收入", "💼", 0xFFAF6A20.toInt(), TransactionType.INCOME, 0),
+        CatalogCategory(Ids.IncomeBusiness, "经营收入", "🏪", 0xFFB7791F.toInt(), TransactionType.INCOME, 1),
+        CatalogCategory(Ids.IncomeInsurance, "保险理财", "🛡️", 0xFF0891B2.toInt(), TransactionType.INCOME, 2),
+        CatalogCategory(Ids.IncomeTransfer, "资金往来", "💱", 0xFF0D9488.toInt(), TransactionType.INCOME, 3),
+        CatalogCategory(Ids.IncomeSecondHand, "二手买卖", "♻️", 0xFF2563EB.toInt(), TransactionType.INCOME, 4),
+        CatalogCategory(Ids.IncomeLucky, "好运收入", "🍀", 0xFFD97706.toInt(), TransactionType.INCOME, 5),
+        CatalogCategory(Ids.IncomeLiving, "生活费", "💰", 0xFF7C3AED.toInt(), TransactionType.INCOME, 6),
+        CatalogCategory(Ids.IncomeOther, "其他收入", "📥", 0xFF6B7280.toInt(), TransactionType.INCOME, 7),
     )
 
     private val transferCategories: List<CatalogCategory> = listOf(

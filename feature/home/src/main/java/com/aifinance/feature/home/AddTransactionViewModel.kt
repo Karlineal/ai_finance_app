@@ -6,6 +6,7 @@ import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AppDateTime
+import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionSourceType
 import com.aifinance.core.model.TransactionType
@@ -124,9 +125,15 @@ class AddTransactionViewModel @Inject constructor(
                     transactionRepository.insertTransaction(transferOut)
                     transactionRepository.insertTransaction(transferIn)
                 } else {
+                    val categoryId = category?.let { categoryName ->
+                        CategoryCatalog.forType(type)
+                            .firstOrNull { it.name == categoryName }
+                            ?.id
+                    }
+
                     val transaction = Transaction(
                         accountId = accountId,
-                        categoryId = null,
+                        categoryId = categoryId,
                         type = type,
                         amount = amountValue,
                         currency = "CNY",

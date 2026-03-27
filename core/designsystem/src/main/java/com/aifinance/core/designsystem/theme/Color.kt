@@ -12,16 +12,21 @@ val BrandSecondaryDark = Color(0xFF5B21B6)
 val IncomeDefault = Color(0xFF10B981)
 val IncomeLight = Color(0xFF34D399)
 val IncomeDark = Color(0xFF059669)
-val IncomeBackground = Color(0xFFD1FAE5)
+val IncomeBackground = Color(0xFFFEF9E7) // Light pale yellow for income transactions
 
 val ExpenseDefault = Color(0xFFEF4444)
 val ExpenseLight = Color(0xFFF87171)
 val ExpenseDark = Color(0xFFDC2626)
-val ExpenseBackground = Color(0xFFFEE2E2)
+val ExpenseBackground = Color(0xFFE8F4FD) // Light pale blue for expense transactions
 
 val TransferDefault = Color(0xFF3B82F6)
 val TransferLight = Color(0xFF60A5FA)
-val TransferBackground = Color(0xFFDBEAFE)
+val TransferBackground = Color(0xFFE6F4F1) // Light pale mint green for transfer transactions
+
+// Transaction type accent colors for text/icons on pastel backgrounds
+val IncomeAccent = Color(0xFFB8860B) // Warm amber - readable on pale yellow
+val ExpenseAccent = Color(0xFF2B7BB9) // Steel blue - readable on pale blue
+val TransferAccent = Color(0xFF2E8B6E) // Seafoam green - readable on pale mint
 
 val BackgroundPrimary = Color(0xFFFFFFFF)
 val BackgroundSecondary = Color(0xFFF8FAFC)
