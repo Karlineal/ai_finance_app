@@ -528,73 +528,73 @@ private fun NetAssetGlassCard(
     elevation: androidx.compose.ui.unit.Dp,
 ) {
     NetAssetGradientCard(modifier = modifier) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = "净资产", style = IcokieTextStyles.titleMedium, color = Color(0xFF4A3A12))
+                    Icon(
+                        imageVector = if (hideAmount) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                        contentDescription = "切换金额可见",
+                        tint = Color(0xFF6B5420),
+                        modifier = Modifier.size(16.dp).clickable(onClick = onToggleHide),
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.24f))
+                        .border(1.dp, Color.White.copy(alpha = 0.34f), RoundedCornerShape(16.dp))
+                        .clickable(onClick = onAssetManageClick)
+                        .padding(horizontal = 11.dp, vertical = 6.dp),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(text = "净资产", style = IcokieTextStyles.titleMedium, color = Color(0xFF4A3A12))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
                         Icon(
-                            imageVector = if (hideAmount) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                            contentDescription = "切换金额可见",
-                            tint = Color(0xFF6B5420),
-                            modifier = Modifier.size(16.dp).clickable(onClick = onToggleHide),
+                            imageVector = Icons.Default.Money,
+                            contentDescription = "资产管理",
+                            tint = Color(0xFF5A4620),
+                            modifier = Modifier.size(13.dp),
+                        )
+                        Text(text = "资产管理", style = IcokieTextStyles.labelSmall, color = Color(0xFF5A4620))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                            contentDescription = null,
+                            tint = Color(0xFF6F5928),
+                            modifier = Modifier.size(10.dp),
                         )
                     }
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.White.copy(alpha = 0.24f))
-                            .border(1.dp, Color.White.copy(alpha = 0.34f), RoundedCornerShape(16.dp))
-                            .clickable(onClick = onAssetManageClick)
-                            .padding(horizontal = 11.dp, vertical = 6.dp),
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Money,
-                                contentDescription = "资产管理",
-                                tint = Color(0xFF5A4620),
-                                modifier = Modifier.size(13.dp),
-                            )
-                            Text(text = "资产管理", style = IcokieTextStyles.labelSmall, color = Color(0xFF5A4620))
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                                contentDescription = null,
-                                tint = Color(0xFF6F5928),
-                                modifier = Modifier.size(10.dp),
-                            )
-                        }
-                    }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(14.dp))
-                HeroAmountText(
-                    amountText = secureMoney(balance),
-                    primaryColor = Color(0xFF3D2F10),
-                )
+            Spacer(modifier = Modifier.height(14.dp))
+            HeroAmountText(
+                amountText = secureMoney(balance),
+                primaryColor = Color(0xFF3D2F10),
+            )
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White.copy(alpha = 0.17f))
-                        .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(16.dp))
-                        .padding(horizontal = 14.dp, vertical = 11.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column {
-                        Text(text = "资产", style = IcokieTextStyles.labelSmall, color = Color(0xFF735A28))
-                        Text(text = secureMoney(assets), style = IcokieTextStyles.titleMedium, color = Color(0xFF493812))
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(text = "负债", style = IcokieTextStyles.labelSmall, color = Color(0xFF735A28))
-                        Text(text = secureMoney(liabilities), style = IcokieTextStyles.titleMedium, color = Color(0xFF493812))
-                    }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White.copy(alpha = 0.17f))
+                    .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(16.dp))
+                    .padding(horizontal = 14.dp, vertical = 11.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text(text = "资产", style = IcokieTextStyles.labelSmall, color = Color(0xFF735A28))
+                    Text(text = secureMoney(assets), style = IcokieTextStyles.titleMedium, color = Color(0xFF493812))
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(text = "负债", style = IcokieTextStyles.labelSmall, color = Color(0xFF735A28))
+                    Text(text = secureMoney(liabilities), style = IcokieTextStyles.titleMedium, color = Color(0xFF493812))
                 }
             }
         }
