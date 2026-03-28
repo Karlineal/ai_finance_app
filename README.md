@@ -1,14 +1,15 @@
 # 🍪 iCookie - 智能记账助手
 
-一个基于 Android 原生开发的智能记账应用，采用现代化的模块化架构设计，支持 AI 辅助记账、交易导入、资产管理等核心功能。
+一个基于 Android 原生开发的智能记账应用，采用现代化的模块化架构设计，支持 AI 辅助记账、OCR 票据识别、交易导入、资产管理等核心功能。
 
 ---
 
 ## 📱 应用截图
 
 <p align="center">
-  <img src="screenshot/Screenshot_20260327_143954.png" width="45%" alt="首页 - 记账记录" />
-  <img src="screenshot/Screenshot_20260327_144032.png" width="45%" alt="首页 - AI助手" />
+  <img src="screenshot/Screenshot_20260327_143954.png" width="32%" alt="首页 - 记账记录" />
+  <img src="screenshot/Screenshot_20260327_144032.png" width="32%" alt="首页 - AI助手" />
+  <img src="screenshot/ai_record.png" width="32%" alt="AI 智能识别" />
 </p>
 
 ---
@@ -33,16 +34,18 @@ ai-finance-android/
 │   ├── model/                   # 数据模型定义
 │   ├── database/                # Room数据库（实体、DAO）
 │   └── data/                    # 数据仓库实现
+│       └── network/             # 网络层（API接口、数据模型）
+│           ├── api/             # DeepSeek API, PaddleOCR API
+│           └── repository/ai/   # AI Repository
 │
 ├── feature/                      # 功能模块（按特性划分）
 │   ├── home/                    # 首页 - 记账记录与AI助手
+│   │   └── AddTransactionBottomSheet.kt  # 添加交易（手动记账 | AI记录）
 │   ├── transactions/            # 交易列表与详情
 │   ├── add_transaction/         # 添加交易
 │   ├── statistics/              # 统计分析
 │   ├── settings/                # 设置页面
-│   ├── ai/                      # AI功能模块（规划中）
-│   ├── ocr/                     # OCR票据识别（规划中）
-│   └── importer/                # 账单导入（规划中）
+│   └── category_management/     # 分类管理
 │
 └── build-logic/                  # 构建逻辑（Convention插件）
     └── convention/
@@ -53,9 +56,10 @@ ai-finance-android/
 | 层级 | 技术 |
 |------|------|
 | **UI** | Jetpack Compose + Material Design 3 |
-| **架构** | MVVM + Repository Pattern |
+| **架构** | MVVM + Repository Pattern + Clean Architecture |
 | **依赖注入** | Hilt |
 | **数据库** | Room (SQLite) |
+| **网络** | Retrofit 2.9.0 + OkHttp 4.12.0 + Kotlinx Serialization |
 | **导航** | Compose Navigation |
 | **异步** | Kotlin Coroutines + Flow |
 | **图片加载** | Coil |
@@ -64,6 +68,17 @@ ai-finance-android/
 ---
 
 ## ✨ 已实现功能
+
+### 🤖 AI 智能功能
+- ✅ **AI 记账助手**：智能对话助手，支持自然语言查询账目、分析消费习惯
+  - 基于 DeepSeek API（deepseek-reasoner 模型）
+  - 支持 Markdown 格式回复
+  - 快速提示词：记录支出、查看分析、生成报告
+  
+- ✅ **AI 智能识别记账**：拍照或选择图片，自动识别账单信息
+  - 基于 PaddleOCR API 进行票据文字识别
+  - DeepSeek AI 解析金额、分类、商家、日期
+  - 支持编辑识别结果后保存
 
 ### 🏠 首页 (Home)
 - **双页卡片轮播**：
@@ -75,6 +90,9 @@ ai-finance-android/
 - **侧边栏导航**：左滑呼出菜单，快速切换页面
 
 ### 📝 交易管理
+- **快速记账**：
+  - 手动记账：金额输入、分类选择、账户选择
+  - **AI 记录**：拍照/选图 → OCR 识别 → AI 解析 → 确认保存
 - **交易列表**：支持按月份筛选
 - **交易详情**：点击交易查看/编辑详情
 - **快速分类**：点击分类标签可直接修改分类
@@ -96,12 +114,6 @@ ai-finance-android/
 
 ## 🚧 开发中/规划功能
 
-### AI 智能功能
-- [ ] 🤖 **AI 记账助手**：自然语言输入自动识别金额、分类
-- [ ] 🔍 **智能分类建议**：基于交易描述自动推荐分类
-- [ ] 💡 **消费洞察**：AI 分析消费习惯，提供理财建议
-- [ ] 📸 **票据 OCR 识别**：拍照识别发票、收据自动记账
-
 ### 数据导入
 - [ ] 📥 **账单导入**：支持支付宝、微信、银行账单 CSV/Excel 导入
 - [ ] 🔄 **批量处理**：智能去重、自动分类
@@ -120,6 +132,19 @@ ai-finance-android/
 
 ---
 
+## 🔑 API 配置
+
+本项目使用以下第三方 API 服务：
+
+| 服务 | 用途 | 配置位置 |
+|------|------|----------|
+| **DeepSeek** | AI 对话与解析 | `AIRepository.kt` |
+| **PaddleOCR** | 票据 OCR 识别 | `AIRepository.kt` |
+
+> ⚠️ **注意**：API Key 当前硬编码在代码中，生产环境建议移至环境变量或本地配置文件。
+
+---
+
 ## 🛠️ 环境要求
 
 - **Android Studio**: Hedgehog (2023.1.1) 或更高版本
@@ -127,6 +152,12 @@ ai-finance-android/
 - **minSdk**: 26 (Android 8.0)
 - **targetSdk**: 34 (Android 14)
 - **Java**: 17
+
+### 所需权限
+- `INTERNET` - 网络访问
+- `CAMERA` - 拍照识别
+- `READ_EXTERNAL_STORAGE` - 读取相册图片
+- `WRITE_EXTERNAL_STORAGE` - 缓存图片文件
 
 ---
 
