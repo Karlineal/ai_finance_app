@@ -47,7 +47,6 @@ import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
 import com.aifinance.core.designsystem.theme.SurfacePrimary
 import com.aifinance.core.designsystem.theme.SurfaceSecondary
 import com.aifinance.core.model.CatalogCategory
-import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.TransactionType
 import java.util.UUID
 
@@ -75,29 +74,26 @@ fun CatalogCategory.toOption(): CategoryOption {
     )
 }
 
-/**
- * A polished category picker bottom sheet that displays categories in a grid layout.
- * Uses the shared CategoryCatalog as the source of truth.
- *
- * @param selectedCategoryId The currently selected category ID
- * @param transactionType The type of transaction (filters categories by type)
- * @param onDismiss Callback when the sheet is dismissed
- * @param onSelect Callback when a category is selected
- * @param title Optional custom title for the picker
- */
+fun com.aifinance.core.model.Category.toOption(): CategoryOption {
+    return CategoryOption(
+        id = id,
+        name = name,
+        icon = icon,
+        color = Color(color),
+        type = type,
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryPickerBottomSheet(
     selectedCategoryId: UUID?,
-    transactionType: TransactionType,
+    categories: List<CategoryOption>,
     onDismiss: () -> Unit,
     onSelect: (UUID) -> Unit,
     title: String = "选择分类",
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val categories = remember(transactionType) {
-        CategoryCatalog.forType(transactionType).map { it.toOption() }
-    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -276,15 +272,12 @@ private fun CategoryGridItem(
  */
 @Composable
 fun CategoryPickerChip(
-    categoryId: UUID?,
-    transactionType: TransactionType,
+    category: CategoryOption?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val category = remember(categoryId, transactionType) {
-        CategoryCatalog.resolve(categoryId, transactionType)
-    }
-    val categoryColor = Color(category.color)
+    if (category == null) return
+    val categoryColor = category.color
 
     Row(
         modifier = modifier
@@ -406,28 +399,24 @@ private fun CategoryListItem(
     }
 }
 
-/**
- * Preview/Example usage of the CategoryPickerBottomSheet.
- * This can be invoked from any screen to show the category picker.
- */
 @Composable
 fun CategoryPickerLauncher(
     selectedCategoryId: UUID?,
-    transactionType: TransactionType,
+    categories: List<CategoryOption>,
     onCategorySelected: (UUID) -> Unit,
     modifier: Modifier = Modifier,
     chipLabel: String? = null,
 ) {
     var showPicker by remember { mutableStateOf(false) }
 
-    val category = remember(selectedCategoryId, transactionType) {
-        CategoryCatalog.resolve(selectedCategoryId, transactionType)
-    }
+    val category = remember(selectedCategoryId, categories) {
+        categories.find { it.id == selectedCategoryId } ?: categories.firstOrNull()
+    } ?: return
 
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(category.color).copy(alpha = 0.12f))
+            .background(category.color.copy(alpha = 0.12f))
             .clickable { showPicker = true }
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -437,14 +426,14 @@ fun CategoryPickerLauncher(
         Text(
             text = chipLabel ?: category.name,
             style = IcokieTextStyles.labelMedium,
-            color = Color(category.color),
+            color = category.color,
         )
     }
 
     if (showPicker) {
         CategoryPickerBottomSheet(
             selectedCategoryId = selectedCategoryId,
-            transactionType = transactionType,
+            categories = categories,
             onDismiss = { showPicker = false },
             onSelect = { categoryId ->
                 onCategorySelected(categoryId)

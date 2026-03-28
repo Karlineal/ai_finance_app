@@ -94,7 +94,7 @@ private fun liquidTopTabBar(
     onTabSelected: (HomeTopTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tabs = listOf(HomeTopTab.RECORD to "记录", HomeTopTab.AI_ASSISTANT to "AI助手")
+    val tabs = listOf(HomeTopTab.RECORD to "记录", HomeTopTab.AI_ASSISTANT to "iCookie")
     val selectedIndex = tabs.indexOfFirst { it.first == selectedTab }.coerceAtLeast(0)
 
     val leadingBlob by animateFloatAsState(
@@ -191,10 +191,17 @@ private fun liquidTopTabBar(
                 ) {
                     Text(
                         text = tab.second,
-                        style = IcokieTextStyles.titleLarge.copy(
-                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                            letterSpacing = if (selected) 0.18.sp else 0.32.sp,
-                        ),
+                        style = if (selected) {
+                            IcokieTextStyles.titleLarge.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 0.05.sp,
+                            )
+                        } else {
+                            IcokieTextStyles.titleMedium.copy(
+                                fontWeight = FontWeight.Normal,
+                                letterSpacing = 0.8.sp,
+                            )
+                        },
                         color = textColor,
                     )
                 }

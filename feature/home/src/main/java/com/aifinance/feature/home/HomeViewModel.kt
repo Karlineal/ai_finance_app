@@ -3,14 +3,19 @@ package com.aifinance.feature.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
+import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AccountType
+import com.aifinance.core.model.Category
+import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -25,8 +30,33 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
+    private val categoryRepository: CategoryRepository,
     accountRepository: AccountRepository,
 ) : ViewModel() {
+
+    val categoriesById: StateFlow<Map<UUID, Category>> =
+        categoryRepository.getAllCategories()
+            .map { customCategories ->
+                buildMap {
+                    CategoryCatalog.all.forEach { put(it.id, it.asCategory()) }
+                    customCategories.forEach { put(it.id, it) }
+                }
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyMap(),
+            )
+
+    fun getCategoriesForType(type: TransactionType): Flow<List<Category>> =
+        categoryRepository.getAllCategories()
+            .map { customCategories ->
+                val defaults = CategoryCatalog.forType(type).map { it.asCategory() }
+                val customForType = customCategories
+                    .filter { it.type == type && !it.isDefault }
+                    .sortedBy { it.order }
+                defaults + customForType
+            }
 
     val recentTransactions: StateFlow<List<Transaction>> =
         transactionRepository.getAllTransactions()

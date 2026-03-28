@@ -38,6 +38,7 @@ import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.OnSurfacePrimary
 import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
 import com.aifinance.core.model.AppDateTime
+import com.aifinance.core.model.Category
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
@@ -49,13 +50,14 @@ import java.time.format.DateTimeFormatter
 fun RefinedTransactionItem(
     transaction: Transaction,
     accountName: String?,
+    category: Category? = null,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     onCategoryClick: () -> Unit = {},
     onAmountClick: () -> Unit = {},
     onLongPress: () -> Unit = {},
 ) {
-    val visual = transaction.resolveRefinedVisual()
+    val visual = transaction.resolveRefinedVisual(category)
     val remark = transaction.description?.takeIf { it.isNotBlank() } ?: transaction.title
     val rowInteractionSource = remember { MutableInteractionSource() }
 
@@ -206,9 +208,23 @@ private data class TypeColors(
     val amount: Color,
 )
 
-private fun Transaction.resolveRefinedVisual(): VisualTheme {
-    val category = CategoryCatalog.resolve(categoryId, type)
-    val categoryColor = Color(category.color)
+private fun Transaction.resolveRefinedVisual(customCategory: Category? = null): VisualTheme {
+    val categoryName: String
+    val categoryIcon: String
+    val categoryColorInt: Int
+
+    if (customCategory != null) {
+        categoryName = customCategory.name
+        categoryIcon = customCategory.icon
+        categoryColorInt = customCategory.color
+    } else {
+        val catalogCategory = CategoryCatalog.resolve(categoryId, type)
+        categoryName = catalogCategory.name
+        categoryIcon = catalogCategory.icon
+        categoryColorInt = catalogCategory.color
+    }
+
+    val categoryColor = Color(categoryColorInt)
 
     val typeColors = when (type) {
         TransactionType.EXPENSE -> TypeColors(
@@ -233,8 +249,8 @@ private fun Transaction.resolveRefinedVisual(): VisualTheme {
     }
 
     return VisualTheme(
-        label = category.name,
-        emoji = category.icon,
+        label = categoryName,
+        emoji = categoryIcon,
         itemBackground = typeColors.background,
         chipBackground = categoryColor.copy(alpha = 0.12f),
         chipText = categoryColor,
@@ -269,6 +285,7 @@ private fun Transaction.prettyAmount(): String {
 fun SwipeableTransactionItem(
     transaction: Transaction,
     accountName: String?,
+    category: Category? = null,
     onClick: () -> Unit,
     onCategoryClick: () -> Unit,
     onAmountClick: () -> Unit,
@@ -278,6 +295,7 @@ fun SwipeableTransactionItem(
     RefinedTransactionItem(
         transaction = transaction,
         accountName = accountName,
+        category = category,
         modifier = modifier,
         onClick = onClick,
         onCategoryClick = onCategoryClick,

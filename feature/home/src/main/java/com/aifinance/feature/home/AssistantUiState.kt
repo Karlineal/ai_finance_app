@@ -4,6 +4,7 @@ data class AssistantUiState(
     val inputText: String = "",
     val suggestionGroupIndex: Int = 0,
     val messages: List<AssistantMessage> = emptyList(),
+    val isLoading: Boolean = false,
 )
 
 data class AssistantMessage(

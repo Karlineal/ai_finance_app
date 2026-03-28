@@ -91,6 +91,7 @@ import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import com.aifinance.feature.home.component.CategoryPickerBottomSheet
 import com.aifinance.feature.home.component.GradientGlassCard
+import com.aifinance.feature.home.component.toOption
 import com.aifinance.feature.home.component.NetAssetGradientCard
 import com.aifinance.feature.home.component.MonthlyExpenseGradientCard
 import com.aifinance.feature.home.component.RefinedTransactionItem
@@ -125,6 +126,7 @@ fun RecordHomeContent(
     val recentTransactions = viewModel.recentTransactions.collectAsStateWithLifecycle()
     val totalBalance = viewModel.totalBalance.collectAsStateWithLifecycle()
     val accountsById = viewModel.accountsById.collectAsStateWithLifecycle()
+    val categoriesById = viewModel.categoriesById.collectAsStateWithLifecycle()
     val filteredTransactions = remember(recentTransactions.value, selectedMonth) {
         recentTransactions.value.filter {
             it.date.year == selectedMonth.year && it.date.monthValue == selectedMonth.monthValue
@@ -222,6 +224,7 @@ fun RecordHomeContent(
                                     SwipeableTransactionItem(
                                         transaction = transaction,
                                         accountName = accountsById.value[transaction.accountId]?.name,
+                                        category = categoriesById.value[transaction.categoryId],
                                         onClick = { onNavigateToTransactionDetail(transaction.id) },
                                         onAmountClick = { onNavigateToTransactionDetail(transaction.id) },
                                         onCategoryClick = { categoryPickerTransaction = transaction },
@@ -275,15 +278,25 @@ fun RecordHomeContent(
         }
 
         categoryPickerTransaction?.let { transaction ->
+            val categoriesForPicker: List<com.aifinance.feature.home.component.CategoryOption> = remember(categoriesById.value, transaction.type) {
+                val defaults = CategoryCatalog.forType(transaction.type)
+                    .map { it.toOption() }
+                val customForType = categoriesById.value.values
+                    .filter { it.type == transaction.type && !it.isDefault }
+                    .sortedBy { it.order }
+                    .map { it.toOption() }
+                defaults + customForType
+            }
             CategoryPickerBottomSheet(
                 selectedCategoryId = transaction.categoryId,
-                transactionType = transaction.type,
+                categories = categoriesForPicker,
                 onDismiss = { categoryPickerTransaction = null },
                 onSelect = { categoryId ->
+                    val selectedCategory = categoriesById.value[categoryId]
                     viewModel.updateTransactionCategory(
                         transaction = transaction,
                         categoryId = categoryId,
-                        categoryName = CategoryCatalog.findById(categoryId)?.name,
+                        categoryName = selectedCategory?.name,
                     )
                     categoryPickerTransaction = null
                 },

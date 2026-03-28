@@ -42,6 +42,9 @@ dependencies {
     implementation(libs.bundles.compose)
 
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.coil.compose)
+
+    // No additional dependencies needed - using WebView for Markdown rendering
 
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)

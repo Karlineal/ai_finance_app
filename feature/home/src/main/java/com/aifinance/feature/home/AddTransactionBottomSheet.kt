@@ -1,5 +1,9 @@
 package com.aifinance.feature.home
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +34,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -60,6 +65,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import com.aifinance.core.data.repository.ai.AIRepository
 import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.ExpenseDefault
 import com.aifinance.core.designsystem.theme.ExpenseLight
@@ -75,6 +82,7 @@ import com.aifinance.core.model.Account
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.TransactionType
+import com.aifinance.feature.home.util.FileUtils
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -158,6 +166,7 @@ private fun AddTransactionSheetContent(
 
     LaunchedEffect(selectedType) {
         selectedCategory = null
+        viewModel.updateType(selectedType)
     }
 
     LaunchedEffect(selectedType, accounts, selectedAccountId) {
@@ -456,7 +465,7 @@ private fun AddTransactionSheetContent(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // 数字键盘
+
             NumberKeyboard(
                 onNumberClick = { digit ->
                     if (amount.length < 10) {
@@ -604,7 +613,27 @@ private fun AddTransactionSheetContent(
                 }
             )
         } else {
-            AIRecordContent()
+            AIRecordContent(
+                onSaveTransaction = { amount, type, category, note, dateTime, accountId ->
+                    viewModel.saveTransaction(
+                        amount = amount,
+                        type = type,
+                        category = category,
+                        note = note,
+                        dateTime = dateTime,
+                        accountId = accountId
+                    )
+                    onSuccess()
+                },
+                accounts = accounts,
+                selectedAccountId = selectedAccountId,
+                onSelectAccount = {
+                    accountPickerMode = AccountPickerMode.SINGLE
+                    showAccountPicker = true
+                },
+                onNavigateToAssetManagement = onNavigateToAssetManagement,
+                aiRepository = viewModel.aiRepository
+            )
         }
 
         if (showAccountPicker) {
@@ -1177,8 +1206,59 @@ private fun TransferSuccessDialog(
     }
 }
 
+data class AIRecognitionResult(
+    val amount: String = "",
+    val category: String? = null,
+    val merchant: String? = null,
+    val date: LocalDate? = null,
+    val note: String = "",
+    val type: TransactionType = TransactionType.EXPENSE,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 @Composable
-private fun AIRecordContent() {
+private fun AIRecordContent(
+    onSaveTransaction: (
+        amount: String,
+        type: TransactionType,
+        category: String?,
+        note: String,
+        dateTime: LocalDateTime,
+        accountId: UUID
+    ) -> Unit,
+    accounts: List<Account>,
+    selectedAccountId: UUID?,
+    onSelectAccount: () -> Unit,
+    onNavigateToAssetManagement: () -> Unit,
+    aiRepository: AIRepository
+) {
+    val context = LocalContext.current
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showToast by remember { mutableStateOf<String?>(null) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        selectedImageUri = uri
+        showToast = "图片已选择"
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            showToast = "照片已拍摄"
+        }
+    }
+
+    LaunchedEffect(showToast) {
+        showToast?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            showToast = null
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1187,7 +1267,7 @@ private fun AIRecordContent() {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "\uD83E\uDD16 AI智能识别",
+            text = "🤖 AI智能识别",
             style = IcokieTextStyles.titleLarge,
             color = OnSurfacePrimary
         )
@@ -1197,8 +1277,13 @@ private fun AIRecordContent() {
             color = OnSurfaceSecondary
         )
 
+        val tempUri = remember { FileUtils.createTempImageUri(context) }
+
         Button(
-            onClick = { },
+            onClick = {
+                selectedImageUri = tempUri
+                cameraLauncher.launch(tempUri)
+            },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
             shape = RoundedCornerShape(12.dp)
@@ -1213,7 +1298,11 @@ private fun AIRecordContent() {
         }
 
         Button(
-            onClick = { },
+            onClick = {
+                photoPickerLauncher.launch(
+                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                )
+            },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = SurfaceSecondary),
             shape = RoundedCornerShape(12.dp)
@@ -1229,6 +1318,330 @@ private fun AIRecordContent() {
         }
     }
 }
+
+private suspend fun processImageSync(
+    uri: Uri,
+    aiRepository: AIRepository,
+    context: android.content.Context
+): AIRecognitionResult {
+    return try {
+        val file = FileUtils.uriToFile(context, uri)
+        if (file == null) {
+            return AIRecognitionResult(error = "无法读取图片文件")
+        }
+
+        val ocrResult = aiRepository.recognizeImage(file)
+
+        ocrResult.fold(
+            onSuccess = { ocrText ->
+                val prompt = """
+                    请从以下OCR识别的账单文本中提取关键信息，并以JSON格式返回：
+                    
+                    文本内容：
+                    $ocrText
+                    
+                    请提取以下字段（如果找不到则返回null）：
+                    - amount: 金额（数字，不要带货币符号）
+                    - category: 分类（如：餐饮、购物、交通等）
+                    - merchant: 商家名称
+                    - date: 日期（格式：yyyy-MM-dd）
+                    - type: 类型（"expense"支出 或 "income"收入）
+                    
+                    返回格式示例：
+                    {
+                      "amount": "128.50",
+                      "category": "餐饮",
+                      "merchant": "麦当劳",
+                      "date": "2024-01-15",
+                      "type": "expense"
+                    }
+                """.trimIndent()
+
+                aiRepository.sendMessage(prompt).fold(
+                    onSuccess = { response ->
+                        try {
+                            parseAIResponse(response)
+                        } catch (e: Exception) {
+                            AIRecognitionResult(
+                                error = "解析失败: ${e.message}",
+                                note = ocrText
+                            )
+                        }
+                    },
+                    onFailure = { error ->
+                        AIRecognitionResult(
+                            error = "AI解析失败: ${error.message}",
+                            note = ocrText
+                        )
+                    }
+                )
+            },
+            onFailure = { error ->
+                AIRecognitionResult(error = "OCR识别失败: ${error.message}")
+            }
+        )
+    } catch (e: Exception) {
+        AIRecognitionResult(error = "处理失败: ${e.message}")
+    }
+}
+
+private fun parseAIResponse(response: String): AIRecognitionResult {
+
+    val jsonPattern = """\{\s*"amount"\s*:\s*"([^"]*)"""".toRegex()
+    val categoryPattern = """"category"\s*:\s*"([^"]*)"""".toRegex()
+    val merchantPattern = """"merchant"\s*:\s*"([^"]*)"""".toRegex()
+    val datePattern = """"date"\s*:\s*"([^"]*)"""".toRegex()
+    val typePattern = """"type"\s*:\s*"([^"]*)"""".toRegex()
+
+    val amount = jsonPattern.find(response)?.groupValues?.get(1) ?: ""
+    val category = categoryPattern.find(response)?.groupValues?.get(1)
+    val merchant = merchantPattern.find(response)?.groupValues?.get(1)
+    val dateStr = datePattern.find(response)?.groupValues?.get(1)
+    val typeStr = typePattern.find(response)?.groupValues?.get(1)
+
+    val type = when (typeStr?.lowercase()) {
+        "income" -> TransactionType.INCOME
+        else -> TransactionType.EXPENSE
+    }
+
+    val date = try {
+        dateStr?.let { LocalDate.parse(it) }
+    } catch (e: Exception) {
+        null
+    }
+
+    return AIRecognitionResult(
+        amount = amount,
+        category = category,
+        merchant = merchant,
+        date = date,
+        type = type,
+        note = merchant ?: ""
+    )
+}
+
+@Composable
+private fun AIProcessingView(step: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        CircularProgressIndicator(
+            color = BrandPrimary,
+            modifier = Modifier.size(48.dp)
+        )
+        Text(
+            text = step,
+            style = IcokieTextStyles.bodyLarge,
+            color = OnSurfaceSecondary
+        )
+    }
+}
+
+@Composable
+private fun AIErrorView(error: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "识别失败",
+            style = IcokieTextStyles.titleLarge,
+            color = ExpenseDefault
+        )
+        Text(
+            text = error,
+            style = IcokieTextStyles.bodyLarge,
+            color = OnSurfaceSecondary
+        )
+        Button(
+            onClick = onRetry,
+            colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+        ) {
+            Text("重试")
+        }
+    }
+}
+
+@Composable
+private fun AIResultView(
+    result: AIRecognitionResult,
+    accounts: List<Account>,
+    selectedAccountId: UUID?,
+    onSelectAccount: () -> Unit,
+    onNavigateToAssetManagement: () -> Unit,
+    onSave: (String, TransactionType, String?, String, LocalDateTime) -> Unit,
+    onRetake: () -> Unit
+) {
+    var editedAmount by remember { mutableStateOf(result.amount) }
+    var editedCategory by remember { mutableStateOf(result.category) }
+    var editedMerchant by remember { mutableStateOf(result.merchant ?: "") }
+    var editedDate by remember { mutableStateOf(result.date ?: LocalDate.now()) }
+    var editedType by remember { mutableStateOf(result.type) }
+
+    val selectedAccount = accounts.find { it.id == selectedAccountId }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "识别结果",
+            style = IcokieTextStyles.titleLarge,
+            color = OnSurfacePrimary
+        )
+
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("金额", style = IcokieTextStyles.labelSmall, color = OnSurfaceSecondary)
+                BasicTextField(
+                    value = editedAmount,
+                    onValueChange = { editedAmount = it },
+                    textStyle = IcokieTextStyles.titleLarge.copy(color = OnSurfacePrimary),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+                )
+            }
+        }
+
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.clickable { /* 打开分类选择 */ }
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("分类", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
+                Text(
+                    editedCategory ?: "未识别",
+                    style = IcokieTextStyles.bodyLarge,
+                    color = if (editedCategory != null) OnSurfacePrimary else OnSurfaceTertiary
+                )
+            }
+        }
+
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("商家", style = IcokieTextStyles.labelSmall, color = OnSurfaceSecondary)
+                BasicTextField(
+                    value = editedMerchant,
+                    onValueChange = { editedMerchant = it },
+                    textStyle = IcokieTextStyles.bodyLarge.copy(color = OnSurfacePrimary)
+                )
+            }
+        }
+
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.clickable { onSelectAccount() }
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("账户", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
+                if (selectedAccount != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(selectedAccount.icon, fontSize = 16.sp)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            selectedAccount.name,
+                            style = IcokieTextStyles.bodyLarge,
+                            color = OnSurfacePrimary
+                        )
+                    }
+                } else {
+                    Text(
+                        "请选择账户",
+                        style = IcokieTextStyles.bodyLarge,
+                        color = OnSurfaceTertiary
+                    )
+                }
+            }
+        }
+
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TypeButton(
+                text = "支出",
+                selected = editedType == TransactionType.EXPENSE,
+                onClick = { editedType = TransactionType.EXPENSE },
+                selectedColor = ExpenseDefault,
+                modifier = Modifier.weight(1f)
+            )
+            TypeButton(
+                text = "收入",
+                selected = editedType == TransactionType.INCOME,
+                onClick = { editedType = TransactionType.INCOME },
+                selectedColor = IncomeDefault,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Button(
+                onClick = onRetake,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = SurfaceSecondary)
+            ) {
+                Text("重新识别", color = OnSurfacePrimary)
+            }
+            Button(
+                onClick = {
+                    if (editedAmount.isNotBlank()) {
+                        onSave(
+                            editedAmount,
+                            editedType,
+                            editedCategory,
+                            editedMerchant,
+                            editedDate.atStartOfDay()
+                        )
+                    }
+                },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
+                enabled = editedAmount.isNotBlank()
+            ) {
+                Text("确认保存", color = Color.White)
+            }
+        }
+    }
+}
+
+
 
 private fun formatDate(date: LocalDate): String {
     return "${date.monthValue}\u6708${date.dayOfMonth}\u65E5"
