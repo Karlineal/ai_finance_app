@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -36,9 +37,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,6 +75,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Instant
 import java.time.LocalDateTime
 import java.util.UUID
 import javax.inject.Inject
@@ -79,14 +83,17 @@ import javax.inject.Inject
 const val ASSET_MANAGEMENT_ROUTE = "asset_management"
 const val ADD_ASSET_ACCOUNT_ROUTE = "add_asset_account"
 const val ADD_ASSET_DETAIL_ROUTE = "add_asset_detail/{presetKey}"
+const val EDIT_ASSET_ACCOUNT_ROUTE = "edit_asset_account/{accountId}"
 
 fun addAssetDetailRoute(presetKey: String): String = "add_asset_detail/$presetKey"
+fun editAssetAccountRoute(accountId: UUID): String = "edit_asset_account/$accountId"
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun AssetManagementScreen(
     onBack: () -> Unit,
     onAddAccount: () -> Unit,
+    onAccountClick: (UUID) -> Unit,
     viewModel: AssetManagementViewModel = hiltViewModel(),
 ) {
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
@@ -170,6 +177,7 @@ fun AssetManagementScreen(
                 Card(
                     colors = CardDefaults.cardColors(containerColor = SurfacePrimary),
                     shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.clickable { onAccountClick(account.id) }
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(14.dp),
@@ -443,6 +451,205 @@ fun AddAssetDetailScreen(
     }
 }
 
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun EditAssetAccountScreen(
+    accountId: String,
+    onBack: () -> Unit,
+    onSaved: () -> Unit,
+    viewModel: AssetManagementViewModel = hiltViewModel(),
+) {
+    var account by remember { mutableStateOf<Account?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(accountId) {
+        val uuid = try { UUID.fromString(accountId) } catch (e: Exception) { null }
+        account = uuid?.let { viewModel.getAccountById(it) }
+        isLoading = false
+    }
+
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("加载中...", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
+        }
+        return
+    }
+
+    if (account == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("账户不存在", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
+        }
+        return
+    }
+
+    val currentAccount = account!!
+    var amount by remember { mutableStateOf(currentAccount.currentBalance.abs().setScale(2, RoundingMode.HALF_UP).toPlainString()) }
+    var accountName by remember { mutableStateOf(currentAccount.name) }
+    var note by remember { mutableStateOf(currentAccount.note ?: "") }
+    var includeInTotalAssets by remember { mutableStateOf(currentAccount.includeInTotalAssets) }
+    var isDefaultIncomeExpense by remember { mutableStateOf(currentAccount.isDefaultIncomeExpense) }
+
+    val canSave = accountName.isNotBlank()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("编辑账户", style = IcokieTextStyles.titleLarge) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    Text(
+                        text = "删除",
+                        color = Color(0xFFDC2626),
+                        style = IcokieTextStyles.labelMedium,
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .clickable { showDeleteDialog = true }
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfacePrimary),
+            )
+        },
+        containerColor = SurfaceSecondary,
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E6A3))) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("当前余额", style = IcokieTextStyles.titleMedium)
+                    OutlinedTextField(
+                        value = amount,
+                        onValueChange = { value -> amount = value.filter { ch -> ch.isDigit() || ch == '.' } },
+                        modifier = Modifier.width(140.dp),
+                        leadingIcon = { Text("¥") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    )
+                }
+            }
+
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    SettingRow(
+                        title = "账户名称",
+                        subtitle = null,
+                        trailing = accountName,
+                        onClick = {}
+                    )
+                    OutlinedTextField(
+                        value = accountName,
+                        onValueChange = { accountName = it },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        singleLine = true,
+                        placeholder = { Text("请输入账户名称") },
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    HorizontalDivider(color = SurfaceSecondary)
+                    SettingRow(
+                        title = "备注",
+                        subtitle = null,
+                        trailing = note.ifBlank { "请输入备注" },
+                        onClick = {}
+                    )
+                    OutlinedTextField(
+                        value = note,
+                        onValueChange = { note = it },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        singleLine = true,
+                        placeholder = { Text("请输入备注") },
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+                Column {
+                    SwitchRow(
+                        title = "计入总资产",
+                        subtitle = "该账户是否计入总资产",
+                        checked = includeInTotalAssets,
+                        onCheckedChange = { includeInTotalAssets = it },
+                    )
+                    HorizontalDivider(color = SurfaceSecondary)
+                    SwitchRow(
+                        title = "设为默认收支账户",
+                        subtitle = "若收支记录没有指定账户，会默认关联到该账户",
+                        checked = isDefaultIncomeExpense,
+                        onCheckedChange = { isDefaultIncomeExpense = it },
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                onClick = {
+                    viewModel.viewModelScope.launch {
+                        viewModel.updateAccount(
+                            account = currentAccount,
+                            accountName = accountName,
+                            note = note,
+                            amount = amount,
+                            includeInTotalAssets = includeInTotalAssets,
+                            isDefaultIncomeExpense = isDefaultIncomeExpense,
+                        )
+                        onSaved()
+                    }
+                },
+                enabled = canSave,
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BrandPrimary,
+                    disabledContainerColor = OnSurfaceTertiary.copy(alpha = 0.3f),
+                ),
+            ) {
+                Text("保存修改", style = IcokieTextStyles.titleMedium, color = Color.White)
+            }
+        }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("确认删除", style = IcokieTextStyles.titleMedium) },
+            text = { Text("确定要删除账户\"$accountName\"吗？此操作不可恢复。", style = IcokieTextStyles.bodyMedium) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.viewModelScope.launch {
+                            viewModel.deleteAccount(currentAccount)
+                            showDeleteDialog = false
+                            onSaved()
+                        }
+                    }
+                ) {
+                    Text("删除", color = Color(0xFFDC2626))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("取消")
+                }
+            },
+            containerColor = SurfacePrimary
+        )
+    }
+}
+
 @HiltViewModel
 class AssetManagementViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
@@ -504,6 +711,38 @@ class AssetManagementViewModel @Inject constructor(
                 updatedAt = AppDateTime.toInstant(startDateTime),
             )
         )
+    }
+
+    suspend fun getAccountById(id: UUID): Account? {
+        return accountRepository.getAccountById(id)
+    }
+
+    suspend fun updateAccount(
+        account: Account,
+        accountName: String,
+        note: String,
+        amount: String,
+        includeInTotalAssets: Boolean,
+        isDefaultIncomeExpense: Boolean,
+    ) {
+        val parsedAmount = amount.toBigDecimalOrNull() ?: BigDecimal.ZERO
+        val normalizedAmount = if (account.type.isLiability()) parsedAmount.abs().negate() else parsedAmount
+
+        accountRepository.updateAccount(
+            account.copy(
+                name = accountName,
+                note = note,
+                initialBalance = normalizedAmount,
+                currentBalance = normalizedAmount,
+                includeInTotalAssets = includeInTotalAssets,
+                isDefaultIncomeExpense = isDefaultIncomeExpense,
+                updatedAt = Instant.now(),
+            )
+        )
+    }
+
+    suspend fun deleteAccount(account: Account) {
+        accountRepository.deleteAccount(account)
     }
 }
 

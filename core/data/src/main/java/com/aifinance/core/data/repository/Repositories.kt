@@ -32,4 +32,5 @@ interface AccountRepository {
     suspend fun getFirstActiveAccount(): com.aifinance.core.model.Account?
     suspend fun insertAccount(account: com.aifinance.core.model.Account)
     suspend fun updateAccount(account: com.aifinance.core.model.Account)
+    suspend fun deleteAccount(account: com.aifinance.core.model.Account)
 }

@@ -47,6 +47,10 @@ class AccountRepositoryImpl @Inject constructor(
         }
         accountDao.update(account.copy(updatedAt = Instant.now()).toEntity())
     }
+
+    override suspend fun deleteAccount(account: Account) {
+        accountDao.delete(account.toEntity())
+    }
 }
 
 private fun AccountEntity.toDomain(): Account {

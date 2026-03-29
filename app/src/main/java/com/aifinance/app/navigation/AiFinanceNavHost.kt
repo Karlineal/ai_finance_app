@@ -17,10 +17,13 @@ import com.aifinance.feature.category_management.navigation.categoryManagementSc
 import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.ADD_ASSET_ACCOUNT_ROUTE
 import com.aifinance.feature.home.ADD_ASSET_DETAIL_ROUTE
+import com.aifinance.feature.home.EDIT_ASSET_ACCOUNT_ROUTE
 import com.aifinance.feature.home.AddAssetAccountScreen
 import com.aifinance.feature.home.AddAssetDetailScreen
 import com.aifinance.feature.home.AssetManagementScreen
+import com.aifinance.feature.home.EditAssetAccountScreen
 import com.aifinance.feature.home.addAssetDetailRoute
+import com.aifinance.feature.home.editAssetAccountRoute
 import com.aifinance.feature.home.navigation.HOME_ROUTE
 import com.aifinance.feature.home.navigation.homeScreen
 import com.aifinance.feature.statistics.navigation.navigateToStatistics
@@ -82,7 +85,10 @@ fun AiFinanceNavHost(
         composable(ASSET_MANAGEMENT_ROUTE) {
             AssetManagementScreen(
                 onBack = { navController.popBackStack() },
-                onAddAccount = { navController.navigate(ADD_ASSET_ACCOUNT_ROUTE) }
+                onAddAccount = { navController.navigate(ADD_ASSET_ACCOUNT_ROUTE) },
+                onAccountClick = { accountId ->
+                    navController.navigate(editAssetAccountRoute(accountId))
+                }
             )
         }
 
@@ -102,6 +108,20 @@ fun AiFinanceNavHost(
             val presetKey = backStackEntry.arguments?.getString("presetKey") ?: "custom_asset"
             AddAssetDetailScreen(
                 presetKey = presetKey,
+                onBack = { navController.popBackStack() },
+                onSaved = {
+                    navController.popBackStack(ASSET_MANAGEMENT_ROUTE, inclusive = false)
+                }
+            )
+        }
+
+        composable(
+            route = EDIT_ASSET_ACCOUNT_ROUTE,
+            arguments = listOf(navArgument("accountId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val accountId = backStackEntry.arguments?.getString("accountId") ?: ""
+            EditAssetAccountScreen(
+                accountId = accountId,
                 onBack = { navController.popBackStack() },
                 onSaved = {
                     navController.popBackStack(ASSET_MANAGEMENT_ROUTE, inclusive = false)
