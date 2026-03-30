@@ -35,6 +35,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -82,11 +83,15 @@ import com.aifinance.core.model.Account
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.TransactionType
+import com.aifinance.feature.home.state.AIRecognitionResult
+import com.aifinance.feature.home.state.AIRecognitionState
+import com.aifinance.feature.home.state.ProcessingStep
 import com.aifinance.feature.home.util.FileUtils
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 import android.widget.Toast
@@ -613,7 +618,16 @@ private fun AddTransactionSheetContent(
                 }
             )
         } else {
+            val aiRecordViewModel: AIRecordViewModel = hiltViewModel()
             AIRecordContent(
+                aiRecordViewModel = aiRecordViewModel,
+                accounts = accounts,
+                selectedAccountId = selectedAccountId,
+                onSelectAccount = {
+                    accountPickerMode = AccountPickerMode.SINGLE
+                    showAccountPicker = true
+                },
+                onNavigateToAssetManagement = onNavigateToAssetManagement,
                 onSaveTransaction = { amount, type, category, note, dateTime, accountId ->
                     viewModel.saveTransaction(
                         amount = amount,
@@ -624,15 +638,7 @@ private fun AddTransactionSheetContent(
                         accountId = accountId
                     )
                     onSuccess()
-                },
-                accounts = accounts,
-                selectedAccountId = selectedAccountId,
-                onSelectAccount = {
-                    accountPickerMode = AccountPickerMode.SINGLE
-                    showAccountPicker = true
-                },
-                onNavigateToAssetManagement = onNavigateToAssetManagement,
-                aiRepository = viewModel.aiRepository
+                }
             )
         }
 
@@ -1206,19 +1212,13 @@ private fun TransferSuccessDialog(
     }
 }
 
-data class AIRecognitionResult(
-    val amount: String = "",
-    val category: String? = null,
-    val merchant: String? = null,
-    val date: LocalDate? = null,
-    val note: String = "",
-    val type: TransactionType = TransactionType.EXPENSE,
-    val isLoading: Boolean = false,
-    val error: String? = null
-)
-
 @Composable
 private fun AIRecordContent(
+    aiRecordViewModel: AIRecordViewModel,
+    accounts: List<Account>,
+    selectedAccountId: UUID?,
+    onSelectAccount: () -> Unit,
+    onNavigateToAssetManagement: () -> Unit,
     onSaveTransaction: (
         amount: String,
         type: TransactionType,
@@ -1226,36 +1226,38 @@ private fun AIRecordContent(
         note: String,
         dateTime: LocalDateTime,
         accountId: UUID
-    ) -> Unit,
-    accounts: List<Account>,
-    selectedAccountId: UUID?,
-    onSelectAccount: () -> Unit,
-    onNavigateToAssetManagement: () -> Unit,
-    aiRepository: AIRepository
+    ) -> Unit
 ) {
     val context = LocalContext.current
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    var showToast by remember { mutableStateOf<String?>(null) }
+    val aiState by aiRecordViewModel.uiState.collectAsStateWithLifecycle()
+    
+    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        selectedImageUri = uri
-        showToast = "图片已选择"
+        uri?.let {
+            val file = FileUtils.uriToFile(context, it)
+            if (file != null) {
+                aiRecordViewModel.processImage(it, file)
+            } else {
+                Toast.makeText(context, "无法读取图片文件", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            showToast = "照片已拍摄"
-        }
-    }
-
-    LaunchedEffect(showToast) {
-        showToast?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            showToast = null
+            cameraImageUri?.let { uri ->
+                val file = FileUtils.uriToFile(context, uri)
+                if (file != null) {
+                    aiRecordViewModel.processImage(uri, file)
+                } else {
+                    Toast.makeText(context, "无法读取图片文件", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -1263,6 +1265,62 @@ private fun AIRecordContent(
         modifier = Modifier
             .fillMaxWidth()
             .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        when (val state = aiState) {
+            is AIRecognitionState.Idle -> {
+                AIRecordIdleView(
+                    onCameraClick = {
+                        val uri = FileUtils.createTempImageUri(context)
+                        cameraImageUri = uri
+                        cameraLauncher.launch(uri)
+                    },
+                    onGalleryClick = {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    }
+                )
+            }
+            is AIRecognitionState.Processing -> {
+                AIRecordProcessingView(step = state.step)
+            }
+            is AIRecognitionState.Success -> {
+                AIRecordSuccessView(
+                    result = state.result,
+                    accounts = accounts,
+                    selectedAccountId = selectedAccountId,
+                    onSelectAccount = onSelectAccount,
+                    onNavigateToAssetManagement = onNavigateToAssetManagement,
+                    onSave = { amount, type, category, note, dateTime, accountId ->
+                        onSaveTransaction(amount, type, category, note, dateTime, accountId)
+                        aiRecordViewModel.reset()
+                    },
+                    onCancel = {
+                        aiRecordViewModel.reset()
+                    }
+                )
+            }
+            is AIRecognitionState.Error -> {
+                AIRecordErrorView(
+                    message = state.message,
+                    canRetry = state.canRetry,
+                    onRetry = { aiRecordViewModel.retry() },
+                    onDismiss = { aiRecordViewModel.reset() }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AIRecordIdleView(
+    onCameraClick: () -> Unit,
+    onGalleryClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -1277,13 +1335,8 @@ private fun AIRecordContent(
             color = OnSurfaceSecondary
         )
 
-        val tempUri = remember { FileUtils.createTempImageUri(context) }
-
         Button(
-            onClick = {
-                selectedImageUri = tempUri
-                cameraLauncher.launch(tempUri)
-            },
+            onClick = onCameraClick,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
             shape = RoundedCornerShape(12.dp)
@@ -1298,11 +1351,7 @@ private fun AIRecordContent(
         }
 
         Button(
-            onClick = {
-                photoPickerLauncher.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                )
-            },
+            onClick = onGalleryClick,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = SurfaceSecondary),
             shape = RoundedCornerShape(12.dp)
@@ -1319,329 +1368,286 @@ private fun AIRecordContent(
     }
 }
 
-private suspend fun processImageSync(
-    uri: Uri,
-    aiRepository: AIRepository,
-    context: android.content.Context
-): AIRecognitionResult {
-    return try {
-        val file = FileUtils.uriToFile(context, uri)
-        if (file == null) {
-            return AIRecognitionResult(error = "无法读取图片文件")
-        }
-
-        val ocrResult = aiRepository.recognizeImage(file)
-
-        ocrResult.fold(
-            onSuccess = { ocrText ->
-                val prompt = """
-                    请从以下OCR识别的账单文本中提取关键信息，并以JSON格式返回：
-                    
-                    文本内容：
-                    $ocrText
-                    
-                    请提取以下字段（如果找不到则返回null）：
-                    - amount: 金额（数字，不要带货币符号）
-                    - category: 分类（如：餐饮、购物、交通等）
-                    - merchant: 商家名称
-                    - date: 日期（格式：yyyy-MM-dd）
-                    - type: 类型（"expense"支出 或 "income"收入）
-                    
-                    返回格式示例：
-                    {
-                      "amount": "128.50",
-                      "category": "餐饮",
-                      "merchant": "麦当劳",
-                      "date": "2024-01-15",
-                      "type": "expense"
-                    }
-                """.trimIndent()
-
-                aiRepository.sendMessage(prompt).fold(
-                    onSuccess = { response ->
-                        try {
-                            parseAIResponse(response)
-                        } catch (e: Exception) {
-                            AIRecognitionResult(
-                                error = "解析失败: ${e.message}",
-                                note = ocrText
-                            )
-                        }
-                    },
-                    onFailure = { error ->
-                        AIRecognitionResult(
-                            error = "AI解析失败: ${error.message}",
-                            note = ocrText
-                        )
-                    }
-                )
-            },
-            onFailure = { error ->
-                AIRecognitionResult(error = "OCR识别失败: ${error.message}")
-            }
-        )
-    } catch (e: Exception) {
-        AIRecognitionResult(error = "处理失败: ${e.message}")
-    }
-}
-
-private fun parseAIResponse(response: String): AIRecognitionResult {
-
-    val jsonPattern = """\{\s*"amount"\s*:\s*"([^"]*)"""".toRegex()
-    val categoryPattern = """"category"\s*:\s*"([^"]*)"""".toRegex()
-    val merchantPattern = """"merchant"\s*:\s*"([^"]*)"""".toRegex()
-    val datePattern = """"date"\s*:\s*"([^"]*)"""".toRegex()
-    val typePattern = """"type"\s*:\s*"([^"]*)"""".toRegex()
-
-    val amount = jsonPattern.find(response)?.groupValues?.get(1) ?: ""
-    val category = categoryPattern.find(response)?.groupValues?.get(1)
-    val merchant = merchantPattern.find(response)?.groupValues?.get(1)
-    val dateStr = datePattern.find(response)?.groupValues?.get(1)
-    val typeStr = typePattern.find(response)?.groupValues?.get(1)
-
-    val type = when (typeStr?.lowercase()) {
-        "income" -> TransactionType.INCOME
-        else -> TransactionType.EXPENSE
-    }
-
-    val date = try {
-        dateStr?.let { LocalDate.parse(it) }
-    } catch (e: Exception) {
-        null
-    }
-
-    return AIRecognitionResult(
-        amount = amount,
-        category = category,
-        merchant = merchant,
-        date = date,
-        type = type,
-        note = merchant ?: ""
-    )
-}
-
 @Composable
-private fun AIProcessingView(step: String) {
+private fun AIRecordProcessingView(step: ProcessingStep) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         CircularProgressIndicator(
-            color = BrandPrimary,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(48.dp),
+            color = BrandPrimary
         )
-        Text(
-            text = step,
-            style = IcokieTextStyles.bodyLarge,
-            color = OnSurfaceSecondary
-        )
-    }
-}
-
-@Composable
-private fun AIErrorView(error: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            text = "识别失败",
-            style = IcokieTextStyles.titleLarge,
-            color = ExpenseDefault
-        )
-        Text(
-            text = error,
-            style = IcokieTextStyles.bodyLarge,
-            color = OnSurfaceSecondary
-        )
-        Button(
-            onClick = onRetry,
-            colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
-        ) {
-            Text("重试")
+        
+        val stepText = when (step) {
+            ProcessingStep.UPLOADING -> "正在上传图片..."
+            ProcessingStep.RECOGNIZING -> "正在识别文字..."
+            ProcessingStep.PARSING -> "正在解析账单..."
         }
+        
+        Text(
+            text = stepText,
+            style = IcokieTextStyles.bodyLarge,
+            color = OnSurfacePrimary
+        )
+        
+        Text(
+            text = "请稍候，AI正在处理您的账单",
+            style = IcokieTextStyles.bodyMedium,
+            color = OnSurfaceSecondary
+        )
     }
 }
 
 @Composable
-private fun AIResultView(
+private fun AIRecordSuccessView(
     result: AIRecognitionResult,
     accounts: List<Account>,
     selectedAccountId: UUID?,
     onSelectAccount: () -> Unit,
     onNavigateToAssetManagement: () -> Unit,
-    onSave: (String, TransactionType, String?, String, LocalDateTime) -> Unit,
-    onRetake: () -> Unit
+    onSave: (
+        amount: String,
+        type: TransactionType,
+        category: String?,
+        note: String,
+        dateTime: LocalDateTime,
+        accountId: UUID
+    ) -> Unit,
+    onCancel: () -> Unit
 ) {
-    var editedAmount by remember { mutableStateOf(result.amount) }
-    var editedCategory by remember { mutableStateOf(result.category) }
-    var editedMerchant by remember { mutableStateOf(result.merchant ?: "") }
-    var editedDate by remember { mutableStateOf(result.date ?: LocalDate.now()) }
-    var editedType by remember { mutableStateOf(result.type) }
+    val lowConfidenceColor = ExpenseDefault
+    val normalColor = OnSurfaceSecondary
 
-    val selectedAccount = accounts.find { it.id == selectedAccountId }
+    val isLowConfidence = { _: String, confidence: Float ->
+        confidence < 0.7f
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "识别结果",
+            text = "✅ 识别成功",
             style = IcokieTextStyles.titleLarge,
-            color = OnSurfacePrimary
+            color = IncomeDefault
         )
 
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+        if (result.confidence.isLowConfidence()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = ExpenseDefault.copy(alpha = 0.08f)),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Text("金额", style = IcokieTextStyles.labelSmall, color = OnSurfaceSecondary)
-                BasicTextField(
-                    value = editedAmount,
-                    onValueChange = { editedAmount = it },
-                    textStyle = IcokieTextStyles.titleLarge.copy(color = OnSurfacePrimary),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
-                )
-            }
-        }
-
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.clickable { /* 打开分类选择 */ }
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("分类", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
-                Text(
-                    editedCategory ?: "未识别",
-                    style = IcokieTextStyles.bodyLarge,
-                    color = if (editedCategory != null) OnSurfacePrimary else OnSurfaceTertiary
-                )
-            }
-        }
-
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("商家", style = IcokieTextStyles.labelSmall, color = OnSurfaceSecondary)
-                BasicTextField(
-                    value = editedMerchant,
-                    onValueChange = { editedMerchant = it },
-                    textStyle = IcokieTextStyles.bodyLarge.copy(color = OnSurfacePrimary)
-                )
-            }
-        }
-
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.clickable { onSelectAccount() }
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("账户", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
-                if (selectedAccount != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(selectedAccount.icon, fontSize = 16.sp)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            selectedAccount.name,
-                            style = IcokieTextStyles.bodyLarge,
-                            color = OnSurfacePrimary
-                        )
-                    }
-                } else {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
-                        "请选择账户",
-                        style = IcokieTextStyles.bodyLarge,
-                        color = OnSurfaceTertiary
+                        text = "⚠️",
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "部分字段置信度较低，请核对后保存",
+                        style = IcokieTextStyles.bodyMedium,
+                        color = ExpenseDefault
                     )
                 }
             }
         }
 
-
-        Row(
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            TypeButton(
-                text = "支出",
-                selected = editedType == TransactionType.EXPENSE,
-                onClick = { editedType = TransactionType.EXPENSE },
-                selectedColor = ExpenseDefault,
-                modifier = Modifier.weight(1f)
-            )
-            TypeButton(
-                text = "收入",
-                selected = editedType == TransactionType.INCOME,
-                onClick = { editedType = TransactionType.INCOME },
-                selectedColor = IncomeDefault,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Button(
-                onClick = onRetake,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = SurfaceSecondary)
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("重新识别", color = OnSurfacePrimary)
+                val amountConfidence = result.confidence?.amount ?: 1f
+                Text(
+                    text = "金额: ¥${result.amount}",
+                    style = IcokieTextStyles.bodyLarge,
+                    color = if (isLowConfidence("amount", amountConfidence)) lowConfidenceColor else OnSurfacePrimary
+                )
+
+                val typeConfidence = result.confidence?.type ?: 1f
+                Text(
+                    text = "类型: ${if (result.type == TransactionType.INCOME) "收入" else "支出"}",
+                    style = IcokieTextStyles.bodyMedium,
+                    color = if (isLowConfidence("type", typeConfidence)) lowConfidenceColor else normalColor
+                )
+
+                if (result.category.isNotEmpty()) {
+                    val categoryConfidence = result.confidence?.category ?: 1f
+                    Text(
+                        text = "分类: ${result.category}",
+                        style = IcokieTextStyles.bodyMedium,
+                        color = if (isLowConfidence("category", categoryConfidence)) lowConfidenceColor else normalColor
+                    )
+                }
+
+                if (result.merchant.isNotEmpty()) {
+                    val merchantConfidence = result.confidence?.merchant ?: 1f
+                    Text(
+                        text = "商家: ${result.merchant}",
+                        style = IcokieTextStyles.bodyMedium,
+                        color = if (isLowConfidence("merchant", merchantConfidence)) lowConfidenceColor else normalColor
+                    )
+                }
+
+                val dateConfidence = result.confidence?.date ?: 1f
+                Text(
+                    text = "日期: ${result.date}",
+                    style = IcokieTextStyles.bodyMedium,
+                    color = if (isLowConfidence("date", dateConfidence)) lowConfidenceColor else normalColor
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = SurfacePrimary
+                )
+
+                if (!result.paymentTime.isNullOrEmpty()) {
+                    val paymentTimeConfidence = result.confidence?.paymentTime ?: 1f
+                    Text(
+                        text = "支付时间: ${result.paymentTime}",
+                        style = IcokieTextStyles.bodyMedium,
+                        color = if (isLowConfidence("paymentTime", paymentTimeConfidence)) lowConfidenceColor else normalColor
+                    )
+                }
+
+                if (!result.paymentMethod.isNullOrEmpty()) {
+                    val paymentMethodConfidence = result.confidence?.paymentMethod ?: 1f
+                    Text(
+                        text = "支付方式: ${result.paymentMethod}",
+                        style = IcokieTextStyles.bodyMedium,
+                        color = if (isLowConfidence("paymentMethod", paymentMethodConfidence)) lowConfidenceColor else normalColor
+                    )
+                }
+
+                if (!result.paymentAccount.isNullOrEmpty()) {
+                    val paymentAccountConfidence = result.confidence?.paymentAccount ?: 1f
+                    Text(
+                        text = "支付账户: ${result.paymentAccount}",
+                        style = IcokieTextStyles.bodyMedium,
+                        color = if (isLowConfidence("paymentAccount", paymentAccountConfidence)) lowConfidenceColor else normalColor
+                    )
+                }
+
+                if (!result.description.isNullOrEmpty()) {
+                    val descriptionConfidence = result.confidence?.description ?: 1f
+                    Text(
+                        text = "描述: ${result.description}",
+                        style = IcokieTextStyles.bodyMedium,
+                        color = if (isLowConfidence("description", descriptionConfidence)) lowConfidenceColor else normalColor
+                    )
+                }
             }
+        }
+        
+        val selectedAccount = accounts.find { it.id == selectedAccountId }
+        
+        if (selectedAccount != null) {
             Button(
                 onClick = {
-                    if (editedAmount.isNotBlank()) {
-                        onSave(
-                            editedAmount,
-                            editedType,
-                            editedCategory,
-                            editedMerchant,
-                            editedDate.atStartOfDay()
-                        )
+                    val dateTime = try {
+                        val date = LocalDate.parse(result.date)
+                        val time = result.paymentTime?.takeIf { it.isNotEmpty() }?.let {
+                            try {
+                                LocalTime.parse(it)
+                            } catch (_: Exception) {
+                                LocalTime.MIN
+                            }
+                        } ?: LocalTime.MIN
+                        LocalDateTime.of(date, time)
+                    } catch (e: Exception) {
+                        LocalDateTime.now()
                     }
+                    onSave(
+                        result.amount.toString(),
+                        result.type,
+                        result.category.ifEmpty { null },
+                        result.merchant,
+                        dateTime,
+                        selectedAccount.id
+                    )
                 },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
-                enabled = editedAmount.isNotBlank()
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("确认保存", color = Color.White)
+                Text("保存到 ${selectedAccount.name}")
             }
+        } else {
+            Button(
+                onClick = onSelectAccount,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("选择账户")
+            }
+        }
+        
+        OutlinedButton(
+            onClick = onCancel,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("取消", color = OnSurfacePrimary)
         }
     }
 }
 
-
+@Composable
+private fun AIRecordErrorView(
+    message: String,
+    canRetry: Boolean,
+    onRetry: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "❌ 识别失败",
+            style = IcokieTextStyles.titleLarge,
+            color = ExpenseDefault
+        )
+        
+        Text(
+            text = message,
+            style = IcokieTextStyles.bodyMedium,
+            color = OnSurfaceSecondary,
+            textAlign = TextAlign.Center
+        )
+        
+        if (canRetry) {
+            Button(
+                onClick = onRetry,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("重试")
+            }
+        }
+        
+        OutlinedButton(
+            onClick = onDismiss,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("取消", color = OnSurfacePrimary)
+        }
+    }
+}
 
 private fun formatDate(date: LocalDate): String {
     return "${date.monthValue}\u6708${date.dayOfMonth}\u65E5"

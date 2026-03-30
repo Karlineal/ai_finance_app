@@ -31,4 +31,6 @@ data class TransactionEntity(
     val aiConfidence: Float?,
     val userConfirmed: Boolean,
     val ocrSourceId: UUID?,
+    val paymentMethod: String? = null,
+    val paymentAccount: String? = null,
 )

@@ -28,6 +28,8 @@ data class Transaction(
     val aiConfidence: Float? = null,
     val userConfirmed: Boolean = false,
     val ocrSourceId: UUID? = null,
+    val paymentMethod: String? = null,
+    val paymentAccount: String? = null,
 )
 
 enum class TransactionType {

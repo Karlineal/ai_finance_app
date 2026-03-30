@@ -89,6 +89,53 @@ class AIRepository @Inject constructor(
     }
 
     /**
+     * 发送消息到DeepSeek并获取回复（带动态系统上下文）
+     */
+    suspend fun sendMessageWithContext(userMessage: String, systemContext: String): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val messages = mutableListOf<DeepSeekMessage>()
+            messages.add(createSystemMessage(systemContext))
+
+            conversationHistory.drop(1).forEach { msg ->
+                if (msg.role != "system") {
+                    messages.add(msg)
+                }
+            }
+
+            messages.add(createUserMessage(userMessage))
+
+            val request = DeepSeekRequest(messages = messages)
+
+            android.util.Log.d("AIRepository", "Sending message with context to DeepSeek: $userMessage")
+
+            val response = deepSeekApi.chatCompletion(
+                authorization = "Bearer $DEEPSEEK_API_KEY",
+                request = request
+            )
+
+            android.util.Log.d("AIRepository", "DeepSeek response received")
+
+            val assistantContent = response.choices.firstOrNull()?.message?.content
+                ?: return@withContext Result.failure(Exception("Empty response from AI"))
+
+            conversationHistory.add(createUserMessage(userMessage))
+            conversationHistory.add(createAssistantMessage(assistantContent))
+
+            if (conversationHistory.size > 20) {
+                val systemMessage = conversationHistory.first()
+                conversationHistory.clear()
+                conversationHistory.add(systemMessage)
+                conversationHistory.addAll(conversationHistory.takeLast(19))
+            }
+
+            Result.success(assistantContent)
+        } catch (e: Exception) {
+            android.util.Log.e("AIRepository", "Send message with context failed", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
      * 清空对话历史
      */
     fun clearConversation() {

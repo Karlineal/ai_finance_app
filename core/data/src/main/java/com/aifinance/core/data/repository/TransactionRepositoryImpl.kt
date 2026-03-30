@@ -1,5 +1,6 @@
 package com.aifinance.core.data.repository
 
+import android.util.Log
 import com.aifinance.core.database.dao.AccountDao
 import com.aifinance.core.database.dao.TransactionDao
 import com.aifinance.core.database.entity.TransactionEntity
@@ -66,15 +67,26 @@ class TransactionRepositoryImpl @Inject constructor(
             TransactionType.INCOME -> transaction.amount
             TransactionType.EXPENSE -> transaction.amount.negate()
             TransactionType.TRANSFER -> when {
-                transaction.title.startsWith("转入") -> transaction.amount
                 transaction.title.startsWith("转出") -> transaction.amount.negate()
-                else -> BigDecimal.ZERO
+                transaction.title.startsWith("转入") -> transaction.amount
+                else -> transaction.amount.negate()
             }
         }
 
         if (baseDelta.compareTo(BigDecimal.ZERO) != 0) {
             val signedDelta = baseDelta.multiply(BigDecimal.valueOf(direction.toLong()))
+            Log.d(
+                "TransactionRepo",
+                "Adjusting balance for account ${transaction.accountId}: " +
+                    "type=${transaction.type}, amount=${transaction.amount}, " +
+                    "delta=$signedDelta, direction=$direction"
+            )
             accountDao.adjustCurrentBalance(transaction.accountId, signedDelta)
+        } else {
+            Log.w(
+                "TransactionRepo",
+                "Skipping balance adjustment for transaction ${transaction.id}: delta is zero"
+            )
         }
     }
 }
@@ -102,6 +114,8 @@ private fun TransactionEntity.toDomain(): Transaction {
         aiConfidence = aiConfidence,
         userConfirmed = userConfirmed,
         ocrSourceId = ocrSourceId,
+        paymentMethod = paymentMethod,
+        paymentAccount = paymentAccount,
     )
 }
 
@@ -128,5 +142,7 @@ private fun Transaction.toEntity(): TransactionEntity {
         aiConfidence = aiConfidence,
         userConfirmed = userConfirmed,
         ocrSourceId = ocrSourceId,
+        paymentMethod = paymentMethod,
+        paymentAccount = paymentAccount,
     )
 }

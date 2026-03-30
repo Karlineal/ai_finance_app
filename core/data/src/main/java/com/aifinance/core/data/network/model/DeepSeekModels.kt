@@ -63,6 +63,13 @@ fun createSystemMessage(): DeepSeekMessage {
     )
 }
 
+fun createSystemMessage(content: String): DeepSeekMessage {
+    return DeepSeekMessage(
+        role = "system",
+        content = content
+    )
+}
+
 fun createUserMessage(content: String): DeepSeekMessage {
     return DeepSeekMessage(
         role = "user",

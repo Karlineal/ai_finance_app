@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.Account
+import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.Category
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
@@ -17,7 +18,6 @@ import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.UUID
 import javax.inject.Inject
 
@@ -94,7 +94,7 @@ class TransactionsViewModel @Inject constructor(
                     amount = amount,
                     accountId = accountId,
                     date = dateTime.toLocalDate(),
-                    time = dateTime.atZone(ZoneId.systemDefault()).toInstant(),
+                    time = AppDateTime.toInstant(dateTime),
                     type = type,
                     description = remark,
                 )

@@ -155,6 +155,14 @@ object IcokieTextStyles {
         letterSpacing = 0.5.sp
     )
 
+    val bodyMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.25.sp
+    )
+
     val labelMedium = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,

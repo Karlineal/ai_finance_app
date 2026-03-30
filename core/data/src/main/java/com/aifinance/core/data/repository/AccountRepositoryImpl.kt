@@ -38,7 +38,11 @@ class AccountRepositoryImpl @Inject constructor(
         if (account.isDefaultIncomeExpense) {
             accountDao.clearDefaultIncomeExpenseAccount()
         }
-        accountDao.insert(account.toEntity())
+        // Ensure currentBalance is synced with initialBalance for new accounts
+        val accountWithSyncedBalance = account.copy(
+            currentBalance = account.initialBalance
+        )
+        accountDao.insert(accountWithSyncedBalance.toEntity())
     }
 
     override suspend fun updateAccount(account: Account) {

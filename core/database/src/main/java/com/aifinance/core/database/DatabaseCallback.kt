@@ -28,13 +28,14 @@ class DatabaseCallback(
 
         CoroutineScope(Dispatchers.IO).launch {
             val accountId = UUID.randomUUID()
+            val initialBalance = BigDecimal("10000.00")
             val account = AccountEntity(
                 id = accountId,
                 name = "测试现金账户",
                 type = "CASH",
                 currency = "CNY",
-                initialBalance = BigDecimal("10000.00"),
-                currentBalance = BigDecimal("9850.00"),
+                initialBalance = initialBalance,
+                currentBalance = initialBalance,
                 color = 0xFF4CAF50.toInt(),
                 icon = "wallet",
                 note = "",
@@ -45,6 +46,8 @@ class DatabaseCallback(
                 updatedAt = Instant.now(),
             )
             accountDao.get().insert(account)
+            // Manually adjust balance for seed transaction since we bypass repository
+            accountDao.get().adjustCurrentBalance(accountId, BigDecimal("-150.00"))
 
             val categoryId = UUID.randomUUID()
             val category = CategoryEntity(
@@ -83,6 +86,8 @@ class DatabaseCallback(
                 aiConfidence = null,
                 userConfirmed = true,
                 ocrSourceId = null,
+                paymentMethod = "支付宝",
+                paymentAccount = "花呗",
             )
             transactionDao.get().insert(transaction)
         }

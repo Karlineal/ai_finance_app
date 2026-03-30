@@ -65,6 +65,7 @@ import com.aifinance.core.designsystem.theme.OnSurfaceTertiary
 import com.aifinance.core.designsystem.theme.SurfacePrimary
 import com.aifinance.core.designsystem.theme.SurfaceSecondary
 import com.aifinance.core.model.Account
+import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import java.math.BigDecimal
@@ -542,7 +543,7 @@ private fun AccountSelectorGrid(
     }
 }
 
-private fun Instant.toLocalTimeInZone(zoneId: ZoneId = ZoneId.systemDefault()): java.time.LocalTime {
+private fun Instant.toLocalTimeInZone(zoneId: ZoneId = AppDateTime.zoneId): java.time.LocalTime {
     return atZone(zoneId).toLocalTime()
 }
 

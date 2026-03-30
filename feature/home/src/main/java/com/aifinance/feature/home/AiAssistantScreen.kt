@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -85,6 +86,17 @@ fun AiAssistantScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                GlassmorphismNewChatButton(
+                    onClick = { viewModel.clearConversation() },
+                    modifier = Modifier.align(Alignment.CenterStart)
+                )
+            }
+
             Box(modifier = Modifier.weight(1f)) {
                 if (uiState.messages.isEmpty()) {
                     EmptyState(
@@ -441,6 +453,41 @@ private fun InputArea(
                     modifier = Modifier.size(20.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun GlassmorphismNewChatButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                Color.White.copy(alpha = 0.25f)
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = "新建对话",
+                tint = TextSecondary,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                text = "新建对话",
+                fontSize = 13.sp,
+                color = TextSecondary,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
