@@ -4,16 +4,6 @@
 
 ---
 
-## 📱 应用截图
-
-<p align="center">
-  <img src="screenshot/Screenshot_20260327_143954.png" width="32%" alt="首页 - 记账记录" />
-  <img src="screenshot/Screenshot_20260327_144032.png" width="32%" alt="首页 - AI助手" />
-  <img src="screenshot/ai_record.png" width="32%" alt="AI 智能识别" />
-</p>
-
----
-
 ## 🏗️ 项目架构
 
 本项目采用 **Clean Architecture** 结合 **模块化设计**，参考 Google 官方推荐的 Now in Android 架构模式。
