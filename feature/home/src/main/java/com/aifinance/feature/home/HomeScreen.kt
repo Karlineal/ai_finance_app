@@ -21,25 +21,29 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.LocalGroceryStore
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -48,8 +52,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,6 +63,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -67,8 +74,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.designsystem.theme.BrandPrimary
+import com.aifinance.core.designsystem.theme.BrandPrimaryLight
 import com.aifinance.core.designsystem.theme.ExpenseDefault
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.IcokieTheme
@@ -83,19 +90,25 @@ import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import com.aifinance.feature.home.component.CategoryPickerBottomSheet
-import com.aifinance.feature.home.component.MonthlyExpenseGradientCard
-import com.aifinance.feature.home.component.NetAssetGradientCard
-import com.aifinance.feature.home.component.SwipeableTransactionItem
+import com.aifinance.feature.home.component.GradientGlassCard
 import com.aifinance.feature.home.component.toOption
+import com.aifinance.feature.home.component.NetAssetGradientCard
+import com.aifinance.feature.home.component.MonthlyExpenseGradientCard
+import com.aifinance.feature.home.component.RecordHeatMap
+import com.aifinance.feature.home.component.RefinedTransactionItem
+import com.aifinance.feature.home.component.SwipeableTransactionItem
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import kotlinx.coroutines.delay
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.WeekFields
 import java.util.Locale
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordHomeContent(
     onNavigateToAssetManagement: () -> Unit = {},
@@ -110,33 +123,26 @@ fun RecordHomeContent(
     var categoryPickerTransaction by remember { mutableStateOf<Transaction?>(null) }
     var pendingDeleteTransaction by remember { mutableStateOf<Transaction?>(null) }
     var transientSuccessMessage by remember { mutableStateOf<String?>(null) }
-    var monthChangeHint by remember { mutableStateOf<String?>(null) }
 
     val recentTransactions = viewModel.recentTransactions.collectAsStateWithLifecycle()
     val totalBalance = viewModel.totalBalance.collectAsStateWithLifecycle()
     val accountsById = viewModel.accountsById.collectAsStateWithLifecycle()
     val categoriesById = viewModel.categoriesById.collectAsStateWithLifecycle()
-
-    // Month list: 6 months before/after
-    val monthsList = remember {
-        val current = LocalDate.now()
-        (-6..6).map { offset ->
-            current.plusMonths(offset.toLong())
+    val recordStats by viewModel.recordStats.collectAsStateWithLifecycle()
+    val filteredTransactions = remember(recentTransactions.value, selectedMonth) {
+        recentTransactions.value.filter {
+            it.date.year == selectedMonth.year && it.date.monthValue == selectedMonth.monthValue
         }
     }
-    val initialPageIndex = 6
-
-    val pagerState = rememberPagerState(initialPage = initialPageIndex, pageCount = { monthsList.size })
-
-    LaunchedEffect(pagerState.currentPage) {
-        val newMonth = monthsList[pagerState.currentPage]
-        if (newMonth != selectedMonth) {
-            selectedMonth = newMonth
-            val monthText = "${newMonth.year}年${newMonth.monthValue}月"
-            monthChangeHint = monthText
-            delay(1200)
-            monthChangeHint = null
-        }
+    val displayIncome = remember(filteredTransactions) {
+        filteredTransactions
+            .filter { it.type == TransactionType.INCOME && !it.isPending }
+            .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount }
+    }
+    val displayExpense = remember(filteredTransactions) {
+        filteredTransactions
+            .filter { it.type == TransactionType.EXPENSE && !it.isPending }
+            .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount }
     }
 
     LaunchedEffect(transientSuccessMessage) {
@@ -167,113 +173,118 @@ fun RecordHomeContent(
                 .background(Color(0xFFF2F2F7))
                 .padding(paddingValues)
         ) {
-            // Month pager wraps transaction list
-            HorizontalPager(
-                state = pagerState,
+            LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-            ) { page ->
-                val pageMonth = monthsList[page]
-                val pageTransactions = remember(recentTransactions.value, pageMonth) {
-                    recentTransactions.value.filter {
-                        it.date.year == pageMonth.year && it.date.monthValue == pageMonth.monthValue
+                contentPadding = PaddingValues(
+                    start = 12.dp,
+                    end = 12.dp,
+                    top = 8.dp,
+                    bottom = spacing.pagePadding,
+                ),
+                verticalArrangement = Arrangement.spacedBy(spacing.sectionSpacing)
+            ) {
+                item {
+                    BalanceCard(
+                        balance = totalBalance.value.balance,
+                        selectedMonth = selectedMonth,
+                        assets = totalBalance.value.assets,
+                        liabilities = totalBalance.value.liabilities,
+                        income = displayIncome,
+                        expense = displayExpense,
+                        onAssetManageClick = onNavigateToAssetManagement,
+                        onStatisticsClick = onNavigateToStatistics,
+                    )
+                }
+
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            RecordHeatMap(
+                                month = selectedMonth,
+                                recordedDates = recordStats.recordedDates,
+                                onDateClick = { },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceEvenly
+                            ) {
+                                StatColumn(
+                                    value = recordStats.totalDaysRecorded.toString(),
+                                    label = "坚持记录"
+                                )
+                                StatColumn(
+                                    value = filteredTransactions.size.toString(),
+                                    label = "总记录"
+                                )
+                                StatColumn(
+                                    value = recordStats.currentStreak.toString(),
+                                    label = "连续记录"
+                                )
+                            }
+                        }
                     }
                 }
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(
-                        start = 12.dp,
-                        end = 12.dp,
-                        top = 8.dp,
-                        bottom = spacing.pagePadding,
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(spacing.sectionSpacing)
-                ) {
+                if (filteredTransactions.isEmpty()) {
                     item {
-                        BalanceCard(
-                            balance = totalBalance.value.balance,
-                            selectedMonth = pageMonth,
-                            assets = totalBalance.value.assets,
-                            liabilities = totalBalance.value.liabilities,
-                            income = pageTransactions
-                                .filter { it.type == TransactionType.INCOME && !it.isPending }
-                                .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount },
-                            expense = pageTransactions
-                                .filter { it.type == TransactionType.EXPENSE && !it.isPending }
-                                .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount },
-                            onAssetManageClick = onNavigateToAssetManagement,
-                            onStatisticsClick = onNavigateToStatistics,
-                        )
+                        EmptyRecentTransactions()
                     }
+                } else {
+                    val groupedByDate = filteredTransactions.groupBy { it.date }
+                    groupedByDate.toSortedMap(compareByDescending<LocalDate> { it }).forEach { (date, dayTransactions) ->
+                        val sortedTransactions = dayTransactions.sortedByDescending { it.time }
+                        item(key = "home-day-$date") {
+                            DaySectionHeader(
+                                date = date,
+                                dayTransactions = dayTransactions,
+                                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+                            )
 
-                    if (pageTransactions.isEmpty()) {
-                        item {
-                            EmptyRecentTransactions()
-                        }
-                    } else {
-                        val groupedByDate = pageTransactions.groupBy { it.date }
-                        groupedByDate.toSortedMap(compareByDescending<LocalDate> { it }).forEach { (date, dayTransactions) ->
-                            val sortedTransactions = dayTransactions.sortedByDescending { it.time }
-                            item(key = "home-day-$date-${pageMonth.monthValue}") {
-                                DaySectionHeader(
-                                    date = date,
-                                    dayTransactions = dayTransactions,
-                                    modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
-                                )
-
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 12.dp),
-                                    shape = RoundedCornerShape(16.dp),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = Color(0xFFF7F8FC),
-                                    ),
-                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.78f)),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                                ) {
-                                    sortedTransactions.forEachIndexed { index, transaction ->
-                                        SwipeableTransactionItem(
-                                            transaction = transaction,
-                                            accountName = accountsById.value[transaction.accountId]?.name,
-                                            category = categoriesById.value[transaction.categoryId],
-                                            onClick = { onNavigateToTransactionDetail(transaction.id) },
-                                            onAmountClick = { onNavigateToTransactionDetail(transaction.id) },
-                                            onCategoryClick = { categoryPickerTransaction = transaction },
-                                            onDeleteClick = {
-                                                pendingDeleteTransaction = transaction
-                                            },
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 12.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color(0xFFF7F8FC),
+                                ),
+                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.78f)),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                            ) {
+                                sortedTransactions.forEachIndexed { index, transaction ->
+                                    SwipeableTransactionItem(
+                                        transaction = transaction,
+                                        accountName = accountsById.value[transaction.accountId]?.name,
+                                        category = categoriesById.value[transaction.categoryId],
+                                        onClick = { onNavigateToTransactionDetail(transaction.id) },
+                                        onAmountClick = { onNavigateToTransactionDetail(transaction.id) },
+                                        onCategoryClick = { categoryPickerTransaction = transaction },
+                                        onDeleteClick = {
+                                            pendingDeleteTransaction = transaction
+                                        },
+                                    )
+                                    if (index < sortedTransactions.lastIndex) {
+                                        HorizontalDivider(
+                                            thickness = 1.dp,
+                                            color = Color(0x143C3C43),
+                                            modifier = Modifier.padding(start = 16.dp),
                                         )
-                                        if (index < sortedTransactions.lastIndex) {
-                                            HorizontalDivider(
-                                                thickness = 1.dp,
-                                                color = Color(0x143C3C43),
-                                                modifier = Modifier.padding(start = 16.dp),
-                                            )
-                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            }
-
-            // Month change hint overlay
-            monthChangeHint?.let { hint ->
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 16.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xCC1F2937))
-                        .padding(horizontal = 20.dp, vertical = 10.dp),
-                ) {
-                    Text(
-                        text = hint,
-                        style = IcokieTextStyles.labelMedium,
-                        color = Color.White,
-                    )
                 }
             }
 
@@ -442,7 +453,7 @@ private fun AIAlertCard(
             }
 
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "查看详情",
                 tint = OnPrimary,
                 modifier = Modifier.size(24.dp)
@@ -466,7 +477,7 @@ private fun BalanceCard(
 ) {
     val elevation = IcokieTheme.elevation
     var hideAmount by remember { mutableStateOf(false) }
-    val pagerState = rememberPagerState(pageCount = { 2 })
+    val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
     var indicatorVisible by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
@@ -489,7 +500,7 @@ private fun BalanceCard(
     }
 
     Box(modifier = modifier.fillMaxWidth()) {
-        HorizontalPager(
+        androidx.compose.foundation.pager.HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxWidth(),
         ) { page ->
@@ -838,11 +849,11 @@ private fun MonthlySummaryCard(
     val spacing = IcokieTheme.spacing
     val elevation = IcokieTheme.elevation
 
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(spacing.cardSpacing)
-    ) {
-        Card(
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(spacing.cardSpacing)
+        ) {
+            Card(
             modifier = Modifier.weight(1f),
             elevation = CardDefaults.cardElevation(defaultElevation = elevation.cardElevation),
             colors = CardDefaults.cardColors(
@@ -1082,7 +1093,7 @@ private fun TimelineTransactionRecord(
             Spacer(modifier = Modifier.height(4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Default.Visibility,
+                    imageVector = Icons.Default.LocationOn,
                     contentDescription = null,
                     tint = OnSurfaceSecondary,
                     modifier = Modifier.size(14.dp),
@@ -1215,8 +1226,78 @@ private fun EmptyRecentTransactions(
     }
 }
 
+@Composable
+private fun StatColumn(
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = value,
+            style = IcokieTextStyles.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = OnSurfacePrimary
+        )
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = label,
+            style = IcokieTextStyles.labelMedium,
+            color = OnSurfaceSecondary
+        )
+    }
+}
+
 private val InfoBackground = Color(0xFFDBEAFE)
 private val InfoDefault = Color(0xFF3B82F6)
 private val ExpenseBackground = Color(0xFFFEE2E2)
 private val IncomeBackground = Color(0xFFD1FAE5)
 private val SurfaceSecondary = Color(0xFFF8FAFC)
+
+@Composable
+private fun MonthSelector(
+    modifier: Modifier = Modifier,
+    selectedMonth: LocalDate,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        IconButton(onClick = onPreviousMonth) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "上个月",
+                tint = OnSurfacePrimary
+            )
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "${selectedMonth.monthValue}月",
+                style = IcokieTextStyles.titleMedium,
+                color = OnSurfacePrimary
+            )
+            Text(
+                text = "${selectedMonth.year}年",
+                style = IcokieTextStyles.labelSmall,
+                color = OnSurfaceSecondary
+            )
+        }
+
+        IconButton(onClick = onNextMonth) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = "下个月",
+                tint = OnSurfacePrimary
+            )
+        }
+    }
+}
