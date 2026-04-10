@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.model.TransactionType
 import java.time.LocalDate
 import java.time.YearMonth
@@ -63,6 +65,7 @@ fun HomeSidebarDrawerContent(
     onNavigateSettings: () -> Unit,
     onNavigateAssetManagement: () -> Unit,
     onNavigateCategoryManagement: () -> Unit,
+    onNavigateScheduledTransaction: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -85,7 +88,9 @@ fun HomeSidebarDrawerContent(
     }
 
     Surface(
-        modifier = modifier.width(328.dp),
+        modifier = modifier
+            .width(328.dp)
+            .fillMaxHeight(),
         color = Color(0xFFF3F4F8),
     ) {
         Column(
@@ -109,9 +114,8 @@ fun HomeSidebarDrawerContent(
                 onNavigateTransactions = onNavigateTransactions,
                 onNavigateAssetManagement = onNavigateAssetManagement,
                 onNavigateCategoryManagement = onNavigateCategoryManagement,
+                onNavigateScheduledTransaction = onNavigateScheduledTransaction,
             )
-
-            QuickAccountingCard()
 
             SettingEntryCard(onNavigateSettings = onNavigateSettings)
         }
@@ -323,12 +327,15 @@ private fun FunctionGridCard(
     onNavigateTransactions: () -> Unit,
     onNavigateAssetManagement: () -> Unit,
     onNavigateCategoryManagement: () -> Unit,
+    onNavigateScheduledTransaction: () -> Unit,
 ) {
+    val defaultIconTint = Color(0xFF6B7280)
     val items = listOf(
-        DrawerFunctionItem("图表统计", Icons.Default.PieChart, onNavigateStatistics),
-        DrawerFunctionItem("资产管理", Icons.Default.CreditCard, onNavigateAssetManagement),
-        DrawerFunctionItem("预算管理", Icons.Default.AutoGraph, {}),
-        DrawerFunctionItem("分类管理", Icons.Default.Category, onNavigateCategoryManagement),
+        DrawerFunctionItem("图表统计", Icons.Default.PieChart, onNavigateStatistics, defaultIconTint),
+        DrawerFunctionItem("资产管理", Icons.Default.CreditCard, onNavigateAssetManagement, defaultIconTint),
+        DrawerFunctionItem("预算管理", Icons.Default.AutoGraph, {}, defaultIconTint),
+        DrawerFunctionItem("分类管理", Icons.Default.Category, onNavigateCategoryManagement, defaultIconTint),
+        DrawerFunctionItem("定时记账", Icons.Default.CalendarMonth, onNavigateScheduledTransaction, BrandPrimary),
     )
 
     Card(
@@ -353,44 +360,12 @@ private fun FunctionGridCard(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            Icon(imageVector = item.icon, contentDescription = null, tint = Color(0xFF6B7280), modifier = Modifier.size(24.dp))
+                            Icon(imageVector = item.icon, contentDescription = null, tint = item.iconTint, modifier = Modifier.size(24.dp))
                             Text(text = item.label, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF374151))
                         }
                     }
                     repeat(3 - rowItems.size) {
                         Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun QuickAccountingCard() {
-    val items = listOf(
-        DrawerFunctionItem("快捷记账", Icons.Default.Sync, {}),
-        DrawerFunctionItem("自动记账", Icons.Default.AutoGraph, {}),
-        DrawerFunctionItem("定时记账", Icons.Default.CalendarMonth, {}),
-    )
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Text(text = "快捷记账", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                items.forEach { item ->
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Icon(imageVector = item.icon, contentDescription = null, tint = Color(0xFF6B7280), modifier = Modifier.size(24.dp))
-                        Text(text = item.label, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF374151))
                     }
                 }
             }
@@ -432,6 +407,7 @@ private data class DrawerFunctionItem(
     val label: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
     val onClick: () -> Unit,
+    val iconTint: Color,
 )
 
 private fun longestStreak(days: Set<Int>): Int {

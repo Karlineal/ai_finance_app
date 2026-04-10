@@ -21,6 +21,7 @@ import com.aifinance.feature.category_management.navigation.CATEGORY_MANAGEMENT_
 import com.aifinance.feature.home.HomeSidebarDrawerContent
 import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.navigation.HOME_ROUTE
+import com.aifinance.feature.scheduled.navigation.SCHEDULED_TRANSACTION_ROUTE
 import com.aifinance.feature.settings.navigation.SETTINGS_ROUTE
 import com.aifinance.feature.statistics.navigation.STATISTICS_ROUTE
 import com.aifinance.feature.transactions.navigation.TRANSACTIONS_ROUTE
@@ -78,6 +79,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateCategoryManagement = {
                                     navController.navigate(CATEGORY_MANAGEMENT_ROUTE) {
+                                        launchSingleTop = true
+                                    }
+                                    scope.launch { drawerState.close() }
+                                },
+                                onNavigateScheduledTransaction = {
+                                    navController.navigate(SCHEDULED_TRANSACTION_ROUTE) {
                                         launchSingleTop = true
                                     }
                                     scope.launch { drawerState.close() }
