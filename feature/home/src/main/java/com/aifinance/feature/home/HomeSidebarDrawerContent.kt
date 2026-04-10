@@ -49,13 +49,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.designsystem.theme.BrandPrimary
-import com.aifinance.core.model.TransactionType
+import com.aifinance.feature.home.component.RecordHeatMap
 import java.time.LocalDate
 import java.time.YearMonth
-
-private val IncomeTileColor = Color(0xFF2E5FE6)
-private val ExpenseTileColor = Color(0xFF99B8FF)
-private val EmptyTileColor = Color(0xFFF1F2F6)
 
 @Composable
 fun HomeSidebarDrawerContent(
@@ -69,6 +65,7 @@ fun HomeSidebarDrawerContent(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
+    val recordStats by viewModel.recordStats.collectAsStateWithLifecycle()
     val transactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
     val currentMonth = remember { YearMonth.now() }
     val monthRecords = remember(transactions, currentMonth) {
@@ -81,11 +78,8 @@ fun HomeSidebarDrawerContent(
         monthRecords.groupBy { it.date.dayOfMonth }
     }
 
-    val recordedDays = remember(dayMap) { dayMap.keys.size }
-    val totalRecords = remember(monthRecords) { monthRecords.size }
-    val streakDays = remember(dayMap) {
-        longestStreak(dayMap.keys)
-    }
+    val monthRecordedDays = remember(dayMap) { dayMap.keys.size }
+    val monthTotalRecords = remember(monthRecords) { monthRecords.size }
 
     Surface(
         modifier = modifier
@@ -103,10 +97,10 @@ fun HomeSidebarDrawerContent(
 
             HeatmapCard(
                 currentMonth = currentMonth,
-                dayMap = dayMap,
-                recordedDays = recordedDays,
-                totalRecords = totalRecords,
-                streakDays = streakDays,
+                recordedDates = recordStats.recordedDates,
+                monthRecordedDays = monthRecordedDays,
+                monthTotalRecords = monthTotalRecords,
+                currentStreak = recordStats.currentStreak,
             )
 
             FunctionGridCard(
@@ -253,10 +247,10 @@ private fun LoginChip(
 @Composable
 private fun HeatmapCard(
     currentMonth: YearMonth,
-    dayMap: Map<Int, List<com.aifinance.core.model.Transaction>>,
-    recordedDays: Int,
-    totalRecords: Int,
-    streakDays: Int,
+    recordedDates: Set<LocalDate>,
+    monthRecordedDays: Int,
+    monthTotalRecords: Int,
+    currentStreak: Int,
 ) {
     Card(
         shape = RoundedCornerShape(20.dp),
@@ -266,48 +260,20 @@ private fun HeatmapCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = "${currentMonth.year}年${currentMonth.monthValue}月",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color(0xFF1F2937),
-                fontWeight = FontWeight.Bold,
+            RecordHeatMap(
+                month = LocalDate.of(currentMonth.year, currentMonth.monthValue, 1),
+                recordedDates = recordedDates,
+                onDateClick = { },
+                modifier = Modifier.fillMaxWidth()
             )
-
-            val days = (1..currentMonth.lengthOfMonth()).toList()
-            days.chunked(10).forEach { rowDays ->
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    rowDays.forEach { day ->
-                        val tileColor = when {
-                            dayMap[day].isNullOrEmpty() -> EmptyTileColor
-                            dayMap[day].orEmpty().any { it.type == TransactionType.INCOME } -> IncomeTileColor
-                            dayMap[day].orEmpty().any { it.type == TransactionType.EXPENSE } -> ExpenseTileColor
-                            else -> EmptyTileColor
-                        }
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .background(tileColor, RoundedCornerShape(6.dp)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            if (day == LocalDate.now().dayOfMonth && currentMonth == YearMonth.now()) {
-                                Text(
-                                    text = "今",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                HeatmapStatItem("${recordedDays}天", "坚持记录")
-                HeatmapStatItem("${totalRecords}条", "总记录")
-                HeatmapStatItem("${streakDays}天", "连续记录")
+                HeatmapStatItem("${monthRecordedDays}天", "坚持记录")
+                HeatmapStatItem("${monthTotalRecords}条", "总记录")
+                HeatmapStatItem("${currentStreak}天", "连续记录")
             }
         }
     }
@@ -409,21 +375,3 @@ private data class DrawerFunctionItem(
     val onClick: () -> Unit,
     val iconTint: Color,
 )
-
-private fun longestStreak(days: Set<Int>): Int {
-    if (days.isEmpty()) return 0
-    val sortedDays = days.toList().sorted()
-    var longest = 1
-    var current = 1
-    for (i in 1 until sortedDays.size) {
-        if (sortedDays[i] == sortedDays[i - 1] + 1) {
-            current += 1
-            if (current > longest) {
-                longest = current
-            }
-        } else {
-            current = 1
-        }
-    }
-    return longest
-}

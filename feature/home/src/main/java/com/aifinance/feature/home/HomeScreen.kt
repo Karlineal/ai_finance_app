@@ -94,7 +94,6 @@ import com.aifinance.feature.home.component.GradientGlassCard
 import com.aifinance.feature.home.component.toOption
 import com.aifinance.feature.home.component.NetAssetGradientCard
 import com.aifinance.feature.home.component.MonthlyExpenseGradientCard
-import com.aifinance.feature.home.component.RecordHeatMap
 import com.aifinance.feature.home.component.RefinedTransactionItem
 import com.aifinance.feature.home.component.SwipeableTransactionItem
 import androidx.compose.material.icons.filled.Visibility
@@ -128,7 +127,6 @@ fun RecordHomeContent(
     val totalBalance = viewModel.totalBalance.collectAsStateWithLifecycle()
     val accountsById = viewModel.accountsById.collectAsStateWithLifecycle()
     val categoriesById = viewModel.categoriesById.collectAsStateWithLifecycle()
-    val recordStats by viewModel.recordStats.collectAsStateWithLifecycle()
     val filteredTransactions = remember(recentTransactions.value, selectedMonth) {
         recentTransactions.value.filter {
             it.date.year == selectedMonth.year && it.date.monthValue == selectedMonth.monthValue
@@ -194,46 +192,6 @@ fun RecordHomeContent(
                         onAssetManageClick = onNavigateToAssetManagement,
                         onStatisticsClick = onNavigateToStatistics,
                     )
-                }
-
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 4.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            RecordHeatMap(
-                                month = selectedMonth,
-                                recordedDates = recordStats.recordedDates,
-                                onDateClick = { },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(16.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceEvenly
-                            ) {
-                                StatColumn(
-                                    value = recordStats.totalDaysRecorded.toString(),
-                                    label = "坚持记录"
-                                )
-                                StatColumn(
-                                    value = filteredTransactions.size.toString(),
-                                    label = "总记录"
-                                )
-                                StatColumn(
-                                    value = recordStats.currentStreak.toString(),
-                                    label = "连续记录"
-                                )
-                            }
-                        }
-                    }
                 }
 
                 if (filteredTransactions.isEmpty()) {
@@ -1223,31 +1181,6 @@ private fun EmptyRecentTransactions(
                 color = OnSurfaceTertiary
             )
         }
-    }
-}
-
-@Composable
-private fun StatColumn(
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = value,
-            style = IcokieTextStyles.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = OnSurfacePrimary
-        )
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = label,
-            style = IcokieTextStyles.labelMedium,
-            color = OnSurfaceSecondary
-        )
     }
 }
 
