@@ -35,7 +35,8 @@ ai-finance-android/
 │   ├── add_transaction/         # 添加交易
 │   ├── statistics/              # 统计分析
 │   ├── settings/                # 设置页面
-│   └── category_management/     # 分类管理
+│   ├── category_management/     # 分类管理
+│   └── scheduled/               # 定时记账
 │
 └── build-logic/                  # 构建逻辑（Convention插件）
     └── convention/
@@ -54,6 +55,7 @@ ai-finance-android/
 | **异步** | Kotlin Coroutines + Flow |
 | **图片加载** | Coil |
 | **动画** | Lottie Compose |
+| **后台调度** | WorkManager |
 
 ---
 
@@ -97,6 +99,13 @@ ai-finance-android/
 - **负债追踪**：信用卡、花呗、借呗等负债账户管理
 - **净资产实时计算**：资产减去负债，实时计算净资产
 
+### ⏰ 定时记账
+- ✅ **规则管理**：创建、启用/禁用、删除定时记账规则
+- ✅ **多周期支持**：支持每日、每周、每月自动触发
+- ✅ **后台调度**：基于 WorkManager 的定时任务，应用启动后自动恢复调度
+- ✅ **自动记账**：到达设定时间后自动生成交易记录
+- **规则配置**：支持自定义金额、分类、账户、起止日期
+
 ### 🎨 UI/UX 特性
 - **玻璃拟态设计** (Glassmorphism)：毛玻璃效果卡片
 - **流畅动画**：页面切换、交互动画
@@ -120,7 +129,7 @@ ai-finance-android/
 ### 其他功能
 - [ ] ☁️ **数据备份/恢复**
 - [ ] 🔒 **本地加密存储**
-- [ ] 🔔 **记账提醒**
+- [x] 🔔 **定时记账/记账提醒**
 - [ ] 🌙 **深色模式**
 
 ---
@@ -224,6 +233,8 @@ app
 ├── feature:statistics
 │   └── ...
 ├── feature:settings
+│   └── ...
+├── feature:scheduled
 │   └── ...
 └── core:designsystem
     └── core:model
