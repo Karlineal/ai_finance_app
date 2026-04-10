@@ -36,11 +36,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aifinance.core.data.repository.AppThemeMode
 
 @Composable
 fun SettingsScreen(
@@ -63,7 +63,7 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFEFF4FD))
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 14.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -78,7 +78,7 @@ fun SettingsScreen(
                 modifier = Modifier
                     .size(28.dp)
                     .clickable(onClick = onBack),
-                tint = Color(0xFF374151),
+                tint = MaterialTheme.colorScheme.onSurface,
             )
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                 Text(text = "设置", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -86,22 +86,31 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.size(28.dp))
         }
 
-        Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Card(
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        ) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 SettingArrowRow("月统计起始日", "每月1日")
                 SettingArrowRow("胖咔回复设置", "")
-                SettingSwitchRow("深色主题", uiState.isDarkTheme) { viewModel.setDarkThemeEnabled(it) }
+                ThemeModeRow(
+                    themeMode = uiState.themeMode,
+                    onThemeModeChange = viewModel::setThemeMode,
+                )
                 SettingSwitchRow("展示记录图片", showRecordImage) { showRecordImage = it }
                 SettingSwitchRow("记录时展示位置信息", showLocation) { showLocation = it }
             }
         }
 
-        Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Card(
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        ) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 SettingSwitchRow("推送服务", pushEnabled) { pushEnabled = it }
                 Card(
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F8FA)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
@@ -116,14 +125,20 @@ fun SettingsScreen(
             }
         }
 
-        Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Card(
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        ) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 SettingArrowRow("帮助与反馈", "")
                 SettingArrowRow("关于App", "", onClick = { showAboutDialog = true })
             }
         }
 
-        Card(shape = RoundedCornerShape(18.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+        Card(
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -132,11 +147,15 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(text = "删除所有历史账单数据", style = MaterialTheme.typography.titleMedium, color = Color(0xFF374151))
+                Text(
+                    text = "删除所有历史账单数据",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
                 Text(
                     text = if (uiState.isClearingHistory) "清空中..." else "删除",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFFFF4D4F),
+                    color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Bold,
                 )
             }
@@ -201,18 +220,78 @@ private fun SettingArrowRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium, color = Color(0xFF374151))
+        Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (value.isNotBlank()) {
-                Text(text = value, style = MaterialTheme.typography.titleMedium, color = Color(0xFF4B5563))
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                 contentDescription = null,
-                tint = Color(0xFF9CA3AF),
+                tint = MaterialTheme.colorScheme.outline,
                 modifier = Modifier.size(14.dp),
             )
         }
+    }
+}
+
+@Composable
+private fun ThemeModeRow(
+    themeMode: AppThemeMode,
+    onThemeModeChange: (AppThemeMode) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = "主题模式",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ThemeModeChip(
+                label = "亮色",
+                selected = themeMode == AppThemeMode.LIGHT,
+                onClick = { onThemeModeChange(AppThemeMode.LIGHT) },
+            )
+            ThemeModeChip(
+                label = "暗色",
+                selected = themeMode == AppThemeMode.DARK,
+                onClick = { onThemeModeChange(AppThemeMode.DARK) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ThemeModeChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+    }
+    val textColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+
+    Box(
+        modifier = Modifier
+            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
+            .background(containerColor, RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+    ) {
+        Text(text = label, style = MaterialTheme.typography.labelLarge, color = textColor)
     }
 }
 
@@ -229,7 +308,7 @@ private fun SettingSwitchRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium, color = Color(0xFF374151))
+        Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
@@ -248,16 +327,28 @@ private fun SettingCheckRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium, color = Color(0xFF374151))
+        Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
         Box(
             modifier = Modifier
                 .size(28.dp)
-                .border(1.dp, if (checked) Color(0xFF2E5FE6) else Color(0xFFD1D5DB), CircleShape)
-                .background(if (checked) Color(0xFF2E5FE6) else Color.Transparent, CircleShape),
+                .border(
+                    1.dp,
+                    if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                    CircleShape,
+                )
+                .background(
+                    if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                    CircleShape,
+                ),
             contentAlignment = Alignment.Center,
         ) {
             if (checked) {
-                Icon(imageVector = Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(16.dp),
+                )
             }
         }
     }

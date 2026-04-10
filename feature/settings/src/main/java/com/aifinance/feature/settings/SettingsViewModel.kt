@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class SettingsUiState(
-    val isDarkTheme: Boolean = false,
+    val themeMode: AppThemeMode = AppThemeMode.LIGHT,
     val isClearingHistory: Boolean = false,
 )
 
@@ -31,15 +31,19 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.themeMode.collect { mode ->
                 _uiState.update { state ->
-                    state.copy(isDarkTheme = mode == AppThemeMode.DARK)
+                    state.copy(themeMode = mode)
                 }
             }
         }
     }
 
     fun setDarkThemeEnabled(enabled: Boolean) {
+        setThemeMode(if (enabled) AppThemeMode.DARK else AppThemeMode.LIGHT)
+    }
+
+    fun setThemeMode(mode: AppThemeMode) {
         viewModelScope.launch {
-            userPreferencesRepository.setThemeMode(if (enabled) AppThemeMode.DARK else AppThemeMode.LIGHT)
+            userPreferencesRepository.setThemeMode(mode)
         }
     }
 

@@ -64,7 +64,7 @@ class TransactionRepositoryImpl @Inject constructor(
 
     override suspend fun clearAllTransactionHistory() {
         transactionDao.deleteAllTransactions()
-        accountDao.resetAllCurrentBalanceToInitial()
+        accountDao.clearAllBalancesToZero()
     }
 
     private suspend fun applyBalanceImpact(transaction: Transaction, direction: Int) {
