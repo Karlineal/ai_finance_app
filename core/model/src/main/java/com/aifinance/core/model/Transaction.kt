@@ -45,4 +45,5 @@ enum class TransactionSourceType {
     IMPORTED_BANK,
     OCR_RECEIPT,
     OCR_INVOICE,
+    SCHEDULED,
 }

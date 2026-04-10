@@ -4,6 +4,7 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.aifinance.core.database.dao.AccountDao
 import com.aifinance.core.database.dao.CategoryDao
+import com.aifinance.core.database.dao.ScheduledRuleDao
 import com.aifinance.core.database.dao.TransactionDao
 import com.aifinance.core.database.entity.AccountEntity
 import com.aifinance.core.database.entity.CategoryEntity
@@ -21,6 +22,7 @@ class DatabaseCallback(
     private val accountDao: Provider<AccountDao>,
     private val categoryDao: Provider<CategoryDao>,
     private val transactionDao: Provider<TransactionDao>,
+    private val scheduledRuleDao: Provider<ScheduledRuleDao>,
 ) : RoomDatabase.Callback() {
 
     override fun onCreate(db: SupportSQLiteDatabase) {

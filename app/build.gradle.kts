@@ -74,6 +74,7 @@ dependencies {
     implementation(project(":feature:importer"))
     implementation(project(":feature:ai"))
     implementation(project(":feature:ocr"))
+    implementation(project(":feature:scheduled"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
@@ -83,6 +84,9 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.kotlinx.coroutines.android)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
