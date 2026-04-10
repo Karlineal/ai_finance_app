@@ -1,0 +1,15 @@
+.gradle/
+build/
+**/build/
+.idea/
+*.iml
+local.properties
+*.hprof
+.agent/
+temp/
+%TEMP%/
+opencode.db
+
+# OS
+.DS_Store
+Thumbs.db
