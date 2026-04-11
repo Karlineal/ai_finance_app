@@ -64,6 +64,7 @@ fun HomeSidebarDrawerContent(
     onNavigateCategoryManagement: () -> Unit,
     onNavigateScheduledTransaction: () -> Unit = {},
     onNavigateToAllRecords: (java.time.LocalDate) -> Unit = {},
+    onNavigateToBudget: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -126,6 +127,7 @@ fun HomeSidebarDrawerContent(
                 onNavigateAssetManagement = onNavigateAssetManagement,
                 onNavigateCategoryManagement = onNavigateCategoryManagement,
                 onNavigateScheduledTransaction = onNavigateScheduledTransaction,
+                onNavigateToBudget = onNavigateToBudget,
             )
 
             SettingEntryCard(onNavigateSettings = onNavigateSettings)
@@ -312,12 +314,13 @@ private fun FunctionGridCard(
     onNavigateAssetManagement: () -> Unit,
     onNavigateCategoryManagement: () -> Unit,
     onNavigateScheduledTransaction: () -> Unit,
+    onNavigateToBudget: () -> Unit,
 ) {
     val defaultIconTint = Color(0xFF6B7280)
     val items = listOf(
         DrawerFunctionItem("图表统计", Icons.Default.PieChart, onNavigateStatistics, defaultIconTint),
         DrawerFunctionItem("资产管理", Icons.Default.CreditCard, onNavigateAssetManagement, defaultIconTint),
-        DrawerFunctionItem("预算管理", Icons.Default.AutoGraph, {}, defaultIconTint),
+        DrawerFunctionItem("预算管理", Icons.Default.AutoGraph, onNavigateToBudget, defaultIconTint),
         DrawerFunctionItem("分类管理", Icons.Default.Category, onNavigateCategoryManagement, defaultIconTint),
         DrawerFunctionItem("定时记账", Icons.Default.CalendarMonth, onNavigateScheduledTransaction, BrandPrimary),
     )
