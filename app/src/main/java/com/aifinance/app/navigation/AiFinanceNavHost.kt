@@ -181,7 +181,7 @@ fun AiFinanceNavHost(
                 onBack = { navController.popBackStack() },
                 onCompleted = {
                     navController.navigate(BUDGET_ENTRY_ROUTE) {
-                        popUpTo(BUDGET_WIZARD_ROUTE, inclusive = true)
+                        popUpTo(BUDGET_WIZARD_ROUTE) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
@@ -193,7 +193,7 @@ fun AiFinanceNavHost(
                 onAdjustBudget = { navController.navigate(BUDGET_WIZARD_ROUTE) { launchSingleTop = true } },
                 onNoActivePlanNavigateToSetup = {
                     navController.navigate(BUDGET_WIZARD_ROUTE) {
-                        popUpTo(BUDGET_DASHBOARD_ROUTE, inclusive = true)
+                        popUpTo(BUDGET_DASHBOARD_ROUTE) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
