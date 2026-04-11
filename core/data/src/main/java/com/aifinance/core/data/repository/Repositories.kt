@@ -1,6 +1,7 @@
 package com.aifinance.core.data.repository
 
 import com.aifinance.core.model.Category
+import com.aifinance.core.model.MonthlyBudgetPlan
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import kotlinx.coroutines.flow.Flow
@@ -33,4 +34,10 @@ interface AccountRepository {
     suspend fun insertAccount(account: com.aifinance.core.model.Account)
     suspend fun updateAccount(account: com.aifinance.core.model.Account)
     suspend fun deleteAccount(account: com.aifinance.core.model.Account)
+}
+
+interface BudgetRepository {
+    fun getActivePlan(): Flow<MonthlyBudgetPlan?>
+    suspend fun upsertActivePlan(plan: MonthlyBudgetPlan)
+    suspend fun clearActivePlan()
 }

@@ -14,6 +14,12 @@ import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import com.aifinance.feature.add_transaction.navigation.addTransactionScreen
 import com.aifinance.feature.category_management.navigation.categoryManagementScreen
+import com.aifinance.feature.budget.BudgetDashboardScreen
+import com.aifinance.feature.budget.BudgetEntryScreen
+import com.aifinance.feature.budget.BudgetWizardScreen
+import com.aifinance.feature.budget.navigation.BUDGET_DASHBOARD_ROUTE
+import com.aifinance.feature.budget.navigation.BUDGET_ENTRY_ROUTE
+import com.aifinance.feature.budget.navigation.BUDGET_WIZARD_ROUTE
 import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.ADD_ASSET_ACCOUNT_ROUTE
 import com.aifinance.feature.home.ADD_ASSET_DETAIL_ROUTE
@@ -160,5 +166,38 @@ fun AiFinanceNavHost(
             onBack = { navController.popBackStack() },
             onSuccess = { navController.popBackStack() }
         )
+
+        // Budget (初始化向导 + 预算管理主页)
+        composable(BUDGET_ENTRY_ROUTE) {
+            BudgetEntryScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onOpenBudgetWizard = {
+                    navController.navigate(BUDGET_WIZARD_ROUTE) { launchSingleTop = true }
+                },
+            )
+        }
+        composable(BUDGET_WIZARD_ROUTE) {
+            BudgetWizardScreen(
+                onBack = { navController.popBackStack() },
+                onCompleted = {
+                    navController.navigate(BUDGET_ENTRY_ROUTE) {
+                        popUpTo(BUDGET_WIZARD_ROUTE) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+            )
+        }
+        composable(BUDGET_DASHBOARD_ROUTE) {
+            BudgetDashboardScreen(
+                onNavigateBack = { navController.navigate(BUDGET_WIZARD_ROUTE) { launchSingleTop = true } },
+                onAdjustBudget = { navController.navigate(BUDGET_WIZARD_ROUTE) { launchSingleTop = true } },
+                onNoActivePlanNavigateToSetup = {
+                    navController.navigate(BUDGET_WIZARD_ROUTE) {
+                        popUpTo(BUDGET_DASHBOARD_ROUTE) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+            )
+        }
     }
 }
