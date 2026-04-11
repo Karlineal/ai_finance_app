@@ -229,6 +229,46 @@ class HomeViewModel @Inject constructor(
             )
         }
     }
+
+    val recordStats: StateFlow<HomeRecordStats> =
+        transactionRepository.getAllTransactions()
+            .map { transactions ->
+                val dates = transactions
+                    .filter { !it.isPending }
+                    .map { it.date }
+                    .toSet()
+                HomeRecordStats(
+                    totalDaysRecorded = dates.size,
+                    currentStreak = calculateStreak(dates),
+                    recordedDates = dates
+                )
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = HomeRecordStats()
+            )
+
+    private fun calculateStreak(recordedDates: Set<LocalDate>): Int {
+        if (recordedDates.isEmpty()) return 0
+        val sortedDates = recordedDates.toList().sortedDescending()
+        var streak = 0
+        var currentDate = LocalDate.now()
+
+        if (!recordedDates.contains(currentDate)) {
+            currentDate = currentDate.minusDays(1)
+        }
+
+        for (date in sortedDates) {
+            if (date == currentDate) {
+                streak++
+                currentDate = currentDate.minusDays(1)
+            } else if (date.isBefore(currentDate)) {
+                break
+            }
+        }
+        return streak
+    }
 }
 
 data class HomeTransactionEditedFields(
@@ -325,3 +365,9 @@ private fun calculateWeeklyInsight(transactions: List<Transaction>): WeeklyInsig
         }
     }
 }
+
+data class HomeRecordStats(
+    val totalDaysRecorded: Int = 0,
+    val currentStreak: Int = 0,
+    val recordedDates: Set<LocalDate> = emptySet()
+)
