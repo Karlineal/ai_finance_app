@@ -10,8 +10,10 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -150,11 +152,11 @@ class MainActivity : ComponentActivity() {
                                         .weight(1f)
                                         .fillMaxHeight()
                                         .background(Color.Black.copy(alpha = 0.32f))
-                                        .clickable(
-                                            onClick = closeDrawer,
-                                            indication = null,
-                                            interactionSource = remember { MutableInteractionSource() }
-                                        )
+                                        .pointerInput(Unit) {
+                                            detectTapGestures(
+                                                onTap = { closeDrawer() }
+                                            )
+                                        }
                                 )
                             }
                         }
