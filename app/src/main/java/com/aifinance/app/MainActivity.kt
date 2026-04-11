@@ -110,11 +110,11 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                     ) {
-                        Scaffold(
-                            modifier = Modifier.fillMaxSize(),
-                            containerColor = MaterialTheme.colorScheme.background,
-                        ) { innerPadding ->
-                            Box(modifier = Modifier.fillMaxSize()) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Scaffold(
+                                modifier = Modifier.fillMaxSize(),
+                                containerColor = MaterialTheme.colorScheme.background,
+                            ) { innerPadding ->
                                 AiFinanceNavHost(
                                     navController = navController,
                                     onOpenDrawer = {
@@ -122,21 +122,20 @@ class MainActivity : ComponentActivity() {
                                     },
                                     modifier = Modifier.padding(innerPadding)
                                 )
-                                // 点击遮罩关闭侧边栏
-                                if (drawerState.isOpen) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.32f))
-                                            .clickable(
-                                                onClick = {
-                                                    scope.launch { drawerState.close() }
-                                                },
-                                                indication = null,
-                                                interactionSource = androidx.compose.foundation.interaction.MutableInteractionSource()
-                                            )
-                                    )
-                                }
+                            }
+                            if (drawerState.isOpen) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Black.copy(alpha = 0.32f))
+                                        .clickable(
+                                            onClick = {
+                                                scope.launch { drawerState.close() }
+                                            },
+                                            indication = null,
+                                            interactionSource = androidx.compose.foundation.interaction.MutableInteractionSource()
+                                        )
+                                )
                             }
                         }
                     }
