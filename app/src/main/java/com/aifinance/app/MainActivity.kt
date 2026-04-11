@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity() {
 
                     ModalNavigationDrawer(
                         drawerState = drawerState,
+                        gesturesEnabled = false,
                         drawerContent = {
                             HomeSidebarDrawerContent(
                                 onNavigateHome = {
