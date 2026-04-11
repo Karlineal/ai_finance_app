@@ -33,6 +33,7 @@ import com.aifinance.feature.statistics.navigation.navigateToStatistics
 import com.aifinance.feature.settings.navigation.settingsScreen
 import com.aifinance.feature.statistics.navigation.statisticsScreen
 import com.aifinance.feature.transactions.navigation.TRANSACTIONS_ROUTE
+import com.aifinance.feature.transactions.navigation.calendarTransactionsScreen
 import com.aifinance.feature.transactions.navigation.navigateToTransactionDetail
 import com.aifinance.feature.transactions.navigation.transactionDetailScreen
 import com.aifinance.feature.transactions.navigation.transactionsScreen
@@ -136,6 +137,12 @@ fun AiFinanceNavHost(
             onNavigateToTransactionDetail = { transactionId ->
                 navController.navigateToTransactionDetail(transactionId)
             }
+        )
+        calendarTransactionsScreen(
+            onBack = { navController.popBackStack() },
+            onNavigateToTransactionDetail = { transactionId ->
+                navController.navigateToTransactionDetail(transactionId)
+            },
         )
         transactionDetailScreen(
             onBack = { navController.popBackStack() },

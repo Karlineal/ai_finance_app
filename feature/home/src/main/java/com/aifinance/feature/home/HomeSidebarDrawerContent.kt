@@ -49,8 +49,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.designsystem.theme.BrandPrimary
+import com.aifinance.core.model.TransactionType
+import com.aifinance.feature.home.component.DayActivity
 import com.aifinance.feature.home.component.RecordHeatMap
-import java.time.LocalDate
 import java.time.YearMonth
 
 @Composable
@@ -62,6 +63,7 @@ fun HomeSidebarDrawerContent(
     onNavigateAssetManagement: () -> Unit,
     onNavigateCategoryManagement: () -> Unit,
     onNavigateScheduledTransaction: () -> Unit = {},
+    onNavigateToAllRecords: (java.time.LocalDate) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -80,6 +82,17 @@ fun HomeSidebarDrawerContent(
 
     val monthRecordedDays = remember(dayMap) { dayMap.keys.size }
     val monthTotalRecords = remember(monthRecords) { monthRecords.size }
+    val monthActivity = remember(dayMap) {
+        dayMap.mapValues { (_, txs) ->
+            val hasIncome = txs.any { it.type == TransactionType.INCOME }
+            val hasExpense = txs.any { it.type == TransactionType.EXPENSE }
+            when {
+                hasIncome -> DayActivity.WithIncome
+                hasExpense -> DayActivity.ExpenseOnly
+                else -> DayActivity.None
+            }
+        }
+    }
 
     Surface(
         modifier = modifier
@@ -97,10 +110,14 @@ fun HomeSidebarDrawerContent(
 
             HeatmapCard(
                 currentMonth = currentMonth,
-                recordedDates = recordStats.recordedDates,
+                monthActivity = monthActivity,
                 monthRecordedDays = monthRecordedDays,
                 monthTotalRecords = monthTotalRecords,
                 currentStreak = recordStats.currentStreak,
+                onDateClick = { day ->
+                    val date = java.time.LocalDate.of(currentMonth.year, currentMonth.monthValue, day)
+                    onNavigateToAllRecords(date)
+                },
             )
 
             FunctionGridCard(
@@ -247,10 +264,11 @@ private fun LoginChip(
 @Composable
 private fun HeatmapCard(
     currentMonth: YearMonth,
-    recordedDates: Set<LocalDate>,
+    monthActivity: Map<Int, DayActivity>,
     monthRecordedDays: Int,
     monthTotalRecords: Int,
     currentStreak: Int,
+    onDateClick: (Int) -> Unit = {},
 ) {
     Card(
         shape = RoundedCornerShape(20.dp),
@@ -261,9 +279,9 @@ private fun HeatmapCard(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             RecordHeatMap(
-                month = LocalDate.of(currentMonth.year, currentMonth.monthValue, 1),
-                recordedDates = recordedDates,
-                onDateClick = { },
+                currentMonth = currentMonth,
+                monthActivity = monthActivity,
+                onDateClick = onDateClick,
                 modifier = Modifier.fillMaxWidth()
             )
 

@@ -89,6 +89,12 @@ class MainActivity : ComponentActivity() {
                                     }
                                     scope.launch { drawerState.close() }
                                 },
+                                onNavigateToAllRecords = { date ->
+                                    navController.navigate("all_records/${date}") {
+                                        launchSingleTop = true
+                                    }
+                                    scope.launch { drawerState.close() }
+                                },
                             )
                         },
                     ) {
