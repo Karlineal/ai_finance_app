@@ -149,7 +149,7 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
-                                        .background(Color.Black.copy(alpha = 0.1f))
+                                        .background(Color.Transparent)
                                         .clickable(
                                             onClick = closeDrawer,
                                             indication = null,
