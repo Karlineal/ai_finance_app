@@ -22,34 +22,24 @@ class TransactionRepositoryImpl @Inject constructor(
 
     override fun getAllTransactions(): Flow<List<Transaction>> {
         return transactionDao.getAllTransactions().map { entities ->
-            entities.mapNotNull { entity ->
-                runCatching { entity.toDomain() }
-                    .onFailure { Log.e("TransactionRepo", "skip corrupt row ${entity.id}", it) }
-                    .getOrNull()
-            }
+            entities.map { it.toDomain() }
         }
     }
 
     override fun getRecentTransactions(limit: Int): Flow<List<Transaction>> {
         return transactionDao.getRecentTransactions(limit).map { entities ->
-            entities.mapNotNull { entity ->
-                runCatching { entity.toDomain() }.getOrNull()
-            }
+            entities.map { it.toDomain() }
         }
     }
 
     override fun getTransactionsByAccount(accountId: UUID): Flow<List<Transaction>> {
         return transactionDao.getTransactionsByAccount(accountId).map { entities ->
-            entities.mapNotNull { entity ->
-                runCatching { entity.toDomain() }.getOrNull()
-            }
+            entities.map { it.toDomain() }
         }
     }
 
     override suspend fun getTransactionById(id: UUID): Transaction? {
-        return transactionDao.getTransactionById(id)?.let { entity ->
-            runCatching { entity.toDomain() }.getOrNull()
-        }
+        return transactionDao.getTransactionById(id)?.toDomain()
     }
 
     override suspend fun insertTransaction(transaction: Transaction) {
@@ -70,6 +60,11 @@ class TransactionRepositoryImpl @Inject constructor(
         val existing = transactionDao.getTransactionById(transaction.id)?.toDomain() ?: transaction
         transactionDao.delete(existing.toEntity())
         applyBalanceImpact(existing, direction = -1)
+    }
+
+    override suspend fun clearAllTransactionHistory() {
+        transactionDao.deleteAllTransactions()
+        accountDao.clearAllBalancesToZero()
     }
 
     private suspend fun applyBalanceImpact(transaction: Transaction, direction: Int) {
@@ -102,15 +97,11 @@ class TransactionRepositoryImpl @Inject constructor(
 }
 
 private fun TransactionEntity.toDomain(): Transaction {
-    val txType = runCatching { TransactionType.valueOf(type) }
-        .getOrElse { TransactionType.EXPENSE }
-    val srcType = runCatching { TransactionSourceType.valueOf(sourceType) }
-        .getOrElse { TransactionSourceType.MANUAL }
     return Transaction(
         id = id,
         accountId = accountId,
         categoryId = categoryId,
-        type = txType,
+        type = TransactionType.valueOf(type),
         amount = amount,
         currency = currency,
         title = title,
@@ -121,7 +112,7 @@ private fun TransactionEntity.toDomain(): Transaction {
         receiptImagePath = receiptImagePath,
         createdAt = createdAt,
         updatedAt = updatedAt,
-        sourceType = srcType,
+        sourceType = TransactionSourceType.valueOf(sourceType),
         importBatchId = importBatchId,
         rawText = rawText,
         aiCategory = aiCategory,

@@ -75,7 +75,6 @@ dependencies {
     implementation(project(":feature:ai"))
     implementation(project(":feature:ocr"))
     implementation(project(":feature:scheduled"))
-    implementation(project(":feature:budget"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.compose)
@@ -84,6 +83,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
 
     implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
 
     implementation(libs.androidx.work.runtime.ktx)

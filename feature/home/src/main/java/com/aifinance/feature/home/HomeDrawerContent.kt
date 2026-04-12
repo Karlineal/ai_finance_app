@@ -66,7 +66,6 @@ fun HomeDrawerContent(
     onNavigateToTransactions: () -> Unit,
     onNavigateToAssetManagement: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToBudget: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -223,7 +222,7 @@ fun HomeDrawerContent(
                     }
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                        DrawerFeature("预算管理", Icons.Default.Calculate) { onNavigateToBudget() }
+                        DrawerFeature("预算管理", Icons.Default.Calculate) { }
                         DrawerFeature("分类管理", Icons.Default.Category) { }
                     }
                 }

@@ -6,6 +6,9 @@ build/
 local.properties
 *.hprof
 .agent/
+temp/
+%TEMP%/
+opencode.db
 
 # OS
 .DS_Store

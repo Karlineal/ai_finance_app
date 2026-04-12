@@ -34,6 +34,12 @@ interface AccountDao {
     @Query("UPDATE accounts SET currentBalance = currentBalance + :delta WHERE id = :accountId")
     suspend fun adjustCurrentBalance(accountId: UUID, delta: BigDecimal)
 
+    @Query("UPDATE accounts SET currentBalance = initialBalance")
+    suspend fun resetAllCurrentBalanceToInitial()
+
+    @Query("UPDATE accounts SET initialBalance = 0, currentBalance = 0")
+    suspend fun clearAllBalancesToZero()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(account: AccountEntity)
 

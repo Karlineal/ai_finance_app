@@ -2,14 +2,14 @@ package com.aifinance.core.data.di
 
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.AccountRepositoryImpl
-import com.aifinance.core.data.repository.BudgetRepository
-import com.aifinance.core.data.repository.BudgetRepositoryImpl
 import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.CategoryRepositoryImpl
 import com.aifinance.core.data.repository.ScheduledRuleRepository
 import com.aifinance.core.data.repository.ScheduledRuleRepositoryImpl
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.data.repository.TransactionRepositoryImpl
+import com.aifinance.core.data.repository.UserPreferencesRepository
+import com.aifinance.core.data.repository.UserPreferencesRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -46,8 +46,8 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindBudgetRepository(
-        impl: BudgetRepositoryImpl
-    ): BudgetRepository
+    abstract fun bindUserPreferencesRepository(
+        impl: UserPreferencesRepositoryImpl
+    ): UserPreferencesRepository
 
 }
