@@ -8,8 +8,6 @@ import com.aifinance.core.data.repository.ScheduledRuleRepository
 import com.aifinance.core.data.repository.ScheduledRuleRepositoryImpl
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.data.repository.TransactionRepositoryImpl
-import com.aifinance.core.data.repository.UserPreferencesRepository
-import com.aifinance.core.data.repository.UserPreferencesRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -43,11 +41,5 @@ abstract class RepositoryModule {
     abstract fun bindScheduledRuleRepository(
         impl: ScheduledRuleRepositoryImpl
     ): ScheduledRuleRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindUserPreferencesRepository(
-        impl: UserPreferencesRepositoryImpl
-    ): UserPreferencesRepository
 
 }

@@ -62,11 +62,6 @@ class TransactionRepositoryImpl @Inject constructor(
         applyBalanceImpact(existing, direction = -1)
     }
 
-    override suspend fun clearAllTransactionHistory() {
-        transactionDao.deleteAllTransactions()
-        accountDao.clearAllBalancesToZero()
-    }
-
     private suspend fun applyBalanceImpact(transaction: Transaction, direction: Int) {
         val baseDelta = when (transaction.type) {
             TransactionType.INCOME -> transaction.amount

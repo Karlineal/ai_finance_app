@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,7 +15,6 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -115,24 +113,14 @@ fun NetAssetGradientCard(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val darkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
     GradientGlassCard(
         modifier = modifier,
-        gradientColors = if (darkTheme) {
-            listOf(
-                Color(0xFF4F4528),
-                Color(0xFF5E5330),
-                Color(0xFF6B5D37),
-            )
-        } else {
-            listOf(
-                Color(0xFFF7D986),
-                Color(0xFFF2CC68),
-                Color(0xFFE7B953),
-            )
-        },
-        highlightAlpha = if (darkTheme) 0.24f else 0.50f,
-        borderColor = if (darkTheme) Color.White.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.34f),
+        gradientColors = listOf(
+            Color(0xFFF7D986),
+            Color(0xFFF2CC68),
+            Color(0xFFE7B953),
+        ),
+        highlightAlpha = 0.50f,
         content = content,
     )
 }
@@ -145,24 +133,14 @@ fun MonthlyExpenseGradientCard(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val darkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
     GradientGlassCard(
         modifier = modifier,
-        gradientColors = if (darkTheme) {
-            listOf(
-                Color(0xFF1F3D8A),
-                Color(0xFF2B4FA4),
-                Color(0xFF3A63BD),
-            )
-        } else {
-            listOf(
-                Color(0xFF2E56D8),
-                Color(0xFF3F6EEA),
-                Color(0xFF5C8CF8),
-            )
-        },
-        highlightAlpha = if (darkTheme) 0.26f else 0.40f,
-        borderColor = if (darkTheme) Color.White.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.34f),
+        gradientColors = listOf(
+            Color(0xFF2E56D8),
+            Color(0xFF3F6EEA),
+            Color(0xFF5C8CF8),
+        ),
+        highlightAlpha = 0.40f,
         content = content,
     )
 }

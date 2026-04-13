@@ -23,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,6 +44,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+private val TabSurface = Color(0xFFEFF3FB)
 private val TabIndicator = BrandPrimary
 
 @Composable
@@ -118,7 +118,7 @@ private fun liquidTopTabBar(
         modifier = Modifier
             .then(modifier)
             .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(TabSurface)
             .padding(4.dp)
             .fillMaxWidth()
             .height(48.dp),
@@ -169,7 +169,7 @@ private fun liquidTopTabBar(
             tabs.forEachIndexed { index, tab ->
                 val selected = index == selectedIndex
                 val textColor by animateColorAsState(
-                    targetValue = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
+                    targetValue = if (selected) Color.White else OnSurfacePrimary,
                     animationSpec = spring(
                         dampingRatio = 0.9f,
                         stiffness = 480f,

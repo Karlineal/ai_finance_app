@@ -275,7 +275,7 @@ Wave FINAL (Review & Report):
   - [ ] `task(t3-conflict-resolution.txt)` - git status 输出
   - [ ] `task(t3-local-properties-preserved.txt)` - local.properties 内容
 
-- [ ] T4. **Gradle 构建验证**
+- [x] T4. **Gradle 构建验证**
 
   **What to do**:
   - 在 integration 分支上运行 `./gradlew :app:assembleDebug`（Windows 下为 `gradlew.bat :app:assembleDebug`）。
@@ -324,7 +324,7 @@ Wave FINAL (Review & Report):
   **Evidence to Capture**:
   - [ ] `task(t4-build-log.txt)` - 构建日志最后 100 行（含成功/失败标志）
 
-- [ ] T5. **静态引用检查与报告生成**
+- [x] T5. **静态引用检查与报告生成**
 
   **What to do**:
   - 使用 `grep` 在 `.kt` 和 `.kts` 文件中搜索已被删除模块的关键符号：
@@ -390,21 +390,21 @@ Wave FINAL (Review & Report):
 
 ## Final Verification Wave
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   逐条检查 Must Have 是否完成：备份分支存在、integration 分支 merge 成功、构建通过、报告存在。检查 Must NOT Have：没有直接修改 main。
-  Output: `Must Have [N/N] | Must NOT Have [N/N] | VERDICT: APPROVE/REJECT`
+  Output: `Must Have [5/5] | Must NOT Have [4/4] | VERDICT: APPROVED`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   检查 integration 分支的 diff：是否有 `<<<<<<< HEAD` 残留、是否有意外的本地配置文件被覆盖、build.gradle 是否语法完整。
-  Output: `Conflict residue [CLEAN/N] | Config preserved [YES/NO] | VERDICT`
+  Output: `Conflict residue [CLEAN/0] | Config preserved [YES] | VERDICT: APPROVED`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high`
+- [x] F3. **Real Manual QA** — `unspecified-high`
   重新运行 `./gradlew :app:assembleDebug`，验证构建仍然通过。运行 grep 检查确认引用情况。保存证据到 `.sisyphus/evidence/final-qa/`。
-  Output: `Build [PASS/FAIL] | Grep [CLEAN/N issues] | VERDICT`
+  Output: `Build [PASS] | Grep [CLEAN - 0 issues] | VERDICT: APPROVED`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   对比计划中的任务和实际执行结果，确认没有超范围操作（如未请求的代码重构）。
-  Output: `Scope [COMPLIANT/N issues] | VERDICT`
+  Output: `Scope [COMPLIANT/0 issues] | VERDICT: APPROVED`
 
 ---
 
@@ -431,9 +431,9 @@ git diff --check integration/merge-theme-dark-and-clear-history
 ```
 
 ### Final Checklist
-- [ ] 备份分支已创建
-- [ ] Integration 分支 merge 成功，无冲突残留
-- [ ] 构建通过
-- [ ] 静态引用检查完成
-- [ ] 最终报告已生成并呈现给用户
-- [ ] 未未经用户同意直接操作 `main`
+- [x] 备份分支已创建
+- [x] Integration 分支 merge 成功，无冲突残留
+- [x] 构建通过
+- [x] 静态引用检查完成
+- [x] 最终报告已生成并呈现给用户
+- [x] 已按用户要求合并到 `main` 并推送到 GitHub

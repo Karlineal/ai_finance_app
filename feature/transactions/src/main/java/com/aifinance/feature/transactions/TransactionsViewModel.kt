@@ -47,6 +47,12 @@ class TransactionsViewModel @Inject constructor(
         return CategoryCatalog.categoriesForType(type)
     }
 
+    fun deleteTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            transactionRepository.deleteTransaction(transaction)
+        }
+    }
+
     fun updateTransactionCategory(transaction: Transaction, categoryId: UUID) {
         val category = CategoryCatalog.resolve(categoryId = categoryId, type = transaction.type).asCategory()
         viewModelScope.launch {

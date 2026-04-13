@@ -83,7 +83,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
 
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
 
     implementation(libs.androidx.work.runtime.ktx)

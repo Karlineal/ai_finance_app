@@ -12,14 +12,10 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
 import com.aifinance.app.navigation.AiFinanceNavHost
-import com.aifinance.core.data.repository.AppThemeMode
 import com.aifinance.core.designsystem.theme.AiFinanceTheme
 import com.aifinance.feature.category_management.navigation.CATEGORY_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.HomeSidebarDrawerContent
@@ -38,10 +34,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val viewModel: MainViewModel = hiltViewModel()
-            val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
-
-            AiFinanceTheme(darkTheme = themeMode == AppThemeMode.DARK) {
+            AiFinanceTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -92,6 +85,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onNavigateScheduledTransaction = {
                                     navController.navigate(SCHEDULED_TRANSACTION_ROUTE) {
+                                        launchSingleTop = true
+                                    }
+                                    scope.launch { drawerState.close() }
+                                },
+                                onNavigateToAllRecords = { date ->
+                                    navController.navigate("all_records/${date}") {
                                         launchSingleTop = true
                                     }
                                     scope.launch { drawerState.close() }

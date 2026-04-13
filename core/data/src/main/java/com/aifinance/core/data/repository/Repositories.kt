@@ -14,7 +14,6 @@ interface TransactionRepository {
     suspend fun insertTransaction(transaction: Transaction)
     suspend fun updateTransaction(transaction: Transaction)
     suspend fun deleteTransaction(transaction: Transaction)
-    suspend fun clearAllTransactionHistory()
 }
 
 interface CategoryRepository {

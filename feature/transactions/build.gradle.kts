@@ -33,6 +33,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":feature:home"))
     implementation(project(":core:ui"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:model"))
