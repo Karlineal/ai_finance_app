@@ -1,5 +1,6 @@
 package com.aifinance.core.data.repository.ai
 
+import com.aifinance.core.data.BuildConfig
 import com.aifinance.core.data.network.api.DeepSeekApi
 import com.aifinance.core.data.network.api.PaddleOCRApi
 import com.aifinance.core.data.network.model.DeepSeekMessage
@@ -34,8 +35,6 @@ class AIRepository @Inject constructor(
 ) {
 
     companion object {
-        private const val DEEPSEEK_API_KEY = "sk-2cfbc7609fa649c5b35d116af1f002a2"
-        private const val PADDLEOCR_TOKEN = "f3686824d9d18683244db73aaf7a507478cc9c38"
         private const val MAX_RETRY_COUNT = 30
         private const val POLLING_INTERVAL_MS = 3000L
     }
@@ -60,7 +59,7 @@ class AIRepository @Inject constructor(
             android.util.Log.d("AIRepository", "Sending message to DeepSeek: $userMessage")
 
             val response = deepSeekApi.chatCompletion(
-                authorization = "Bearer $DEEPSEEK_API_KEY",
+                authorization = "Bearer ${BuildConfig.DEEPSEEK_API_KEY}",
                 request = request
             )
 
@@ -109,7 +108,7 @@ class AIRepository @Inject constructor(
             android.util.Log.d("AIRepository", "Sending message with context to DeepSeek: $userMessage")
 
             val response = deepSeekApi.chatCompletion(
-                authorization = "Bearer $DEEPSEEK_API_KEY",
+                authorization = "Bearer ${BuildConfig.DEEPSEEK_API_KEY}",
                 request = request
             )
 
@@ -181,7 +180,7 @@ class AIRepository @Inject constructor(
 
             val request = Request.Builder()
                 .url("${PaddleOCRApi.BASE_URL}api/v2/ocr/jobs")
-                .header("Authorization", "bearer $PADDLEOCR_TOKEN")
+                .header("Authorization", "bearer ${BuildConfig.PADDLEOCR_TOKEN}")
                 .post(requestBody)
                 .build()
 
@@ -227,7 +226,7 @@ class AIRepository @Inject constructor(
                 
                 val request = Request.Builder()
                     .url("${PaddleOCRApi.BASE_URL}api/v2/ocr/jobs/$jobId")
-                    .header("Authorization", "bearer $PADDLEOCR_TOKEN")
+                    .header("Authorization", "bearer ${BuildConfig.PADDLEOCR_TOKEN}")
                     .get()
                     .build()
 

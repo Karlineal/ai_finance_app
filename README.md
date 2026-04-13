@@ -131,10 +131,26 @@ ai-finance-android/
 
 | 服务 | 用途 | 配置位置 |
 |------|------|----------|
-| **DeepSeek** | AI 对话与解析 | `AIRepository.kt` |
-| **PaddleOCR** | 票据 OCR 识别 | `AIRepository.kt` |
+| **DeepSeek** | AI 对话与解析 | `local.properties` |
+| **PaddleOCR** | 票据 OCR 识别 | `local.properties` |
 
-> ⚠️ **注意**：API Key 当前硬编码在代码中，生产环境建议移至环境变量或本地配置文件。
+### 本地开发配置
+
+1. 复制模板文件：
+   ```bash
+   cp local.properties.example local.properties
+   ```
+
+2. 编辑 `local.properties`，填入你的 API Key：
+   ```properties
+   sdk.dir=YOUR_SDK_PATH
+   DEEPSEEK_API_KEY=your_deepseek_api_key_here
+   PADDLEOCR_TOKEN=your_paddleocr_token_here
+   ```
+
+3. 重新构建项目，API Key 将通过 `BuildConfig` 自动注入。
+
+> ⚠️ **注意**：`local.properties` 已加入 `.gitignore`，不会被提交到版本控制。请确保不要将包含真实 API Key 的文件上传至公开仓库。
 
 ---
 
