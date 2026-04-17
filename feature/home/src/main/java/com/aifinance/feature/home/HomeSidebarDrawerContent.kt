@@ -322,7 +322,7 @@ private fun FunctionGridCard(
         DrawerFunctionItem("资产管理", Icons.Default.CreditCard, onNavigateAssetManagement, defaultIconTint),
         DrawerFunctionItem("预算管理", Icons.Default.AutoGraph, onNavigateToBudget, defaultIconTint),
         DrawerFunctionItem("分类管理", Icons.Default.Category, onNavigateCategoryManagement, defaultIconTint),
-        DrawerFunctionItem("定时记账", Icons.Default.CalendarMonth, onNavigateScheduledTransaction, BrandPrimary),
+        DrawerFunctionItem("定时记账", Icons.Default.CalendarMonth, onNavigateScheduledTransaction, defaultIconTint),
     )
 
     Card(

@@ -109,11 +109,19 @@ class ScheduledRuleWorkScheduler @Inject constructor(
         )
 
         val pendingIntent = ScheduledRuleAlarmReceiver.pendingIntent(context, ruleId)
-        alarmManager.setExactAndAllowWhileIdle(
-            AlarmManager.RTC_WAKEUP,
-            whenInstant.toEpochMilli(),
-            pendingIntent,
-        )
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+            // 缺少精确闹钟权限，仅依赖 WorkManager 的延迟调度（不够精确但不会崩溃）
+            return
+        }
+        try {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                whenInstant.toEpochMilli(),
+                pendingIntent,
+            )
+        } catch (_: SecurityException) {
+            // 权限被动态撤销时兜底
+        }
     }
 
     private fun enqueueImmediateWork(ruleId: UUID) {
