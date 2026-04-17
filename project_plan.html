@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iCookie记账App - 16周开发计划表</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0b;
+            --bg-elevated: #111113;
+            --bg-card: #18181b;
+            --border: #27272a;
+            --text-primary: #fafafa;
+            --text-secondary: #a1a1aa;
+            --text-tertiary: #71717a;
+            --accent-purple: #a855f7;
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
+            --accent-orange: #f97316;
+            --accent-cyan: #06b6d4;
+            --accent-pink: #ec4899;
+            --milestone-gold: #fbbf24;
+            --milestone-red: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        header { border-bottom: 1px solid var(--border); background: rgba(10,10,11,0.95); backdrop-filter: blur(12px); }
+        .header-main { max-width: 900px; margin: 0 auto; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .header-left { display: flex; flex-direction: column; gap: 2px; }
+        .project-title { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; }
+        .project-meta { font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .meta-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent-green); }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .stat-inline { font-size: 0.75rem; color: var(--text-tertiary); font-weight: 500; }
+        .stat-inline strong { color: var(--text-primary); font-weight: 600; }
+
+        .progress-wrap { max-width: 900px; margin: 0 auto; padding: 0 20px 14px; }
+        .progress-bar-bg { height: 6px; background: var(--bg-card); border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; width: 43.75%; background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); border-radius: 3px; }
+        .progress-markers { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.65rem; color: var(--text-tertiary); font-weight: 500; }
+        .progress-markers span.highlight { color: var(--milestone-gold); }
+
+        .filter-bar { max-width: 900px; margin: 0 auto; padding: 10px 20px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+        .filter-pill { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+        .filter-pill:hover { border-color: #3f3f46; color: var(--text-primary); }
+        .filter-pill.active { background: rgba(255,255,255,0.08); color: var(--text-primary); border-color: currentColor; }
+        .filter-pill.peng.active { border-color: var(--accent-purple); color: #d8b4fe; background: rgba(168,85,247,0.12); }
+        .filter-pill.cai.active { border-color: var(--accent-green); color: #86efac; background: rgba(34,197,94,0.12); }
+        .filter-pill.wang.active { border-color: var(--accent-orange); color: #fdba74; background: rgba(249,115,22,0.12); }
+        .filter-pill.cbl.active { border-color: var(--accent-cyan); color: #67e8f9; background: rgba(6,182,212,0.12); }
+        .filter-pill.li.active { border-color: var(--accent-pink); color: #f9a8d4; background: rgba(236,72,153,0.12); }
+        .filter-separator { width: 1px; height: 16px; background: var(--border); margin: 0 4px; }
+
+        .timeline-container { max-width: 900px; margin: 0 auto; padding: 24px 20px 80px; }
+        .timeline { position: relative; padding-left: 44px; }
+        .timeline::before { content: ''; position: absolute; left: 14px; top: 8px; bottom: 0; width: 1px; background: var(--border); }
+
+        .week-node { position: relative; margin-bottom: 24px; transition: opacity 0.3s; }
+        .week-node.hidden { display: none; }
+        .week-dot { position: absolute; left: -38px; top: 6px; width: 11px; height: 11px; border-radius: 50%; background: var(--bg); border: 2px solid var(--border); z-index: 2; }
+        .week-node.current .week-dot { background: var(--accent-purple); border-color: var(--accent-purple); box-shadow: 0 0 0 3px rgba(168,85,247,0.2); }
+        .week-node.milestone-mid .week-dot { background: var(--milestone-gold); border-color: var(--milestone-gold); }
+        .week-node.milestone-final .week-dot { background: var(--milestone-red); border-color: var(--milestone-red); }
+
+        .week-header-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+        .week-label { font-size: 0.8rem; font-weight: 600; font-family: 'Inter', sans-serif; }
+        .week-tagline { font-size: 0.8rem; color: var(--text-secondary); }
+        .week-badge { font-size: 0.6rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.3px; margin-left: auto; }
+        .badge-current { background: rgba(168,85,247,0.15); color: #d8b4fe; }
+        .badge-mid { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .badge-final { background: rgba(239,68,68,0.15); color: #fca5a5; }
+        .badge-past { background: rgba(34,197,94,0.12); color: #86efac; }
+        .badge-future { background: rgba(113,113,122,0.15); color: #a1a1aa; }
+
+        .task-list { display: flex; flex-direction: column; gap: 6px; }
+        .task-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; transition: all 0.15s; }
+        .task-item:hover { border-color: #3f3f46; background: #1f1f23; }
+        .task-item.dimmed-task { opacity: 0.2; }
+        .task-avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; font-family: 'Inter', sans-serif; }
+        .avatar-peng { background: rgba(168,85,247,0.15); color: #d8b4fe; }
+        .avatar-cai { background: rgba(34,197,94,0.15); color: #86efac; }
+        .avatar-wang { background: rgba(249,115,22,0.15); color: #fdba74; }
+        .avatar-cbl { background: rgba(6,182,212,0.15); color: #67e8f9; }
+        .avatar-li { background: rgba(236,72,153,0.15); color: #f9a8d4; }
+        .task-content { flex: 1; min-width: 0; }
+        .task-title { font-size: 0.85rem; font-weight: 500; line-height: 1.4; }
+        .task-desc { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; line-height: 1.4; }
+        .task-footer { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+        .module-tag { font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: 500; letter-spacing: 0.2px; }
+        .tag-core { background: rgba(59,130,246,0.12); color: #93c5fd; }
+        .tag-ai { background: rgba(168,85,247,0.12); color: #d8b4fe; }
+        .tag-theme { background: rgba(34,197,94,0.12); color: #86efac; }
+        .tag-budget { background: rgba(249,115,22,0.12); color: #fdba74; }
+        .tag-scheduled { background: rgba(6,182,212,0.12); color: #67e8f9; }
+        .tag-heatmap { background: rgba(236,72,153,0.12); color: #f9a8d4; }
+        .tag-docs { background: rgba(161,161,170,0.12); color: #d4d4d8; }
+        .tag-security { background: rgba(100,116,139,0.15); color: #e2e8f0; }
+
+        .no-results { text-align: center; padding: 60px 24px; color: var(--text-secondary); display: none; }
+        .no-results.visible { display: block; }
+
+        .scroll-top { position: fixed; bottom: 20px; right: 20px; width: 36px; height: 36px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: all 0.2s; z-index: 99; }
+        .scroll-top.visible { opacity: 1; }
+        .scroll-top:hover { background: var(--accent-purple); border-color: var(--accent-purple); }
+
+        @media (max-width: 640px) {
+            .header-main { padding: 14px 16px; }
+            .header-right { width: 100%; justify-content: flex-start; }
+            .progress-wrap, .filter-bar, .timeline-container { padding-left: 16px; padding-right: 16px; }
+            .timeline { padding-left: 36px; }
+            .week-dot { left: -32px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+
+    <header>
+        <div class="header-main">
+            <div class="header-left">
+                <div class="project-title">iCookie 记账 App</div>
+                <div class="project-meta">
+                    <span class="meta-dot"></span>
+                    <span>当前第 7 周</span>
+                    <span>·</span>
+                    <span>共 16 周</span>
+                    <span>·</span>
+                    <span>5 位成员</span>
+                    <span>·</span>
+                    <span>9 个模块</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="stat-inline">整体进度 <strong>43.8%</strong></span>
+            </div>
+        </div>
+
+        <div class="progress-wrap">
+            <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
+            <div class="progress-markers">
+                <span>W3 启动</span>
+                <span class="highlight">W11 中期</span>
+                <span class="highlight">W16 结项</span>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <span style="font-size:0.7rem;color:var(--text-tertiary);margin-right:4px;">成员</span>
+            <button class="filter-pill peng" data-value="peng">彭家城</button>
+            <button class="filter-pill cai" data-value="cai">蔡瑜辰</button>
+            <button class="filter-pill wang" data-value="wang">王长硕</button>
+            <button class="filter-pill cbl" data-value="cbl">蔡宝龙</button>
+            <button class="filter-pill li" data-value="li">李莹嵩</button>
+            <div class="filter-separator"></div>
+            <button class="filter-pill" id="reset-filters">重置</button>
+        </div>
+    </header>
+
+    <main class="timeline-container">
+        <div class="timeline" id="timeline">
+
+            <!-- W3 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W3</span>
+                    <span class="week-tagline">项目启动与架构搭建</span>
+                    <span class="week-badge badge-past">已完成</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">项目初始化与仓库搭建</div><div class="task-desc">建立 iCookie 项目骨架，配置 Gradle 模块结构</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">Design System 重构</div><div class="task-desc">定义颜色、字体、圆角、间距等设计规范</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">核心数据库与 Repository 架构</div><div class="task-desc">Room 数据库设计、Entity 定义、基础 Repository 模式</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">首页基础框架搭建</div><div class="task-desc">Record / AI 双容器首页结构初始化</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W4 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W4</span>
+                    <span class="week-tagline">核心记账功能开发</span>
+                    <span class="week-badge badge-past">已完成</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">侧边栏导航与交互</div><div class="task-desc">自定义 Drawer 实现，导航入口配置</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">交易详情页与分类选择</div><div class="task-desc">新增/编辑交易、分类选择弹窗</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">分类管理系统</div><div class="task-desc">支持自定义收入/支出分类，分类图标匹配</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">统计界面基础</div><div class="task-desc">分类排行榜、收支统计页面搭建</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W5 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W5</span>
+                    <span class="week-tagline">AI助手与视觉体系</span>
+                    <span class="week-badge badge-past">已完成</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">AI 助手 UI 脚手架</div><div class="task-desc">本地 AI 对话界面、消息气泡组件</div><div class="task-footer"><span class="module-tag tag-ai">AI</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">AI 记录功能</div><div class="task-desc">通过自然语言自动识别金额、分类、时间并生成交易</div><div class="task-footer"><span class="module-tag tag-ai">AI</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">AI 与本地数据深度集成</div><div class="task-desc">AI 可查询账户余额、近期交易、消费概况</div><div class="task-footer"><span class="module-tag tag-ai">AI</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">账户编辑与删除功能</div><div class="task-desc">账户列表的增删改查完整闭环</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">玻璃拟态卡片统一</div><div class="task-desc">GradientGlassCard 组件，统一首页视觉风格</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W6 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W6</span>
+                    <span class="week-tagline">定时记账模块启动</span>
+                    <span class="week-badge badge-past">已完成</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">定时记账 UI 界面设计</div><div class="task-desc">定时规则列表页、添加页的视觉设计</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">定时记账页面交互优化</div><div class="task-desc">日期选择器、频率选择、UI 细节打磨</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">预算管理数据模型准备</div><div class="task-desc">预算表结构设计、分类预算关联</div><div class="task-footer"><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">热力图模块预研</div><div class="task-desc">日历数据结构、打卡统计逻辑调研</div><div class="task-footer"><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W7 -->
+            <div class="week-node current">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W7</span>
+                    <span class="week-tagline">功能爆发与整合冲刺</span>
+                    <span class="week-badge badge-current">进行中</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">首页月份滑动切换</div><div class="task-desc">左右滑动手势切换月份，移除 MonthSelector</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">定时记账 Worker &amp; 调度器</div><div class="task-desc">WorkManager 初始化、定时任务调度、后台触发记账</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">定时记账数据层完整链路</div><div class="task-desc">ScheduledRule DAO、Repository、数据模型绑定</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">月度打卡热力图</div><div class="task-desc">7列标准日历热力图、连续记账统计</div><div class="task-footer"><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">全部记录页面与热力图网格</div><div class="task-desc">侧边栏 3×10 网格、浅色日期标记</div><div class="task-footer"><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">预算管理功能合并</div><div class="task-desc">预算模块集成到 settings、导航绑定</div><div class="task-footer"><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="cai"><div class="task-avatar avatar-cai">蔡</div><div class="task-content"><div class="task-title">主题切换与深色模式</div><div class="task-desc">Theme Mode Switch、深色模式 Home 页适配</div><div class="task-footer"><span class="module-tag tag-theme">主题</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">API 安全重构</div><div class="task-desc">将 API Key 从硬编码迁移到 local.properties</div><div class="task-footer"><span class="module-tag tag-security">安全</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">README 与文档更新</div><div class="task-desc">补充各模块功能说明、开发进度文档化</div><div class="task-footer"><span class="module-tag tag-docs">文档</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W8 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W8</span>
+                    <span class="week-tagline">各模块收尾与基础补全</span>
+                    <span class="week-badge badge-future">待开始</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">交易搜索与高级筛选</div><div class="task-desc">按金额、分类、账户、备注多维搜索</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="cai"><div class="task-avatar avatar-cai">蔡</div><div class="task-content"><div class="task-title">全局深色模式适配走查</div><div class="task-desc">修复各页面在深色模式下的显示问题</div><div class="task-footer"><span class="module-tag tag-theme">主题</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">预算进度首页卡片集成</div><div class="task-desc">在首页展示本月预算使用情况</div><div class="task-footer"><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">定时记账调度边界优化</div><div class="task-desc">处理月底/月初、闰月等边界调度</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">热力图点击穿透到交易</div><div class="task-desc">点击热力图日期格子查看当天交易</div><div class="task-footer"><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W9 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W9</span>
+                    <span class="week-tagline">AI深化与体验优化</span>
+                    <span class="week-badge badge-future">待开始</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">AI 对话上下文持久化</div><div class="task-desc">保存聊天记录，支持历史对话查看</div><div class="task-footer"><span class="module-tag tag-ai">AI</span></div></div></div>
+                    <div class="task-item" data-owner="cai"><div class="task-avatar avatar-cai">蔡</div><div class="task-content"><div class="task-title">AI 助手界面主题适配</div><div class="task-desc">AI 页面支持深色/浅色切换</div><div class="task-footer"><span class="module-tag tag-theme">主题</span><span class="module-tag tag-ai">AI</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">预算超支提醒逻辑</div><div class="task-desc">当支出接近或超过预算时触发提示</div><div class="task-footer"><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">语音添加定时记账指令</div><div class="task-desc">对 AI 说"每天早8点记录咖啡15元"</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span><span class="module-tag tag-ai">AI</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">月度收支趋势折线图</div><div class="task-desc">在统计页增加近6个月收支趋势</div><div class="task-footer"><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W10 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W10</span>
+                    <span class="week-tagline">数据能力与设置整合</span>
+                    <span class="week-badge badge-future">待开始</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">本地数据导入导出（CSV/JSON）</div><div class="task-desc">支持备份到本地文件和恢复</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="cai"><div class="task-avatar avatar-cai">蔡</div><div class="task-content"><div class="task-title">设置页重构与信息架构</div><div class="task-desc">统一主题、备份、预算入口为层级设置</div><div class="task-footer"><span class="module-tag tag-theme">主题</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">多账本数据模型设计</div><div class="task-desc">设计账本切换的数据隔离方案</div><div class="task-footer"><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">定时记账数据导出适配</div><div class="task-desc">确保定时规则随数据一起导出</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">统计图表分享图片功能</div><div class="task-desc">一键生成收支统计图分享到微信</div><div class="task-footer"><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W11 -->
+            <div class="week-node milestone-mid">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W11</span>
+                    <span class="week-tagline">中期冲刺</span>
+                    <span class="week-badge badge-mid">中期</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">全模块联调与架构打通</div><div class="task-desc">负责跨模块的数据流转和问题定位</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="cai"><div class="task-avatar avatar-cai">蔡</div><div class="task-content"><div class="task-title">全应用 UI 一致性走查</div><div class="task-desc">统一颜色、字体、圆角、动画规范</div><div class="task-footer"><span class="module-tag tag-theme">主题</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">多账本切换基础功能上线</div><div class="task-desc">至少支持2个账本的创建和切换</div><div class="task-footer"><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">定时记账端到端稳定性测试</div><div class="task-desc">确保连续7天定时任务100%触发</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">统计页与热力图统一入口</div><div class="task-desc">整合数据可视化页面，减少跳转</div><div class="task-footer"><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">准备中期演示材料</div><div class="task-desc">PPT、Demo 脚本、预演</div><div class="task-footer"><span class="module-tag tag-docs">文档</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W12 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W12</span>
+                    <span class="week-tagline">中期反馈迭代</span>
+                    <span class="week-badge badge-future">待开始</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">整理评委反馈与修复优先级</div><div class="task-desc">输出任务清单分配到各人</div><div class="task-footer"><span class="module-tag tag-docs">文档</span></div></div></div>
+                    <div class="task-item" data-owner="cai"><div class="task-avatar avatar-cai">蔡</div><div class="task-content"><div class="task-title">UI/交互问题快速修复</div><div class="task-desc">比如按钮太小、对比度不足等</div><div class="task-footer"><span class="module-tag tag-theme">主题</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">财务管理功能建议落地</div><div class="task-desc">增加预算分类明细、支出占比</div><div class="task-footer"><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">定时/提醒功能建议落地</div><div class="task-desc">增加提醒时间自定义</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">数据展示建议落地</div><div class="task-desc">桌面 Widget 原型开发</div><div class="task-footer"><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W13 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W13</span>
+                    <span class="week-tagline">高级功能开发</span>
+                    <span class="week-badge badge-future">待开始</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">报销管理功能</div><div class="task-desc">标记可报销交易、生成报销统计</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="cai"><div class="task-avatar avatar-cai">蔡</div><div class="task-content"><div class="task-title">应用锁/指纹锁</div><div class="task-desc">启动 App 时需要验证身份</div><div class="task-footer"><span class="module-tag tag-security">安全</span><span class="module-tag tag-theme">主题</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">多账本完整功能</div><div class="task-desc">账本增删改、数据迁移、默认账本</div><div class="task-footer"><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">智能提醒系统</div><div class="task-desc">超预算提醒、记账提醒、通知渠道配置</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">年度数据回顾页</div><div class="task-desc">年度收支总结、年度热力图、年度标签</div><div class="task-footer"><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W14 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W14</span>
+                    <span class="week-tagline">安全、稳定与性能</span>
+                    <span class="week-badge badge-future">待开始</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">数据库加密与敏感数据保护</div><div class="task-desc">集成 SQLCipher 或类似加密方案</div><div class="task-footer"><span class="module-tag tag-security">安全</span></div></div></div>
+                    <div class="task-item" data-owner="cai"><div class="task-avatar avatar-cai">蔡</div><div class="task-content"><div class="task-title">无障碍适配与字体缩放适配</div><div class="task-desc">支持 TalkBack、系统大字模式</div><div class="task-footer"><span class="module-tag tag-theme">主题</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">财务数据异常校验</div><div class="task-desc">防止负数金额、非法日期等脏数据</div><div class="task-footer"><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">后台任务保活优化</div><div class="task-desc">确保 Android 省电模式下提醒正常触发</div><div class="task-footer"><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">大数据量图表渲染优化</div><div class="task-desc">解决2年以上数据卡顿问题</div><div class="task-footer"><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W15 -->
+            <div class="week-node">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W15</span>
+                    <span class="week-tagline">终期打磨与文档</span>
+                    <span class="week-badge badge-future">待开始</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">Release APK 打包与签名</div><div class="task-desc">准备可安装的最终版本</div><div class="task-footer"><span class="module-tag tag-core">核心</span></div></div></div>
+                    <div class="task-item" data-owner="cai"><div class="task-avatar avatar-cai">蔡</div><div class="task-content"><div class="task-title">最终视觉走查与微动效优化</div><div class="task-desc">启动图、图标、过渡动画精修</div><div class="task-footer"><span class="module-tag tag-theme">主题</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">用户手册（财务功能部分）</div><div class="task-desc">预算、多账本、报销的使用说明</div><div class="task-footer"><span class="module-tag tag-docs">文档</span><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">技术文档（定时记账与后台）</div><div class="task-desc">Worker 调度、通知系统设计文档</div><div class="task-footer"><span class="module-tag tag-docs">文档</span><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">技术文档（可视化）+ Demo 数据</div><div class="task-desc">图表库选型、Demo 账本数据准备</div><div class="task-footer"><span class="module-tag tag-docs">文档</span><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                </div>
+            </div>
+
+            <!-- W16 -->
+            <div class="week-node milestone-final">
+                <div class="week-dot"></div>
+                <div class="week-header-row">
+                    <span class="week-label">W16</span>
+                    <span class="week-tagline">终期结项</span>
+                    <span class="week-badge badge-final">结项</span>
+                </div>
+                <div class="task-list">
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">结项答辩 PPT 主稿与演示视频</div><div class="task-desc">统筹整个答辩逻辑与产品介绍</div><div class="task-footer"><span class="module-tag tag-docs">文档</span></div></div></div>
+                    <div class="task-item" data-owner="cai"><div class="task-avatar avatar-cai">蔡</div><div class="task-content"><div class="task-title">PPT 视觉设计与演讲配合</div><div class="task-desc">确保 UI 展示部分讲解清晰</div><div class="task-footer"><span class="module-tag tag-docs">文档</span><span class="module-tag tag-theme">主题</span></div></div></div>
+                    <div class="task-item" data-owner="wang"><div class="task-avatar avatar-wang">王</div><div class="task-content"><div class="task-title">财务功能现场演示脚本</div><div class="task-desc">预算+多账本+报销的演示流程</div><div class="task-footer"><span class="module-tag tag-docs">文档</span><span class="module-tag tag-budget">预算</span></div></div></div>
+                    <div class="task-item" data-owner="cbl"><div class="task-avatar avatar-cbl">蔡</div><div class="task-content"><div class="task-title">定时记账与提醒功能现场演示</div><div class="task-desc">展示自动化能力</div><div class="task-footer"><span class="module-tag tag-docs">文档</span><span class="module-tag tag-scheduled">定时记账</span></div></div></div>
+                    <div class="task-item" data-owner="li"><div class="task-avatar avatar-li">李</div><div class="task-content"><div class="task-title">数据可视化现场演示</div><div class="task-desc">热力图+统计图表的动态展示</div><div class="task-footer"><span class="module-tag tag-docs">文档</span><span class="module-tag tag-heatmap">热力图</span></div></div></div>
+                    <div class="task-item" data-owner="peng"><div class="task-avatar avatar-peng">彭</div><div class="task-content"><div class="task-title">终期答辩与现场演示</div><div class="task-desc">结项！</div><div class="task-footer"><span class="module-tag tag-docs">文档</span></div></div></div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="no-results" id="no-results">
+            <p>没有匹配该筛选条件的任务</p>
+        </div>
+    </main>
+
+    <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </button>
+
+    <script>
+        var activeMember = null;
+
+        function applyFilters() {
+            var nodes = document.querySelectorAll('.week-node');
+            var hasVisible = false;
+
+            for (var i = 0; i < nodes.length; i++) {
+                var node = nodes[i];
+                var tasks = node.querySelectorAll('.task-item');
+                var visibleTasks = 0;
+
+                for (var j = 0; j < tasks.length; j++) {
+                    var task = tasks[j];
+                    if (activeMember && task.getAttribute('data-owner') !== activeMember) {
+                        task.classList.add('dimmed-task');
+                    } else {
+                        task.classList.remove('dimmed-task');
+                        visibleTasks++;
+                    }
+                }
+
+                if (activeMember && visibleTasks === 0) {
+                    node.classList.add('hidden');
+                } else {
+                    node.classList.remove('hidden');
+                    hasVisible = true;
+                }
+            }
+
+            var noResults = document.getElementById('no-results');
+            if (!hasVisible) {
+                noResults.classList.add('visible');
+            } else {
+                noResults.classList.remove('visible');
+            }
+        }
+
+        var filterButtons = document.querySelectorAll('.filter-pill[data-value]');
+        for (var k = 0; k < filterButtons.length; k++) {
+            (function(btn) {
+                btn.addEventListener('click', function() {
+                    var value = btn.getAttribute('data-value');
+                    for (var m = 0; m < filterButtons.length; m++) {
+                        filterButtons[m].classList.remove('active');
+                    }
+                    if (activeMember === value) {
+                        activeMember = null;
+                    } else {
+                        activeMember = value;
+                        btn.classList.add('active');
+                    }
+                    applyFilters();
+                });
+            })(filterButtons[k]);
+        }
+
+        document.getElementById('reset-filters').addEventListener('click', function() {
+            activeMember = null;
+            for (var m = 0; m < filterButtons.length; m++) {
+                filterButtons[m].classList.remove('active');
+            }
+            applyFilters();
+        });
+
+        var scrollTopBtn = document.getElementById('scrollTop');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+</html>

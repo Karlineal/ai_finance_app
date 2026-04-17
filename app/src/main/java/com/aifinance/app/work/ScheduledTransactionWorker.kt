@@ -57,64 +57,68 @@ class ScheduledTransactionWorker(
             return Result.success()
         }
 
-        val categoryName = rule.categoryId?.let { categoryRepository.getCategoryById(it)?.name }
-        val transaction = Transaction(
-            accountId = rule.accountId,
-            categoryId = rule.categoryId,
-            type = rule.transactionType,
-            amount = rule.amount,
-            currency = rule.currency,
-            title = rule.title.ifBlank { "定时记账" },
-            description = categoryName,
-            date = today,
-            time = now,
-            sourceType = TransactionSourceType.SCHEDULED,
-            userConfirmed = true,
-        )
-        transactionRepository.insertTransaction(transaction)
+        return try {
+            val categoryName = rule.categoryId?.let { categoryRepository.getCategoryById(it)?.name }
+            val transaction = Transaction(
+                accountId = rule.accountId,
+                categoryId = rule.categoryId,
+                type = rule.transactionType,
+                amount = rule.amount,
+                currency = rule.currency,
+                title = rule.title.ifBlank { "定时记账" },
+                description = categoryName,
+                date = today,
+                time = now,
+                sourceType = TransactionSourceType.SCHEDULED,
+                userConfirmed = true,
+            )
+            transactionRepository.insertTransaction(transaction)
 
-        val newCount = rule.firedCount + 1
-        val fireLocal = LocalDateTime.of(today, LocalTime.of(rule.startHour, rule.startMinute))
-        val nextBase = ScheduleOccurrenceCalculator.advance(fireLocal, rule.recurrence)
-        val nextLocal = ScheduleOccurrenceCalculator.firstLocalDateTimeOnOrAfter(
-            start = nextBase,
-            recurrence = rule.recurrence,
-            zone = zone,
-            now = now,
-        )
-        val nextOccurrenceDate = nextLocal.toLocalDate()
+            val newCount = rule.firedCount + 1
+            val fireLocal = LocalDateTime.of(today, LocalTime.of(rule.startHour, rule.startMinute))
+            val nextBase = ScheduleOccurrenceCalculator.advance(fireLocal, rule.recurrence)
+            val nextLocal = ScheduleOccurrenceCalculator.firstLocalDateTimeOnOrAfter(
+                start = nextBase,
+                recurrence = rule.recurrence,
+                zone = zone,
+                now = now,
+            )
+            val nextOccurrenceDate = nextLocal.toLocalDate()
 
-        val maxOcc = rule.maxOccurrences
-        val endD = rule.endDate
-        val finished = when (rule.endMode) {
-            ScheduledEndMode.AFTER_COUNT ->
-                maxOcc != null && newCount >= maxOcc
-            ScheduledEndMode.END_DATE ->
-                endD != null && nextOccurrenceDate.isAfter(endD)
-            ScheduledEndMode.NEVER -> false
+            val maxOcc = rule.maxOccurrences
+            val endD = rule.endDate
+            val finished = when (rule.endMode) {
+                ScheduledEndMode.AFTER_COUNT ->
+                    maxOcc != null && newCount >= maxOcc
+                ScheduledEndMode.END_DATE ->
+                    endD != null && nextOccurrenceDate.isAfter(endD)
+                ScheduledEndMode.NEVER -> false
+            }
+
+            val nextInstant = if (finished) {
+                null
+            } else {
+                nextLocal.atZone(zone).toInstant()
+            }
+
+            val updatedRule = rule.copy(
+                firedCount = newCount,
+                lastFiredAt = now,
+                nextRunAt = nextInstant,
+                updatedAt = Instant.now(),
+            )
+            scheduledRuleRepository.update(updatedRule)
+
+            if (finished || nextInstant == null) {
+                scheduledRuleScheduler.cancelRule(ruleId)
+            } else {
+                scheduledRuleScheduler.enqueueKnownNext(ruleId, nextInstant)
+            }
+
+            Result.success()
+        } catch (_: Exception) {
+            Result.retry()
         }
-
-        val nextInstant = if (finished) {
-            null
-        } else {
-            nextLocal.atZone(zone).toInstant()
-        }
-
-        val updatedRule = rule.copy(
-            firedCount = newCount,
-            lastFiredAt = now,
-            nextRunAt = nextInstant,
-            updatedAt = Instant.now(),
-        )
-        scheduledRuleRepository.update(updatedRule)
-
-        if (finished || nextInstant == null) {
-            scheduledRuleScheduler.cancelRule(ruleId)
-        } else {
-            scheduledRuleScheduler.enqueueKnownNext(ruleId, nextInstant)
-        }
-
-        return Result.success()
     }
 
     private fun canFire(rule: ScheduledRule, today: LocalDate): Boolean {

@@ -1,8 +1,11 @@
 package com.aifinance.app.work
 
+import android.app.AlarmManager
 import android.content.Context
+import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.aifinance.core.data.repository.ScheduledRuleRepository
@@ -27,6 +30,7 @@ class ScheduledRuleWorkScheduler @Inject constructor(
 ) : ScheduledRuleScheduler {
 
     private val workManager get() = WorkManager.getInstance(context)
+    private val alarmManager get() = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val zone: ZoneId get() = ZoneId.systemDefault()
 
     override suspend fun scheduleRule(ruleId: UUID) {
@@ -68,11 +72,19 @@ class ScheduledRuleWorkScheduler @Inject constructor(
 
     override suspend fun cancelRule(ruleId: UUID) {
         workManager.cancelUniqueWork(uniqueWorkName(ruleId))
+        alarmManager.cancel(ScheduledRuleAlarmReceiver.pendingIntent(context, ruleId))
     }
 
     override suspend fun rescheduleAllEnabled() {
+        val now = Instant.now()
         for (rule in repository.getAllEnabled()) {
-            scheduleRule(rule.id)
+            val nextRun = rule.nextRunAt
+            if (nextRun != null && nextRun.isBefore(now)) {
+                enqueueImmediateWork(rule.id)
+                alarmManager.cancel(ScheduledRuleAlarmReceiver.pendingIntent(context, rule.id))
+            } else {
+                scheduleRule(rule.id)
+            }
         }
     }
 
@@ -81,9 +93,40 @@ class ScheduledRuleWorkScheduler @Inject constructor(
         val data = Data.Builder()
             .putString(ScheduledTransactionWorker.KEY_RULE_ID, ruleId.toString())
             .build()
+        val constraints = Constraints.Builder()
+            .setRequiresBatteryNotLow(false)
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+            .build()
         val request = OneTimeWorkRequestBuilder<ScheduledTransactionWorker>()
             .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
             .setInputData(data)
+            .setConstraints(constraints)
+            .build()
+        workManager.enqueueUniqueWork(
+            uniqueWorkName(ruleId),
+            ExistingWorkPolicy.REPLACE,
+            request,
+        )
+
+        val pendingIntent = ScheduledRuleAlarmReceiver.pendingIntent(context, ruleId)
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            whenInstant.toEpochMilli(),
+            pendingIntent,
+        )
+    }
+
+    private fun enqueueImmediateWork(ruleId: UUID) {
+        val data = Data.Builder()
+            .putString(ScheduledTransactionWorker.KEY_RULE_ID, ruleId.toString())
+            .build()
+        val constraints = Constraints.Builder()
+            .setRequiresBatteryNotLow(false)
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+            .build()
+        val request = OneTimeWorkRequestBuilder<ScheduledTransactionWorker>()
+            .setInputData(data)
+            .setConstraints(constraints)
             .build()
         workManager.enqueueUniqueWork(
             uniqueWorkName(ruleId),
