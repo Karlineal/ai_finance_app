@@ -2,6 +2,8 @@ package com.aifinance.core.data.di
 
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.AccountRepositoryImpl
+import com.aifinance.core.data.repository.BudgetRepository
+import com.aifinance.core.data.repository.BudgetRepositoryImpl
 import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.CategoryRepositoryImpl
 import com.aifinance.core.data.repository.ScheduledRuleRepository
@@ -49,5 +51,11 @@ abstract class RepositoryModule {
     abstract fun bindUserPreferencesRepository(
         impl: UserPreferencesRepositoryImpl
     ): UserPreferencesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindBudgetRepository(
+        impl: BudgetRepositoryImpl
+    ): BudgetRepository
 
 }
