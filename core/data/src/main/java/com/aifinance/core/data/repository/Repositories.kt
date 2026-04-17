@@ -35,3 +35,9 @@ interface AccountRepository {
     suspend fun updateAccount(account: com.aifinance.core.model.Account)
     suspend fun deleteAccount(account: com.aifinance.core.model.Account)
 }
+
+interface BudgetRepository {
+    fun getActivePlan(): Flow<com.aifinance.core.model.MonthlyBudgetPlan?>
+    suspend fun upsertActivePlan(plan: com.aifinance.core.model.MonthlyBudgetPlan)
+    suspend fun clearActivePlan()
+}

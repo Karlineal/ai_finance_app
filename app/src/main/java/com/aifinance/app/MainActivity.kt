@@ -25,10 +25,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.aifinance.app.navigation.AiFinanceNavHost
 import com.aifinance.core.designsystem.theme.AiFinanceTheme
 import com.aifinance.feature.category_management.navigation.CATEGORY_MANAGEMENT_ROUTE
+import com.aifinance.feature.budget.navigation.BUDGET_ENTRY_ROUTE
 import com.aifinance.feature.home.HomeSidebarDrawerContent
 import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.navigation.HOME_ROUTE
@@ -131,6 +133,12 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onNavigateToAllRecords = { date ->
                                         navController.navigate("all_records/${date}") {
+                                            launchSingleTop = true
+                                        }
+                                        closeDrawer()
+                                    },
+                                    onNavigateToBudget = {
+                                        navController.navigate(BUDGET_ENTRY_ROUTE) {
                                             launchSingleTop = true
                                         }
                                         closeDrawer()
