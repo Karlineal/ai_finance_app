@@ -41,6 +41,7 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -83,6 +84,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import androidx.compose.material3.AlertDialog
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -98,6 +100,9 @@ fun ScheduledTransactionAddScreen(
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
     val categories by viewModel.categories.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    var showPermissionWarning by remember { mutableStateOf(false) }
 
     var showStartDateTimePicker by remember { mutableStateOf(false) }
     var showEndDateTimePicker by remember { mutableStateOf(false) }
@@ -401,6 +406,9 @@ fun ScheduledTransactionAddScreen(
                             }
                             Button(
                                 onClick = {
+                                    if (ExactAlarmPermissionHelper.shouldShowPermissionGuidance(context)) {
+                                        showPermissionWarning = true
+                                    }
                                     viewModel.saveRule(onSuccess = onBack)
                                 },
                                 enabled = !form.isSaving,
@@ -588,6 +596,29 @@ fun ScheduledTransactionAddScreen(
                 showEndDateTimePicker = false
                 viewModel.updateForm { s -> s.copy(endDate = dt.toLocalDate()) }
             },
+        )
+    }
+
+    if (showPermissionWarning) {
+        AlertDialog(
+            onDismissRequest = { showPermissionWarning = false },
+            title = { Text("权限提醒") },
+            text = { Text("精确闹钟权限未开启，定时记账可能无法准时触发。建议开启此权限以确保记账按时执行。") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showPermissionWarning = false
+                        ExactAlarmPermissionHelper.openAlarmSettings(context)
+                    }
+                ) {
+                    Text("去设置开启")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionWarning = false }) {
+                    Text("暂不开启")
+                }
+            }
         )
     }
 }

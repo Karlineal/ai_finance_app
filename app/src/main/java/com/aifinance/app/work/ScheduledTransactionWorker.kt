@@ -1,6 +1,7 @@
 package com.aifinance.app.work
 
 import android.content.Context
+import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.aifinance.core.data.repository.CategoryRepository
@@ -45,8 +46,16 @@ class ScheduledTransactionWorker(
             return Result.failure()
         }
 
-        val rule = scheduledRuleRepository.getById(ruleId) ?: return Result.success()
-        if (!rule.enabled) return Result.success()
+        Log.d("ScheduledWorker", "开始执行定时记账任务: ruleId=$ruleId")
+
+        val rule = scheduledRuleRepository.getById(ruleId) ?: run {
+            Log.w("ScheduledWorker", "规则不存在: ruleId=$ruleId")
+            return Result.success()
+        }
+        if (!rule.enabled) {
+            Log.d("ScheduledWorker", "规则已禁用: ruleId=$ruleId")
+            return Result.success()
+        }
 
         val zone = ZoneId.systemDefault()
         val now = Instant.now()
@@ -73,6 +82,7 @@ class ScheduledTransactionWorker(
                 userConfirmed = true,
             )
             transactionRepository.insertTransaction(transaction)
+            Log.i("ScheduledWorker", "定时记账已创建: ${rule.title}, 金额=${rule.amount}, 日期=$today")
 
             val newCount = rule.firedCount + 1
             val fireLocal = LocalDateTime.of(today, LocalTime.of(rule.startHour, rule.startMinute))
@@ -111,12 +121,15 @@ class ScheduledTransactionWorker(
 
             if (finished || nextInstant == null) {
                 scheduledRuleScheduler.cancelRule(ruleId)
+                Log.d("ScheduledWorker", "规则已完成: ${rule.title}")
             } else {
                 scheduledRuleScheduler.enqueueKnownNext(ruleId, nextInstant)
+                Log.d("ScheduledWorker", "已调度下一次执行: ${rule.title}, 下次=$nextInstant")
             }
 
             Result.success()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e("ScheduledWorker", "定时记账执行失败: ruleId=$ruleId", e)
             Result.retry()
         }
     }

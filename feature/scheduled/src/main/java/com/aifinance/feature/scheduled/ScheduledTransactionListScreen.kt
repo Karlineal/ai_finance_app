@@ -56,6 +56,7 @@ fun ScheduledTransactionListScreen(
 ) {
     val rules by viewModel.rules.collectAsStateWithLifecycle()
     val allCategories by viewModel.allCategories.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
         containerColor = SurfacePrimary,
@@ -108,6 +109,13 @@ fun ScheduledTransactionListScreen(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    if (ExactAlarmPermissionHelper.shouldShowPermissionGuidance(context)) {
+                        item {
+                            ExactAlarmPermissionBanner(
+                                onOpenSettings = { ExactAlarmPermissionHelper.openAlarmSettings(context) }
+                            )
+                        }
+                    }
                     items(rules, key = { it.id }) { rule ->
                         val category = resolveCategory(rule, allCategories)
                         ScheduledRuleListCard(
@@ -140,6 +148,50 @@ private fun resolveCategory(rule: ScheduledRule, all: List<Category>): Category?
     val id = rule.categoryId ?: return null
     return all.find { it.id == id }
         ?: CategoryCatalog.findById(id)?.asCategory()
+}
+
+@Composable
+private fun ExactAlarmPermissionBanner(
+    onOpenSettings: () -> Unit,
+) {
+    androidx.compose.material3.Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = androidx.compose.material3.CardDefaults.cardColors(
+            containerColor = Color(0xFFFFF3CD)
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = "⚠️ 权限提醒",
+                style = IcokieTextStyles.bodyLarge,
+                color = Color(0xFF856404),
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = "定时记账需要精确闹钟权限才能在设定时间准时触发。当前权限未开启，定时记账可能会延迟或无法触发。",
+                style = IcokieTextStyles.bodyMedium,
+                color = Color(0xFF856404),
+            )
+            Button(
+                onClick = onOpenSettings,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF856404),
+                ),
+            ) {
+                Text(
+                    text = "去设置开启权限",
+                    color = Color.White,
+                    style = IcokieTextStyles.bodyLarge,
+                )
+            }
+        }
+    }
 }
 
 @Composable
