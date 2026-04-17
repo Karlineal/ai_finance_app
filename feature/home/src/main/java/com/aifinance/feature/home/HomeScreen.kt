@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -107,7 +109,7 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RecordHomeContent(
     onNavigateToAssetManagement: () -> Unit = {},
@@ -122,25 +124,29 @@ fun RecordHomeContent(
     var categoryPickerTransaction by remember { mutableStateOf<Transaction?>(null) }
     var pendingDeleteTransaction by remember { mutableStateOf<Transaction?>(null) }
     var transientSuccessMessage by remember { mutableStateOf<String?>(null) }
+    var monthChangeHint by remember { mutableStateOf<String?>(null) }
 
     val recentTransactions = viewModel.recentTransactions.collectAsStateWithLifecycle()
     val totalBalance = viewModel.totalBalance.collectAsStateWithLifecycle()
     val accountsById = viewModel.accountsById.collectAsStateWithLifecycle()
     val categoriesById = viewModel.categoriesById.collectAsStateWithLifecycle()
-    val filteredTransactions = remember(recentTransactions.value, selectedMonth) {
-        recentTransactions.value.filter {
-            it.date.year == selectedMonth.year && it.date.monthValue == selectedMonth.monthValue
+    val monthsList = remember {
+        val current = LocalDate.now()
+        (-6..6).map { offset ->
+            current.plusMonths(offset.toLong())
         }
     }
-    val displayIncome = remember(filteredTransactions) {
-        filteredTransactions
-            .filter { it.type == TransactionType.INCOME && !it.isPending }
-            .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount }
-    }
-    val displayExpense = remember(filteredTransactions) {
-        filteredTransactions
-            .filter { it.type == TransactionType.EXPENSE && !it.isPending }
-            .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount }
+    val initialPageIndex = 6
+    val pagerState = rememberPagerState(initialPage = initialPageIndex, pageCount = { monthsList.size })
+
+    LaunchedEffect(pagerState.currentPage) {
+        val newMonth = monthsList[pagerState.currentPage]
+        if (newMonth != selectedMonth) {
+            selectedMonth = newMonth
+            monthChangeHint = "${newMonth.year}年${newMonth.monthValue}月"
+            delay(1200)
+            monthChangeHint = null
+        }
     }
 
     LaunchedEffect(transientSuccessMessage) {
@@ -171,78 +177,114 @@ fun RecordHomeContent(
                 .background(Color(0xFFF2F2F7))
                 .padding(paddingValues)
         ) {
-            LazyColumn(
+            HorizontalPager(
+                state = pagerState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 12.dp,
-                    end = 12.dp,
-                    top = 8.dp,
-                    bottom = spacing.pagePadding,
-                ),
-                verticalArrangement = Arrangement.spacedBy(spacing.sectionSpacing)
-            ) {
-                item {
-                    BalanceCard(
-                        balance = totalBalance.value.balance,
-                        selectedMonth = selectedMonth,
-                        assets = totalBalance.value.assets,
-                        liabilities = totalBalance.value.liabilities,
-                        income = displayIncome,
-                        expense = displayExpense,
-                        onAssetManageClick = onNavigateToAssetManagement,
-                        onStatisticsClick = onNavigateToStatistics,
-                    )
+            ) { page ->
+                val pageMonth = monthsList[page]
+                val pageTransactions = remember(recentTransactions.value, pageMonth) {
+                    recentTransactions.value.filter {
+                        it.date.year == pageMonth.year && it.date.monthValue == pageMonth.monthValue
+                    }
                 }
 
-                if (filteredTransactions.isEmpty()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        start = 12.dp,
+                        end = 12.dp,
+                        top = 8.dp,
+                        bottom = spacing.pagePadding,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(spacing.sectionSpacing)
+                ) {
                     item {
-                        EmptyRecentTransactions()
+                        BalanceCard(
+                            balance = totalBalance.value.balance,
+                            selectedMonth = pageMonth,
+                            assets = totalBalance.value.assets,
+                            liabilities = totalBalance.value.liabilities,
+                            income = pageTransactions
+                                .filter { it.type == TransactionType.INCOME && !it.isPending }
+                                .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount },
+                            expense = pageTransactions
+                                .filter { it.type == TransactionType.EXPENSE && !it.isPending }
+                                .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount },
+                            onAssetManageClick = onNavigateToAssetManagement,
+                            onStatisticsClick = onNavigateToStatistics,
+                        )
                     }
-                } else {
-                    val groupedByDate = filteredTransactions.groupBy { it.date }
-                    groupedByDate.toSortedMap(compareByDescending<LocalDate> { it }).forEach { (date, dayTransactions) ->
-                        val sortedTransactions = dayTransactions.sortedByDescending { it.time }
-                        item(key = "home-day-$date") {
-                            DaySectionHeader(
-                                date = date,
-                                dayTransactions = dayTransactions,
-                                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
-                            )
 
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 12.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Color(0xFFF7F8FC),
-                                ),
-                                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.78f)),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                            ) {
-                                sortedTransactions.forEachIndexed { index, transaction ->
-                                    SwipeableTransactionItem(
-                                        transaction = transaction,
-                                        accountName = accountsById.value[transaction.accountId]?.name,
-                                        category = categoriesById.value[transaction.categoryId],
-                                        onClick = { onNavigateToTransactionDetail(transaction.id) },
-                                        onAmountClick = { onNavigateToTransactionDetail(transaction.id) },
-                                        onCategoryClick = { categoryPickerTransaction = transaction },
-                                        onDeleteClick = {
-                                            pendingDeleteTransaction = transaction
-                                        },
-                                    )
-                                    if (index < sortedTransactions.lastIndex) {
-                                        HorizontalDivider(
-                                            thickness = 1.dp,
-                                            color = Color(0x143C3C43),
-                                            modifier = Modifier.padding(start = 16.dp),
+                    if (pageTransactions.isEmpty()) {
+                        item {
+                            EmptyRecentTransactions()
+                        }
+                    } else {
+                        val groupedByDate = pageTransactions.groupBy { it.date }
+                        groupedByDate.toSortedMap(compareByDescending<LocalDate> { it }).forEach { (date, dayTransactions) ->
+                            val sortedTransactions = dayTransactions.sortedByDescending { it.time }
+                            item(key = "home-day-$date") {
+                                DaySectionHeader(
+                                    date = date,
+                                    dayTransactions = dayTransactions,
+                                    modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+                                )
+
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 12.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color(0xFFF7F8FC),
+                                    ),
+                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.78f)),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                                ) {
+                                    sortedTransactions.forEachIndexed { index, transaction ->
+                                        SwipeableTransactionItem(
+                                            transaction = transaction,
+                                            accountName = accountsById.value[transaction.accountId]?.name,
+                                            category = categoriesById.value[transaction.categoryId],
+                                            onClick = { onNavigateToTransactionDetail(transaction.id) },
+                                            onAmountClick = { onNavigateToTransactionDetail(transaction.id) },
+                                            onCategoryClick = { categoryPickerTransaction = transaction },
+                                            onDeleteClick = {
+                                                pendingDeleteTransaction = transaction
+                                            },
                                         )
+                                        if (index < sortedTransactions.lastIndex) {
+                                            HorizontalDivider(
+                                                thickness = 1.dp,
+                                                color = Color(0x143C3C43),
+                                                modifier = Modifier.padding(start = 16.dp),
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                }
+            }
+
+            monthChangeHint?.let { hint ->
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 8.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xCC1F2937),
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                ) {
+                    Text(
+                        text = hint,
+                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+                        style = IcokieTextStyles.labelMedium,
+                        color = Color.White,
+                    )
                 }
             }
 
