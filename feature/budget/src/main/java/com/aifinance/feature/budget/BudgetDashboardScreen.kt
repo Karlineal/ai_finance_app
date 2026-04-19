@@ -199,21 +199,21 @@ private fun SummaryCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("本月总预算", color = Color(0xFF6B7280))
+                Text("本月总预算", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("¥${formatAmount(totalBudget)}", fontWeight = FontWeight.Bold)
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("已用金额", color = Color(0xFF6B7280))
+                Text("已用金额", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("¥${formatAmount(spentToDate)}", fontWeight = FontWeight.Bold)
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("剩余金额", color = Color(0xFF6B7280))
-                Text("¥${formatAmount(remainingBudget)}", fontWeight = FontWeight.Bold, color = if (remainingBudget < BigDecimal.ZERO) Color(0xFFEF4444) else Color(0xFF111827))
+                Text("剩余金额", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("¥${formatAmount(remainingBudget)}", fontWeight = FontWeight.Bold, color = if (remainingBudget < BigDecimal.ZERO) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface)
             }
 
             LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth(), color = Color(0xFF2E5FE6))
@@ -239,7 +239,7 @@ private fun DailyBudgetCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -248,7 +248,7 @@ private fun DailyBudgetCard(
             if (todayBudget.deficit > BigDecimal.ZERO) {
                 Text("本月已透支 ¥${formatAmount(todayBudget.deficit)}", color = Color(0xFFEF4444), fontWeight = FontWeight.SemiBold)
             } else {
-                Text("剩余金额：¥${formatAmount(todayBudget.remainingBudget)}", color = Color(0xFF6B7280))
+                Text("剩余金额：¥${formatAmount(todayBudget.remainingBudget)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -270,7 +270,7 @@ private fun CalendarGrid(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -279,7 +279,7 @@ private fun CalendarGrid(
             val weekDays = listOf("一", "二", "三", "四", "五", "六", "日")
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 weekDays.forEach { d ->
-                    Text(d, color = Color(0xFF6B7280), fontWeight = FontWeight.SemiBold)
+                    Text(d, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -308,7 +308,7 @@ private fun CalendarGrid(
                                     .weight(1f)
                                     .height(CalendarCellHeight)
                                     .background(
-                                        color = if (isHighlight) Color(0xFF2E5FE6) else Color(0xFFF1F5F9),
+                                        color = if (isHighlight) Color(0xFF2E5FE6) else MaterialTheme.colorScheme.surfaceVariant,
                                         shape = RoundedCornerShape(10.dp),
                                     )
                                     .combinedClickable(
@@ -325,7 +325,7 @@ private fun CalendarGrid(
                                 if (isValid) {
                                     Text(
                                         text = day.toString(),
-                                        color = if (isHighlight) Color.White else Color(0xFF111827),
+                                        color = if (isHighlight) Color.White else MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.SemiBold,
                                     )
                                 }
@@ -395,7 +395,7 @@ private fun DailyRecordSheet(
         when (tabIndex) {
             0 -> {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("简单记录当日收支或备注：", style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B7280))
+                    Text("简单记录当日收支或备注：", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     OutlinedTextField(
                         value = manualText,
                         onValueChange = { manualText = it },
@@ -414,7 +414,7 @@ private fun DailyRecordSheet(
             }
             1 -> {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("用一句话描述你的花费或心情，交给 AI 来理解和打标签。", style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B7280))
+                    Text("用一句话描述你的花费或心情，交给 AI 来理解和打标签。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     OutlinedTextField(
                         value = aiInput,
                         onValueChange = { aiInput = it },
@@ -449,7 +449,7 @@ private fun DailyRecordSheet(
                     aiTag?.let { tag ->
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9)),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                             shape = RoundedCornerShape(14.dp),
                         ) {
                             Row(
@@ -467,7 +467,7 @@ private fun DailyRecordSheet(
                                     Text(
                                         text = "已根据你的输入自动识别为「$tag」类型记录。",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF6B7280),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
                             }
@@ -485,14 +485,14 @@ private fun CategoryUsageList(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("分类预算监控", fontWeight = FontWeight.Bold)
 
             if (categoriesUsage.isEmpty()) {
-                Text("当前 TotalBudget 为 0，暂无分类预算。", color = Color(0xFF6B7280))
+                Text("当前 TotalBudget 为 0，暂无分类预算。", color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 categoriesUsage.forEach { c ->
                     val progress = if (c.budgetAmount <= BigDecimal.ZERO) 0f else c.spentAmount.divide(c.budgetAmount, 4, java.math.RoundingMode.HALF_UP).toFloat()
@@ -507,7 +507,7 @@ private fun CategoryUsageList(
                             Text(c.name, fontWeight = FontWeight.SemiBold)
                             Text(
                                 "¥${formatAmount(c.spentAmount)} / ¥${formatAmount(c.budgetAmount)}",
-                                color = Color(0xFF6B7280),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         LinearProgressIndicator(

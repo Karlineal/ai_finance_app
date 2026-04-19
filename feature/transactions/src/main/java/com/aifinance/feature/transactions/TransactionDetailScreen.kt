@@ -51,19 +51,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
-import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
-import com.aifinance.core.designsystem.theme.OnSurfaceTertiary
-import com.aifinance.core.designsystem.theme.SurfacePrimary
-import com.aifinance.core.designsystem.theme.SurfaceSecondary
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.Transaction
@@ -162,10 +155,10 @@ private fun TransactionDetailEditorScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfacePrimary),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
-        containerColor = SurfaceSecondary,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -177,7 +170,7 @@ private fun TransactionDetailEditorScreen(
             item {
                 Card(
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E6A3)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
                 ) {
                     Row(
                         modifier = Modifier
@@ -186,7 +179,7 @@ private fun TransactionDetailEditorScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(text = "金额", style = IcokieTextStyles.titleMedium, color = OnSurfacePrimary)
+                        Text(text = "金额", style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                         OutlinedTextField(
                             value = amountText,
                             onValueChange = { input ->
@@ -202,12 +195,12 @@ private fun TransactionDetailEditorScreen(
             }
 
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp)) {
                         Text(
                             text = "类型",
                             style = IcokieTextStyles.bodyLarge,
-                            color = OnSurfacePrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(horizontal = 4.dp),
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -239,7 +232,7 @@ private fun TransactionDetailEditorScreen(
             }
 
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         SelectionRow(
                             icon = Icons.Default.Wallet,
@@ -247,7 +240,7 @@ private fun TransactionDetailEditorScreen(
                             value = selectedAccount?.name ?: "未选择账户",
                             onClick = {},
                         )
-                        HorizontalDivider(color = SurfaceSecondary)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         AccountSelectorGrid(
                             accounts = accounts,
                             selectedAccountId = selectedAccountId,
@@ -258,7 +251,7 @@ private fun TransactionDetailEditorScreen(
             }
 
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         SelectionRow(
                             icon = Icons.Default.CalendarToday,
@@ -266,7 +259,7 @@ private fun TransactionDetailEditorScreen(
                             value = selectedDateTime.toLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                             onClick = { showDatePicker = true },
                         )
-                        HorizontalDivider(color = SurfaceSecondary)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         SelectionRow(
                             icon = Icons.Default.Schedule,
                             title = "时间",
@@ -292,12 +285,12 @@ private fun TransactionDetailEditorScreen(
             }
 
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                         Text(
                             text = "备注",
                             style = IcokieTextStyles.bodyLarge,
-                            color = OnSurfacePrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
@@ -312,7 +305,7 @@ private fun TransactionDetailEditorScreen(
             }
 
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                     SelectionRow(
                         icon = Icons.Default.AttachFile,
                         title = "图片",
@@ -342,11 +335,11 @@ private fun TransactionDetailEditorScreen(
                         .height(54.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = BrandPrimary,
-                        disabledContainerColor = OnSurfaceTertiary.copy(alpha = 0.3f),
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                     ),
                 ) {
-                    Text("保存", style = IcokieTextStyles.titleMedium, color = Color.White)
+                    Text("保存", style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
         }
@@ -427,7 +420,7 @@ private fun RefinedTypeChip(
     Box(
         modifier = modifier
             .background(
-                if (selected) BrandPrimary.copy(alpha = 0.12f) else SurfaceSecondary,
+                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant,
                 RoundedCornerShape(12.dp),
             )
             .clickable(onClick = onClick)
@@ -437,7 +430,7 @@ private fun RefinedTypeChip(
         Text(
             text = text,
             style = IcokieTextStyles.labelMedium,
-            color = if (selected) BrandPrimary else OnSurfaceSecondary,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
         )
     }
@@ -459,20 +452,20 @@ private fun SelectionRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Icon(imageVector = icon, contentDescription = null, tint = OnSurfaceSecondary)
-            Text(text = title, style = IcokieTextStyles.bodyLarge, color = OnSurfacePrimary)
+            Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = title, style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 text = value,
                 style = IcokieTextStyles.bodyLarge,
-                color = OnSurfaceSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
             )
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
-                tint = OnSurfaceTertiary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp),
             )
         }
@@ -502,7 +495,7 @@ private fun AccountSelectorGrid(
                         modifier = Modifier
                             .weight(1f)
                             .background(
-                                if (selected) BrandPrimary.copy(alpha = 0.12f) else SurfaceSecondary,
+                                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant,
                                 RoundedCornerShape(12.dp),
                             )
                             .clickable { onSelect(account.id) }
@@ -513,7 +506,7 @@ private fun AccountSelectorGrid(
                         Box(
                             modifier = Modifier
                                 .size(30.dp)
-                                .background(Color.White, CircleShape),
+                                .background(MaterialTheme.colorScheme.surfaceContainer, CircleShape),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(account.icon)
@@ -522,14 +515,14 @@ private fun AccountSelectorGrid(
                             Text(
                                 text = account.name,
                                 style = IcokieTextStyles.labelMedium,
-                                color = OnSurfacePrimary,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
                             )
                             if (account.isDefaultIncomeExpense) {
                                 Text(
                                     text = "默认",
                                     style = IcokieTextStyles.labelSmall,
-                                    color = BrandPrimary,
+                                    color = MaterialTheme.colorScheme.primary,
                                 )
                             }
                         }

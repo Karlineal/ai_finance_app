@@ -12,6 +12,7 @@ import javax.inject.Singleton
 enum class AppThemeMode {
     LIGHT,
     DARK,
+    SYSTEM,
 }
 
 interface UserPreferencesRepository {

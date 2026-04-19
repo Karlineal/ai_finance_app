@@ -201,7 +201,7 @@ private fun RoleOption(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onSelect(role) },
-        colors = CardDefaults.cardColors(containerColor = if (selected) Color(0xFFE8F0FF) else Color.White),
+        colors = CardDefaults.cardColors(containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp),
     ) {
         Row(
@@ -266,7 +266,7 @@ private fun IncomeInputStep(
             Text(
                 text = "左右滑动刻度快速调整金额",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF6B7280),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -294,12 +294,12 @@ private fun FixedExpenseStep(
         }
 
         if (fixedExpensesDrafts.isEmpty()) {
-            Text(text = "暂无固定支出，可继续下一步。", color = Color(0xFF6B7280))
+            Text(text = "暂无固定支出，可继续下一步。", color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else {
             fixedExpensesDrafts.forEach { draft ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(16.dp),
                 ) {
                     Column(
@@ -395,7 +395,7 @@ private fun RatioStep(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = "为你智能推荐预算方案", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Text(text = "依据 5/3/2 或 80/20 等比例，为你拆分预算与储蓄", style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B7280))
+        Text(text = "依据 5/3/2 或 80/20 等比例，为你拆分预算与储蓄", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         Text(text = "可支配金额：¥${formatAmount(disposableFund)}", style = MaterialTheme.typography.bodyLarge)
         Spacer(modifier = Modifier.height(6.dp))
@@ -405,7 +405,7 @@ private fun RatioStep(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(10.dp)
-                .background(color = Color(0xFFE5E7EB), shape = RoundedCornerShape(999.dp)),
+                .background(color = MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(999.dp)),
         ) {
             Box(
                 modifier = Modifier
@@ -448,7 +448,7 @@ private fun RatioStep(
             Text(
                 text = "固定支出 ¥${formatAmount(disposableFund - (totalBudget + savingsAllocation))} 已优先预留，不计入滑块分配。",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF6B7280),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -477,12 +477,12 @@ private fun CategoryBreakdownStep(
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = "月度分类预算推荐", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Text(text = "TotalBudget：¥${formatAmount(totalBudget)}", style = MaterialTheme.typography.bodyLarge)
-        Text(text = "未分配池：¥${formatAmount(unallocatedPool)}", style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B7280))
+        Text(text = "未分配池：¥${formatAmount(unallocatedPool)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         if (totalBudget <= BigDecimal.ZERO) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF1F1)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
                 shape = RoundedCornerShape(16.dp),
             ) {
                 Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -505,7 +505,7 @@ private fun CategoryBreakdownStep(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White, RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
                         .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -519,13 +519,13 @@ private fun CategoryBreakdownStep(
                             onClick = { onMinusPlus(cat.categoryId, BigDecimal("-50.00")) },
                             enabled = canMinus,
                         ) {
-                            Text(text = "-50", fontWeight = FontWeight.Bold, color = if (canMinus) Color(0xFF374151) else Color(0xFF9CA3AF))
+                            Text(text = "-50", fontWeight = FontWeight.Bold, color = if (canMinus) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         IconButton(
                             onClick = { onMinusPlus(cat.categoryId, BigDecimal("50.00")) },
                             enabled = canPlus,
                         ) {
-                            Text(text = "+50", fontWeight = FontWeight.Bold, color = if (canPlus) Color(0xFF374151) else Color(0xFF9CA3AF))
+                            Text(text = "+50", fontWeight = FontWeight.Bold, color = if (canPlus) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -583,7 +583,7 @@ private fun CategoryBreakdownStep(
                             ) {
                                 Text(text = candidate.name)
                                 if (exists) {
-                                    Text(text = "已添加", color = Color(0xFF9CA3AF), style = MaterialTheme.typography.bodySmall)
+                                    Text(text = "已添加", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                                 }
                             }
                         }

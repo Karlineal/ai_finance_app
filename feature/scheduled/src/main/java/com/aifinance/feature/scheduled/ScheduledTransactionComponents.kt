@@ -19,6 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,13 +32,10 @@ import androidx.compose.ui.unit.sp
 import com.aifinance.core.designsystem.theme.BorderSubtle
 import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.ExpenseAccent
-import com.aifinance.core.designsystem.theme.ExpenseBackground
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.IncomeDefault
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
-import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
-import com.aifinance.core.designsystem.theme.OnSurfaceTertiary
-import com.aifinance.core.designsystem.theme.SurfaceSecondary
+
+
 import com.aifinance.core.model.Category
 import com.aifinance.core.model.ScheduledEndMode
 import com.aifinance.core.model.ScheduledRecurrence
@@ -107,7 +105,7 @@ internal fun ScheduledRuleListCard(
 ) {
     val catName = category?.name ?: "未分类"
     val catIcon = category?.icon ?: "\u2753"
-    val catColor = category?.let { Color(it.color) } ?: SurfaceSecondary
+    val catColor = category?.let { Color(it.color) } ?: MaterialTheme.colorScheme.surfaceVariant
     val amountStr = rule.amount.setScale(2, RoundingMode.HALF_UP).toPlainString()
     val amountColor = when (rule.transactionType) {
         TransactionType.EXPENSE -> ExpenseAccent
@@ -123,7 +121,7 @@ internal fun ScheduledRuleListCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = ExpenseBackground),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
@@ -156,7 +154,7 @@ internal fun ScheduledRuleListCard(
                         Text(
                             text = catName,
                             style = IcokieTextStyles.titleMedium,
-                            color = OnSurfacePrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Box(
@@ -167,7 +165,7 @@ internal fun ScheduledRuleListCard(
                             Text(
                                 text = recurrenceLabel(rule.recurrence),
                                 style = IcokieTextStyles.labelSmall,
-                                color = OnSurfaceSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -180,7 +178,7 @@ internal fun ScheduledRuleListCard(
                     Text(
                         text = "${formatChineseDate(rule.startDate)} - ${scheduledEndSummary(rule)}",
                         style = IcokieTextStyles.labelSmall,
-                        color = OnSurfaceTertiary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Normal,
                     )
                 }
@@ -188,7 +186,7 @@ internal fun ScheduledRuleListCard(
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "删除",
-                        tint = Color(0xFFEF4444),
+                        tint = MaterialTheme.colorScheme.error,
                     )
                 }
             }
@@ -203,20 +201,20 @@ internal fun ScheduledRuleListCard(
                 Text(
                     text = "已执行 ${rule.firedCount} 笔",
                     style = IcokieTextStyles.labelSmall,
-                    color = OnSurfaceSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
                 Text(
                     text = "下一笔：${nextRunDateTimeText(rule)}",
                     style = IcokieTextStyles.labelSmall,
-                    color = OnSurfaceSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1.2f),
                 )
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
                         .background(
-                            if (rule.enabled) BrandPrimary.copy(alpha = 0.14f) else SurfaceSecondary,
+                            if (rule.enabled) BrandPrimary.copy(alpha = 0.14f) else MaterialTheme.colorScheme.surfaceVariant,
                         )
                         .clickable(onClick = onToggleEnabled)
                         .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -224,7 +222,7 @@ internal fun ScheduledRuleListCard(
                     Text(
                         text = if (rule.enabled) "执行中" else "已暂停",
                         style = IcokieTextStyles.labelSmall,
-                        color = if (rule.enabled) BrandPrimary else OnSurfaceTertiary,
+                        color = if (rule.enabled) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium,
                     )
                 }
@@ -244,7 +242,7 @@ internal fun ScheduledTypeButton(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(if (selected) selectedColor.copy(alpha = 0.1f) else SurfaceSecondary)
+            .background(if (selected) selectedColor.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onClick)
             .padding(vertical = 10.dp),
         contentAlignment = Alignment.Center,
@@ -252,7 +250,7 @@ internal fun ScheduledTypeButton(
         Text(
             text = text,
             style = IcokieTextStyles.labelMedium,
-            color = if (selected) selectedColor else OnSurfaceSecondary,
+            color = if (selected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -282,7 +280,7 @@ internal fun ScheduledCategoryIconWithLabel(
         Text(
             text = label,
             style = IcokieTextStyles.labelSmall,
-            color = if (selected) BrandPrimary else OnSurfaceSecondary,
+            color = if (selected) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -296,7 +294,7 @@ internal fun ScheduledInfoChip(
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(SurfaceSecondary)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -306,7 +304,7 @@ internal fun ScheduledInfoChip(
         Text(
             text = text,
             style = IcokieTextStyles.labelSmall,
-            color = OnSurfaceSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )
     }
@@ -322,7 +320,7 @@ internal fun EndModePill(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(
-                if (selected) BrandPrimary.copy(alpha = 0.12f) else SurfaceSecondary,
+                if (selected) BrandPrimary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant,
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 8.dp),
@@ -331,7 +329,7 @@ internal fun EndModePill(
         Text(
             text = text,
             style = IcokieTextStyles.labelMedium,
-            color = if (selected) BrandPrimary else OnSurfaceSecondary,
+            color = if (selected) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

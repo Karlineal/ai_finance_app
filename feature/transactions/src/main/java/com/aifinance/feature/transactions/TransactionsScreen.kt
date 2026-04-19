@@ -235,8 +235,8 @@ private fun TimelineTransactionItem(
     onClick: () -> Unit,
 ) {
     val amountColor = when (transaction.type) {
-        TransactionType.INCOME -> Color(0xFFB56B1D)
-        TransactionType.EXPENSE -> Color(0xFF2F67DE)
+        TransactionType.INCOME -> MaterialTheme.colorScheme.tertiary
+        TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
         TransactionType.TRANSFER -> MaterialTheme.colorScheme.primary
     }
 
@@ -279,23 +279,23 @@ private fun TimelineTransactionItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier
-                        .background(Color(0xFFE7EEFF), RoundedCornerShape(18.dp))
-                        .clickable(onClick = onCategoryClick)
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(text = category.name, color = Color(0xFF2F67DE), style = MaterialTheme.typography.titleSmall)
-                    Text(text = category.icon)
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "改分类",
-                        tint = Color(0xFF2F67DE),
-                        modifier = Modifier.size(14.dp),
-                    )
-                }
+                    Row(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(18.dp))
+                            .clickable(onClick = onCategoryClick)
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(text = category.name, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.titleSmall)
+                        Text(text = category.icon)
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "改分类",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
 
                 Text(
                     text = account?.name ?: "未选账户",

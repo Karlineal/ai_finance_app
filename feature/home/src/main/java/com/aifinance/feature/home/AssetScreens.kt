@@ -33,6 +33,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -59,11 +60,8 @@ import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
-import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
-import com.aifinance.core.designsystem.theme.OnSurfaceTertiary
-import com.aifinance.core.designsystem.theme.SurfacePrimary
-import com.aifinance.core.designsystem.theme.SurfaceSecondary
+
+
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.AccountType
@@ -118,10 +116,10 @@ fun AssetManagementScreen(
                             .clickable(onClick = onAddAccount)
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfacePrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = SurfaceSecondary,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -132,7 +130,7 @@ fun AssetManagementScreen(
         ) {
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E6A3)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(18.dp),
                 ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
@@ -141,31 +139,31 @@ fun AssetManagementScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text("净资产", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
-                            Text("资产管理", style = IcokieTextStyles.labelMedium, color = OnSurfacePrimary)
+                            Text("净资产", style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("资产管理", style = IcokieTextStyles.labelMedium, color = MaterialTheme.colorScheme.onSurface)
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "¥${summary.netAssets.setScale(2, RoundingMode.HALF_UP).toPlainString()}",
                             style = IcokieTextStyles.headlineLarge,
-                            color = OnSurfacePrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
-                                Text("资产", style = IcokieTextStyles.labelSmall, color = OnSurfaceSecondary)
+                                Text("资产", style = IcokieTextStyles.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(
                                     "¥${summary.assets.setScale(2, RoundingMode.HALF_UP).toPlainString()}",
                                     style = IcokieTextStyles.titleMedium,
-                                    color = OnSurfacePrimary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text("负债", style = IcokieTextStyles.labelSmall, color = OnSurfaceSecondary)
+                                Text("负债", style = IcokieTextStyles.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(
                                     "¥${summary.liabilities.setScale(2, RoundingMode.HALF_UP).toPlainString()}",
                                     style = IcokieTextStyles.titleMedium,
-                                    color = OnSurfacePrimary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                         }
@@ -175,7 +173,7 @@ fun AssetManagementScreen(
 
             items(accounts, key = { it.id }) { account ->
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = SurfacePrimary),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.clickable { onAccountClick(account.id) }
                 ) {
@@ -192,7 +190,7 @@ fun AssetManagementScreen(
                                 modifier = Modifier
                                     .size(44.dp)
                                     .clip(CircleShape)
-                                    .background(SurfaceSecondary),
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(account.icon)
@@ -205,24 +203,24 @@ fun AssetManagementScreen(
                                             style = IcokieTextStyles.labelSmall,
                                             color = BrandPrimary,
                                             modifier = Modifier
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .background(BrandPrimary.copy(alpha = 0.1f))
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                                                 .padding(horizontal = 6.dp, vertical = 2.dp),
                                         )
                                     }
-                                    Text(account.name, style = IcokieTextStyles.titleMedium, color = OnSurfacePrimary)
+                                    Text(account.name, style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                                 }
                                 Text(
                                     text = account.note.takeUnless { it.isNullOrBlank() } ?: account.type.toDisplayName(),
                                     style = IcokieTextStyles.labelSmall,
-                                    color = OnSurfaceSecondary,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
                         Text(
                             text = "¥${account.currentBalance.setScale(2, RoundingMode.HALF_UP).toPlainString()}",
                             style = IcokieTextStyles.titleMedium,
-                            color = OnSurfacePrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -248,10 +246,10 @@ fun AddAssetAccountScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfacePrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
-        containerColor = SurfaceSecondary,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -262,7 +260,7 @@ fun AddAssetAccountScreen(
         ) {
             sections.forEach { section ->
                 item {
-                    Text(section.title, style = IcokieTextStyles.titleMedium, color = OnSurfacePrimary)
+                    Text(section.title, style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(modifier = Modifier.height(10.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         items(section.presets) { preset ->
@@ -274,13 +272,13 @@ fun AddAssetAccountScreen(
                                     modifier = Modifier
                                         .size(58.dp)
                                         .clip(CircleShape)
-                                        .background(SurfacePrimary),
+                                        .background(MaterialTheme.colorScheme.surface),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(text = preset.icon, style = IcokieTextStyles.titleLarge)
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
-                                Text(text = preset.name, style = IcokieTextStyles.labelSmall, color = OnSurfaceSecondary)
+                                Text(text = preset.name, style = IcokieTextStyles.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
@@ -319,10 +317,10 @@ fun AddAssetDetailScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfacePrimary),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
-        containerColor = SurfaceSecondary,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -331,7 +329,7 @@ fun AddAssetDetailScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E6A3))) {
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -349,7 +347,7 @@ fun AddAssetDetailScreen(
                 }
             }
 
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     SettingRow(
                         title = "起始时间（必填）",
@@ -357,7 +355,7 @@ fun AddAssetDetailScreen(
                         trailing = formatDateTime(startDateTime),
                         onClick = { showDatePicker = true }
                     )
-                    HorizontalDivider(color = SurfaceSecondary)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     SettingRow(
                         title = "账户名称",
                         subtitle = null,
@@ -372,7 +370,7 @@ fun AddAssetDetailScreen(
                         placeholder = { Text("请输入账户名称") },
                     )
                     Spacer(modifier = Modifier.height(10.dp))
-                    HorizontalDivider(color = SurfaceSecondary)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     SettingRow(
                         title = "备注",
                         subtitle = null,
@@ -390,7 +388,7 @@ fun AddAssetDetailScreen(
                 }
             }
 
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column {
                     SwitchRow(
                         title = "计入总资产",
@@ -398,7 +396,7 @@ fun AddAssetDetailScreen(
                         checked = includeInTotalAssets,
                         onCheckedChange = { includeInTotalAssets = it },
                     )
-                    HorizontalDivider(color = SurfaceSecondary)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     SwitchRow(
                         title = "设为默认收支账户",
                         subtitle = "若收支记录没有指定账户，会默认关联到该账户",
@@ -430,7 +428,7 @@ fun AddAssetDetailScreen(
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = BrandPrimary,
-                    disabledContainerColor = OnSurfaceTertiary.copy(alpha = 0.3f),
+                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                 ),
             ) {
                 Text("保存", style = IcokieTextStyles.titleMedium, color = Color.White)
@@ -471,14 +469,14 @@ fun EditAssetAccountScreen(
 
     if (isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("加载中...", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
+            Text("加载中...", style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         return
     }
 
     if (account == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("账户不存在", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
+            Text("账户不存在", style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         return
     }
@@ -504,17 +502,17 @@ fun EditAssetAccountScreen(
                 actions = {
                     Text(
                         text = "删除",
-                        color = Color(0xFFDC2626),
+                        color = MaterialTheme.colorScheme.error,
                         style = IcokieTextStyles.labelMedium,
                         modifier = Modifier
                             .padding(end = 16.dp)
                             .clickable { showDeleteDialog = true }
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = SurfacePrimary),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
-        containerColor = SurfaceSecondary,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -523,7 +521,7 @@ fun EditAssetAccountScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFFF3E6A3))) {
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -541,7 +539,7 @@ fun EditAssetAccountScreen(
                 }
             }
 
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     SettingRow(
                         title = "账户名称",
@@ -557,7 +555,7 @@ fun EditAssetAccountScreen(
                         placeholder = { Text("请输入账户名称") },
                     )
                     Spacer(modifier = Modifier.height(10.dp))
-                    HorizontalDivider(color = SurfaceSecondary)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     SettingRow(
                         title = "备注",
                         subtitle = null,
@@ -575,7 +573,7 @@ fun EditAssetAccountScreen(
                 }
             }
 
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = SurfacePrimary)) {
+            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column {
                     SwitchRow(
                         title = "计入总资产",
@@ -583,7 +581,7 @@ fun EditAssetAccountScreen(
                         checked = includeInTotalAssets,
                         onCheckedChange = { includeInTotalAssets = it },
                     )
-                    HorizontalDivider(color = SurfaceSecondary)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     SwitchRow(
                         title = "设为默认收支账户",
                         subtitle = "若收支记录没有指定账户，会默认关联到该账户",
@@ -614,7 +612,7 @@ fun EditAssetAccountScreen(
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = BrandPrimary,
-                    disabledContainerColor = OnSurfaceTertiary.copy(alpha = 0.3f),
+                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                 ),
             ) {
                 Text("保存修改", style = IcokieTextStyles.titleMedium, color = Color.White)
@@ -637,7 +635,7 @@ fun EditAssetAccountScreen(
                         }
                     }
                 ) {
-                    Text("删除", color = Color(0xFFDC2626))
+                    Text("删除", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -645,7 +643,7 @@ fun EditAssetAccountScreen(
                     Text("取消")
                 }
             },
-            containerColor = SurfacePrimary
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -836,20 +834,20 @@ private fun SettingRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = IcokieTextStyles.bodyLarge, color = OnSurfacePrimary)
+            Text(title, style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             if (subtitle != null) {
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(subtitle, style = IcokieTextStyles.labelSmall, color = OnSurfaceTertiary)
+                Text(subtitle, style = IcokieTextStyles.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         Spacer(modifier = Modifier.width(12.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(trailing, style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
+            Text(trailing, style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.width(4.dp))
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
-                tint = OnSurfaceTertiary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp),
             )
         }
@@ -871,9 +869,9 @@ private fun SwitchRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = IcokieTextStyles.bodyLarge, color = OnSurfacePrimary)
+            Text(text = title, style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = subtitle, style = IcokieTextStyles.labelSmall, color = OnSurfaceTertiary)
+            Text(text = subtitle, style = IcokieTextStyles.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }

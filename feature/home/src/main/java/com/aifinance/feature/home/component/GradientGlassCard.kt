@@ -2,6 +2,7 @@ package com.aifinance.feature.home.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -106,41 +107,61 @@ fun GradientGlassCard(
 }
 
 /**
- * 预设的净资产卡片（金色渐变）
+ * 预设的净资产卡片（金色渐变 / 深色模式深紫色渐变）
  */
 @Composable
 fun NetAssetGradientCard(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    val isDark = isSystemInDarkTheme()
     GradientGlassCard(
         modifier = modifier,
-        gradientColors = listOf(
-            Color(0xFFF7D986),
-            Color(0xFFF2CC68),
-            Color(0xFFE7B953),
-        ),
-        highlightAlpha = 0.50f,
+        gradientColors = if (isDark) {
+            listOf(
+                Color(0xFF4C1D95),
+                Color(0xFF5B21B6),
+                Color(0xFF6D28D9),
+            )
+        } else {
+            listOf(
+                Color(0xFFF7D986),
+                Color(0xFFF2CC68),
+                Color(0xFFE7B953),
+            )
+        },
+        highlightAlpha = if (isDark) 0.20f else 0.50f,
+        borderColor = if (isDark) Color.White.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.34f),
         content = content,
     )
 }
 
 /**
- * 预设的月度支出卡片（蓝色渐变）
+ * 预设的月度支出卡片（蓝色渐变 / 深色模式深蓝色渐变）
  */
 @Composable
 fun MonthlyExpenseGradientCard(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,
 ) {
+    val isDark = isSystemInDarkTheme()
     GradientGlassCard(
         modifier = modifier,
-        gradientColors = listOf(
-            Color(0xFF2E56D8),
-            Color(0xFF3F6EEA),
-            Color(0xFF5C8CF8),
-        ),
-        highlightAlpha = 0.40f,
+        gradientColors = if (isDark) {
+            listOf(
+                Color(0xFF1E3A5F),
+                Color(0xFF1E40AF),
+                Color(0xFF2563EB),
+            )
+        } else {
+            listOf(
+                Color(0xFF2E56D8),
+                Color(0xFF3F6EEA),
+                Color(0xFF5C8CF8),
+            )
+        },
+        highlightAlpha = if (isDark) 0.15f else 0.40f,
+        borderColor = if (isDark) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.34f),
         content = content,
     )
 }

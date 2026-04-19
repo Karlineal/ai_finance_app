@@ -170,7 +170,7 @@ fun CalendarTransactionsScreen(
                             .padding(vertical = 24.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("当日暂无交易", color = Color(0xFF9CA3AF))
+                        Text("当日暂无交易", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             } else {
@@ -242,13 +242,13 @@ private fun MonthSelector(
             Box(
                 modifier = Modifier
                     .clickable(onClick = onToday)
-                    .background(Color(0xFFFFF9C4), RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(12.dp))
                     .padding(horizontal = 10.dp, vertical = 4.dp),
             ) {
                 Text(
                     text = "回今天",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF8B6914),
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                 )
             }
         }
@@ -270,14 +270,14 @@ private fun WeekdayHeader() {
         weekDays.forEach { label ->
             Box(
                 modifier = Modifier
-                    .background(Color(0xFFDDEBFF), RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(10.dp))
                     .padding(horizontal = 8.dp, vertical = 3.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color(0xFF2E5FE6),
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -329,13 +329,13 @@ private fun CalendarGrid(
                                 .aspectRatio(0.95f)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    if (isSelected) Color(0xFFFFD54F)
-                                    else if (hasData) Color(0xFFFFFDF5)
+                                    if (isSelected) MaterialTheme.colorScheme.primary
+                                    else if (hasData) MaterialTheme.colorScheme.surfaceVariant
                                     else Color.Transparent
                                 )
                                 .border(
                                     width = if (isSelected) 0.dp else 0.5.dp,
-                                    color = if (isSelected || hasData) Color.Transparent else Color(0xFFE5E7EB),
+                                    color = if (isSelected || hasData) Color.Transparent else MaterialTheme.colorScheme.outline,
                                     shape = RoundedCornerShape(8.dp),
                                 )
                                 .clickable { onDateSelected(date) }
@@ -349,7 +349,7 @@ private fun CalendarGrid(
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     fontSize = 11.sp,
                                 ),
-                                color = Color(0xFF1F2937),
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             if (income > BigDecimal.ZERO) {
                                 Text(

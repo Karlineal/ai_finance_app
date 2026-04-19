@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -50,13 +51,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import android.webkit.WebView
 import android.webkit.WebViewClient
 
-private val Background = Color(0xFFF5F7FA)
-private val UserBubble = Color(0xFF4A7DFF)
-private val AIBubble = Color(0xFFFFFFFF)
-private val InputBackground = Color(0xFFFFFFFF)
-private val HintText = Color(0xFF9AA3B2)
-private val TextPrimary = Color(0xFF1A1A1A)
-private val TextSecondary = Color(0xFF5A6578)
 
 private val quickPrompts = listOf(
     "记录一笔午餐支出",
@@ -81,7 +75,7 @@ fun AiAssistantScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -153,7 +147,7 @@ private fun EmptyState(
             text = "你好呀！👋",
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -161,7 +155,7 @@ private fun EmptyState(
         Text(
             text = "我是您的专属财务助手，不管是查账、分析消费习惯，还是制定预算计划，我都能帮您搞定。",
             fontSize = 15.sp,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 24.sp,
             modifier = Modifier.padding(horizontal = 8.dp)
         )
@@ -190,14 +184,14 @@ private fun QuickPromptChip(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
         Text(
             text = text,
             fontSize = 14.sp,
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -220,7 +214,7 @@ private fun MessageItem(message: AssistantMessage) {
                         bottomEnd = if (isUser) 4.dp else 18.dp
                     )
                 )
-                .background(if (isUser) UserBubble else AIBubble)
+                .background(if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh)
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             if (isUser) {
@@ -228,7 +222,7 @@ private fun MessageItem(message: AssistantMessage) {
                     text = message.content,
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
                 MarkdownText(content = message.content)
@@ -351,7 +345,7 @@ private fun LoadingIndicator() {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(18.dp))
-                .background(AIBubble)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Row(
@@ -383,7 +377,7 @@ private fun DotAnimation(index: Int) {
         modifier = Modifier
             .size((6f * scale).dp)
             .clip(CircleShape)
-            .background(UserBubble.copy(alpha = 0.6f))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
     )
 }
 
@@ -397,7 +391,7 @@ private fun InputArea(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(InputBackground)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .navigationBarsPadding()
             .imePadding()
             .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -412,17 +406,17 @@ private fun InputArea(
                 Text(
                     "有什么想问我的吗",
                     fontSize = 15.sp,
-                    color = HintText
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             colors = TextFieldDefaults.colors(
-                focusedContainerColor = Background,
-                unfocusedContainerColor = Background,
+                focusedContainerColor = MaterialTheme.colorScheme.background,
+                unfocusedContainerColor = MaterialTheme.colorScheme.background,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
-                focusedTextColor = TextPrimary,
-                unfocusedTextColor = TextPrimary
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
             ),
             shape = RoundedCornerShape(24.dp),
             singleLine = true,
@@ -436,20 +430,20 @@ private fun InputArea(
                 .size(44.dp)
                 .clip(CircleShape)
                 .background(
-                    if (inputText.isNotBlank()) UserBubble else Color(0xFFE5E8ED)
+                    if (inputText.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer
                 )
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                     strokeWidth = 2.dp
                 )
             } else {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Send,
                     contentDescription = "发送",
-                    tint = if (inputText.isNotBlank()) Color.White else HintText,
+                    tint = if (inputText.isNotBlank()) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -466,7 +460,7 @@ private fun GlassmorphismNewChatButton(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
             .background(
-                Color.White.copy(alpha = 0.25f)
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
             )
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -479,13 +473,13 @@ private fun GlassmorphismNewChatButton(
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "新建对话",
-                tint = TextSecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp)
             )
             Text(
                 text = "新建对话",
                 fontSize = 13.sp,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium
             )
         }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,8 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
-import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.Category
 import com.aifinance.core.model.CategoryCatalog
@@ -87,7 +86,7 @@ fun RefinedTransactionItem(
                     fontWeight = FontWeight.Medium,
                     letterSpacing = 0.sp,
                 ),
-                color = OnSurfaceSecondary.copy(alpha = 0.86f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.86f),
             )
 
             Text(
@@ -145,7 +144,7 @@ fun RefinedTransactionItem(
                 fontWeight = FontWeight.SemiBold,
                 letterSpacing = 0.sp,
             ),
-            color = OnSurfacePrimary,
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         Spacer(modifier = Modifier.size(6.dp))
@@ -158,7 +157,7 @@ fun RefinedTransactionItem(
             InfoItem(
                 icon = Icons.AutoMirrored.Filled.ReceiptLong,
                 text = accountName ?: "微信",
-                tint = OnSurfaceSecondary.copy(alpha = 0.78f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
             )
         }
     }
@@ -208,6 +207,7 @@ private data class TypeColors(
     val amount: Color,
 )
 
+@Composable
 private fun Transaction.resolveRefinedVisual(customCategory: Category? = null): VisualTheme {
     val categoryName: String
     val categoryIcon: String
@@ -228,21 +228,21 @@ private fun Transaction.resolveRefinedVisual(customCategory: Category? = null): 
 
     val typeColors = when (type) {
         TransactionType.EXPENSE -> TypeColors(
-            background = Color(0xFFE3F2FD),
-            amount = Color(0xFF1976D2)
+            background = Color(0xFF7F1D1D).copy(alpha = 0.4f),
+            amount = MaterialTheme.colorScheme.error
         )
         TransactionType.INCOME -> TypeColors(
-            background = Color(0xFFFFF8E1),
-            amount = Color(0xFFF57C00)
+            background = Color(0xFF064E3B).copy(alpha = 0.4f),
+            amount = MaterialTheme.colorScheme.tertiary
         )
         TransactionType.TRANSFER -> {
             val amountColor = if (title.startsWith("转出至")) {
-                Color(0xFF1976D2)
+                MaterialTheme.colorScheme.secondary
             } else {
-                Color(0xFFF57C00)
+                MaterialTheme.colorScheme.tertiary
             }
             TypeColors(
-                background = Color(0xFFE8F5E9),
+                background = Color(0xFF1E3A5F).copy(alpha = 0.4f),
                 amount = amountColor
             )
         }

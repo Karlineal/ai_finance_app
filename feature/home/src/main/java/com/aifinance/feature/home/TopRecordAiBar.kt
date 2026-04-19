@@ -18,11 +18,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,12 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-private val TabSurface = Color(0xFFEFF3FB)
+private val TabSurfaceLight = Color(0xFFEFF3FB)
+private val TabSurfaceDark = Color(0xFF1E293B)
 private val TabIndicator = BrandPrimary
 
 @Composable
@@ -67,7 +69,7 @@ fun TopRecordAiBar(
             Icon(
                 imageVector = Icons.Default.Menu,
                 contentDescription = "菜单",
-                tint = OnSurfacePrimary,
+                tint = MaterialTheme.colorScheme.onSurface,
             )
         }
 
@@ -114,11 +116,12 @@ private fun liquidTopTabBar(
         label = "liquid_tab_trailing_blob",
     )
 
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     Box(
         modifier = Modifier
             .then(modifier)
             .clip(RoundedCornerShape(24.dp))
-            .background(TabSurface)
+            .background(if (isDark) TabSurfaceDark else TabSurfaceLight)
             .padding(4.dp)
             .fillMaxWidth()
             .height(48.dp),
@@ -169,7 +172,7 @@ private fun liquidTopTabBar(
             tabs.forEachIndexed { index, tab ->
                 val selected = index == selectedIndex
                 val textColor by animateColorAsState(
-                    targetValue = if (selected) Color.White else OnSurfacePrimary,
+                    targetValue = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
                     animationSpec = spring(
                         dampingRatio = 0.9f,
                         stiffness = 480f,

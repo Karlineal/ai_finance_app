@@ -73,11 +73,8 @@ import com.aifinance.core.designsystem.theme.ExpenseDefault
 import com.aifinance.core.designsystem.theme.ExpenseLight
 import com.aifinance.core.designsystem.theme.IncomeDefault
 import com.aifinance.core.designsystem.theme.IncomeLight
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
-import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
-import com.aifinance.core.designsystem.theme.OnSurfaceTertiary
-import com.aifinance.core.designsystem.theme.SurfacePrimary
-import com.aifinance.core.designsystem.theme.SurfaceSecondary
+
+
 import com.aifinance.core.model.Category
 import com.aifinance.core.model.TransactionType
 import java.text.SimpleDateFormat
@@ -121,16 +118,16 @@ fun AddTransactionScreen(
                     ) {
                         Text(
                             text = "保存",
-                            color = if (uiState.amount.isNotBlank()) BrandPrimary else OnSurfaceTertiary
+                            color = if (uiState.amount.isNotBlank()) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SurfacePrimary
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
-        containerColor = SurfaceSecondary
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -197,7 +194,7 @@ private fun AmountSection(
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = SurfacePrimary
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -215,7 +212,7 @@ private fun AmountSection(
                     text = "¥",
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
-                    color = OnSurfaceSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -245,7 +242,7 @@ private fun AmountSection(
                     textStyle = TextStyle(
                         fontSize = 48.sp,
                         fontWeight = FontWeight.Bold,
-                        color = OnSurfacePrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
                     ),
                     keyboardOptions = KeyboardOptions(
@@ -263,7 +260,7 @@ private fun AmountSection(
                                     style = TextStyle(
                                         fontSize = 48.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = OnSurfaceTertiary.copy(alpha = 0.5f)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                     )
                                 )
                             }
@@ -296,7 +293,7 @@ private fun TypeToggleSection(
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = SurfacePrimary
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -338,8 +335,8 @@ private fun TypeToggleButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val backgroundColor = if (isSelected) selectedBackgroundColor else SurfaceSecondary
-    val contentColor = if (isSelected) selectedColor else OnSurfaceSecondary
+    val backgroundColor = if (isSelected) selectedBackgroundColor else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(
         modifier = modifier
@@ -371,7 +368,7 @@ private fun CategoryChipsSection(
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = SurfacePrimary
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -383,7 +380,7 @@ private fun CategoryChipsSection(
             Text(
                 text = "选择分类",
                 style = MaterialTheme.typography.labelMedium,
-                color = OnSurfaceSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -422,7 +419,7 @@ private fun CategoryChip(
     val backgroundColor = if (isSelected) {
         Color(category.color).copy(alpha = 0.15f)
     } else {
-        SurfaceSecondary
+        MaterialTheme.colorScheme.surfaceVariant
     }
     val borderColor = if (isSelected) {
         Color(category.color)
@@ -432,7 +429,7 @@ private fun CategoryChip(
     val contentColor = if (isSelected) {
         Color(category.color)
     } else {
-        OnSurfaceSecondary
+        MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Column(
@@ -475,7 +472,7 @@ private fun OptionalFieldsSection(
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = SurfacePrimary
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -494,12 +491,12 @@ private fun OptionalFieldsSection(
                 Text(
                     text = "更多选项（标题、日期、备注）",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = OnSurfaceSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = if (expanded) "收起" else "展开",
-                    tint = OnSurfaceTertiary
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -527,7 +524,7 @@ private fun OptionalFieldsSection(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = BrandPrimary,
-                            unfocusedBorderColor = OnSurfaceTertiary.copy(alpha = 0.3f)
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                         ),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -543,7 +540,7 @@ private fun OptionalFieldsSection(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(SurfaceSecondary)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { showDatePicker = true }
                             .padding(horizontal = 16.dp, vertical = 16.dp)
                     ) {
@@ -555,12 +552,12 @@ private fun OptionalFieldsSection(
                             Text(
                                 text = "日期",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = OnSurfaceSecondary
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = dateString,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = OnSurfacePrimary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -577,7 +574,7 @@ private fun OptionalFieldsSection(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = BrandPrimary,
-                            unfocusedBorderColor = OnSurfaceTertiary.copy(alpha = 0.3f)
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
                         ),
                         shape = RoundedCornerShape(12.dp)
                     )

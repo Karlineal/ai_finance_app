@@ -83,10 +83,7 @@ import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.IcokieTheme
 import com.aifinance.core.designsystem.theme.IncomeDefault
 import com.aifinance.core.designsystem.theme.OnPrimary
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
-import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
-import com.aifinance.core.designsystem.theme.OnSurfaceTertiary
-import com.aifinance.core.designsystem.theme.SurfacePrimary
+
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
@@ -174,7 +171,7 @@ fun RecordHomeContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF2F2F7))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
         ) {
             HorizontalPager(
@@ -236,9 +233,9 @@ fun RecordHomeContent(
                                         .padding(bottom = 12.dp),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = Color(0xFFF7F8FC),
+                                        containerColor = MaterialTheme.colorScheme.surface,
                                     ),
-                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.78f)),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                                 ) {
                                     sortedTransactions.forEachIndexed { index, transaction ->
@@ -256,7 +253,7 @@ fun RecordHomeContent(
                                         if (index < sortedTransactions.lastIndex) {
                                             HorizontalDivider(
                                                 thickness = 1.dp,
-                                                color = Color(0x143C3C43),
+                                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                                                 modifier = Modifier.padding(start = 16.dp),
                                             )
                                         }
@@ -358,7 +355,7 @@ fun RecordHomeContent(
                     Text(
                         text = "确认删除这条账单记录吗？",
                         style = IcokieTextStyles.bodyLarge,
-                        color = OnSurfaceSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 },
                 confirmButton = {
@@ -377,7 +374,7 @@ fun RecordHomeContent(
                         Text(text = "取消")
                     }
                 },
-                containerColor = Color.White.copy(alpha = 0.95f),
+                containerColor = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(16.dp),
             )
         }
@@ -547,7 +544,7 @@ private fun BalanceCard(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 4.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color.White.copy(alpha = 0.16f))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
                 .padding(horizontal = 6.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.Center,
         ) {
@@ -559,9 +556,9 @@ private fun BalanceCard(
                         .clip(RoundedCornerShape(6.dp))
                         .background(
                             if (pagerState.currentPage == index) {
-                                OnSurfacePrimary.copy(alpha = indicatorAlpha)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = indicatorAlpha)
                             } else {
-                                OnSurfaceTertiary.copy(alpha = 0.35f * indicatorAlpha)
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f * indicatorAlpha)
                             }
                         ),
                 )
@@ -821,7 +818,7 @@ private fun QuickActions(
             onClick = onImportClick,
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = OnSurfacePrimary
+                contentColor = MaterialTheme.colorScheme.onSurface
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -857,7 +854,7 @@ private fun MonthlySummaryCard(
             modifier = Modifier.weight(1f),
             elevation = CardDefaults.cardElevation(defaultElevation = elevation.cardElevation),
             colors = CardDefaults.cardColors(
-                containerColor = SurfacePrimary
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
             Column(
@@ -879,7 +876,7 @@ private fun MonthlySummaryCard(
                     Text(
                         text = "本月收入",
                         style = IcokieTextStyles.labelSmall,
-                        color = OnSurfaceSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Spacer(modifier = Modifier.height(spacing.itemSpacing))
@@ -895,7 +892,7 @@ private fun MonthlySummaryCard(
             modifier = Modifier.weight(1f),
             elevation = CardDefaults.cardElevation(defaultElevation = elevation.cardElevation),
             colors = CardDefaults.cardColors(
-                containerColor = SurfacePrimary
+                containerColor = MaterialTheme.colorScheme.surface
             )
         ) {
             Column(
@@ -917,7 +914,7 @@ private fun MonthlySummaryCard(
                     Text(
                         text = "本月支出",
                         style = IcokieTextStyles.labelSmall,
-                        color = OnSurfaceSecondary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Spacer(modifier = Modifier.height(spacing.itemSpacing))
@@ -946,18 +943,19 @@ private fun DaySectionHeader(
 
     val isToday = date == AppDateTime.today()
     val datePart = date.format(DateTimeFormatter.ofPattern("M月d日（E）", Locale.CHINA))
+    val titleColor = MaterialTheme.colorScheme.onSurface
     val title = if (isToday) {
         buildAnnotatedString {
-            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = OnSurfacePrimary)) {
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = titleColor)) {
                 append("今天")
             }
-            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = OnSurfacePrimary.copy(alpha = 0.9f))) {
+            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = titleColor.copy(alpha = 0.9f))) {
                 append(datePart)
             }
         }
     } else {
         buildAnnotatedString {
-            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = OnSurfacePrimary)) {
+            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold, color = titleColor)) {
                 append(datePart)
             }
         }
@@ -981,7 +979,7 @@ private fun DaySectionHeader(
                 fontWeight = FontWeight.Normal,
                 letterSpacing = 0.sp,
             ),
-            color = OnSurfaceSecondary.copy(alpha = 0.78f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
         )
     }
 }
@@ -1005,7 +1003,7 @@ private fun TimelineTransactionRecord(
         Text(
             text = transaction.time.toClockText(),
             style = IcokieTextStyles.labelMedium,
-            color = OnSurfaceSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
                 .width(42.dp)
                 .padding(top = 2.dp),
@@ -1021,7 +1019,7 @@ private fun TimelineTransactionRecord(
                     .align(Alignment.TopCenter)
                     .width(1.dp)
                     .fillMaxHeight()
-                    .background(Color(0xFFD5DEEC)),
+                    .background(MaterialTheme.colorScheme.outline),
             )
             Box(
                 modifier = Modifier
@@ -1065,13 +1063,13 @@ private fun TimelineTransactionRecord(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Color(0xFFF2F4F8))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(horizontal = 12.dp, vertical = 10.dp),
             ) {
                 Text(
                     text = remark,
                     style = IcokieTextStyles.labelMedium,
-                    color = OnSurfaceSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -1080,13 +1078,13 @@ private fun TimelineTransactionRecord(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                     contentDescription = null,
-                    tint = OnSurfaceSecondary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(14.dp),
                 )
                 Text(
                     text = accountName ?: "未选择账户",
                     style = IcokieTextStyles.labelMedium,
-                    color = OnSurfaceSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -1095,13 +1093,13 @@ private fun TimelineTransactionRecord(
                 Icon(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = null,
-                    tint = OnSurfaceSecondary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(14.dp),
                 )
                 Text(
                     text = "系统定位",
                     style = IcokieTextStyles.labelMedium,
-                    color = OnSurfaceSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -1210,17 +1208,17 @@ private fun EmptyRecentTransactions(
                 imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint = OnSurfaceTertiary
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "暂无交易记录",
                 style = IcokieTextStyles.bodyLarge,
-                color = OnSurfaceSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "点击「记一笔」添加第一笔交易",
                 style = IcokieTextStyles.labelSmall,
-                color = OnSurfaceTertiary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -1248,7 +1246,7 @@ private fun MonthSelector(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "上个月",
-                tint = OnSurfacePrimary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -1258,12 +1256,12 @@ private fun MonthSelector(
             Text(
                 text = "${selectedMonth.monthValue}月",
                 style = IcokieTextStyles.titleMedium,
-                color = OnSurfacePrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "${selectedMonth.year}年",
                 style = IcokieTextStyles.labelSmall,
-                color = OnSurfaceSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -1271,7 +1269,7 @@ private fun MonthSelector(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                 contentDescription = "下个月",
-                tint = OnSurfacePrimary
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     }

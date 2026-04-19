@@ -299,7 +299,7 @@ fun StatisticsScreen(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFEFF4FD)),
+            .background(MaterialTheme.colorScheme.surfaceVariant),
         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -394,7 +394,7 @@ private fun PeriodSwitchCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFD4E8F8), RoundedCornerShape(22.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(22.dp))
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -403,12 +403,12 @@ private fun PeriodSwitchCard(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .background(if (selected) Color.White else Color.Transparent, RoundedCornerShape(18.dp))
+                    .background(if (selected) MaterialTheme.colorScheme.surface else Color.Transparent, RoundedCornerShape(18.dp))
                     .clickable { onSelect(item) }
                     .padding(vertical = 10.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(text = item.label, style = MaterialTheme.typography.titleMedium, color = Color(0xFF1F2937))
+                Text(text = item.label, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
             }
         }
     }
@@ -437,14 +437,14 @@ private fun PeriodAnchorBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "上一周期", modifier = Modifier.clickable(onClick = onPrevious))
-        Text(text = title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+        Text(text = title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "下一周期", modifier = Modifier.clickable(onClick = onNext))
     }
 }
 
 @Composable
 private fun AggregateCard(aggregate: AggregateStats) {
-    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -461,7 +461,7 @@ private fun AggregateCard(aggregate: AggregateStats) {
 @Composable
 private fun AggregateItem(label: String, value: BigDecimal, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, style = MaterialTheme.typography.titleMedium, color = Color(0xFF374151))
+        Text(text = label, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
         val moneyText = prettyMoneyWithSign(value)
         // 动态调整字体大小：数字越长，字体越小
         val fontSize = when {
@@ -482,13 +482,13 @@ private fun AggregateItem(label: String, value: BigDecimal, color: Color) {
 
 @Composable
 private fun AiPlaceholderCard() {
-    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(text = "AI分析", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(
                 text = "AI分析功能后续接入，这里预留分析卡片位。",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color(0xFF6B7280),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -501,7 +501,7 @@ private fun TrendCard(
     trendHeadline: String,
     onMetricSelect: (TrendMetric) -> Unit,
 ) {
-    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -524,10 +524,10 @@ private fun TrendCard(
 
             Box(
                 modifier = Modifier
-                    .background(Color(0xFFF8FAFC), RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             ) {
-                Text(text = trendHeadline, style = MaterialTheme.typography.titleMedium, color = Color(0xFF374151))
+                Text(text = trendHeadline, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
             }
 
             TrendChart(
@@ -559,6 +559,7 @@ private fun TrendChart(
     val maxValue = max(values.maxOrNull() ?: 0f, 1f)
     val minValue = if (metric == TrendMetric.BALANCE) minOf(values.minOrNull() ?: 0f, 0f) else 0f
     val range = max(maxValue - minValue, 1f)
+    val outlineColor = MaterialTheme.colorScheme.outline
 
     Canvas(modifier = modifier) {
         val startX = 8.dp.toPx()
@@ -571,7 +572,7 @@ private fun TrendChart(
         val zeroY = bottomY - ((0f - minValue) / range) * (bottomY - topY)
 
         drawLine(
-            color = Color(0xFFD1D5DB),
+            color = outlineColor,
             start = Offset(startX, zeroY),
             end = Offset(endX, zeroY),
             strokeWidth = 1.dp.toPx(),
@@ -616,7 +617,7 @@ private fun AxisLabels(labels: List<String>) {
     if (labels.isEmpty()) return
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         labels.forEach {
-            Text(text = it, style = MaterialTheme.typography.bodySmall, color = Color(0xFF6B7280), textAlign = TextAlign.Center)
+            Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
         }
     }
 }
@@ -630,7 +631,7 @@ private fun CompositionCard(
     onToggleRanking: () -> Unit,
 ) {
     var expandedCategory by rememberSaveable(mode) { mutableStateOf<String?>(null) }
-    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -672,7 +673,7 @@ private fun CompositionCard(
                     Text(
                         text = if (rankingExpanded) "收起" else "展开全部",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF9CA3AF),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -685,7 +686,8 @@ private fun CompositionCard(
 private fun DonutChart(items: List<CategoryItem>, centerTitle: String) {
     val total = items.fold(BigDecimal.ZERO) { acc, item -> acc + item.amount }
     val values = items.map { it.amount.toFloatSafe() }
-    val labelColor = Color(0xFF8B97AA)
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val outlineColor = MaterialTheme.colorScheme.outline
 
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
         if (items.isEmpty()) {
@@ -698,7 +700,7 @@ private fun DonutChart(items: List<CategoryItem>, centerTitle: String) {
                 val outerRadius = minOf(size.width * 0.23f, size.height * 0.24f)
                 val ringWidth = 30.dp.toPx()
                 drawArc(
-                    color = Color(0xFFDDE2EE),
+                    color = outlineColor,
                     startAngle = -90f,
                     sweepAngle = 360f,
                     useCenter = false,
@@ -729,7 +731,7 @@ private fun DonutChart(items: List<CategoryItem>, centerTitle: String) {
                         Text(
                             text = item.name,
                             style = MaterialTheme.typography.titleSmall,
-                            color = Color(0xFF1F2937),
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -742,14 +744,14 @@ private fun DonutChart(items: List<CategoryItem>, centerTitle: String) {
                 },
                 labelConnector = {
                     BezierLabelConnector(
-                        connectorColor = Color(0xFF98A6BF),
+                        connectorColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         connectorStroke = Stroke(width = 1.6f),
                     )
                 },
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = centerTitle, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF6B7280))
+            Text(text = centerTitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(text = "¥${total.pretty()}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         }
     }
@@ -764,7 +766,7 @@ private fun CategoryRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFFCFDFF), RoundedCornerShape(18.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(18.dp))
             .clickable(onClick = onToggle)
             .animateContentSize()
             .padding(horizontal = 10.dp, vertical = 10.dp),
@@ -781,7 +783,7 @@ private fun CategoryRow(
                 Text(
                     text = "${(item.ratio * 100f).prettyPercent()}%",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF8B97AA),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -794,7 +796,7 @@ private fun CategoryRow(
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = Color(0xFF9CA3AF),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .size(18.dp)
                         .rotate(chevronRotation),
@@ -805,7 +807,7 @@ private fun CategoryRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(6.dp)
-                .background(Color(0xFFF3F4F6), RoundedCornerShape(10.dp)),
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp)),
         ) {
             Box(
                 modifier = Modifier
@@ -814,7 +816,7 @@ private fun CategoryRow(
                     .background(item.color, RoundedCornerShape(10.dp)),
             )
         }
-        Text(text = "${item.count}笔", style = MaterialTheme.typography.bodySmall, color = Color(0xFF9CA3AF), modifier = Modifier.align(Alignment.End))
+        Text(text = "${item.count}笔", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.End))
 
         AnimatedVisibility(
             visible = expanded,
@@ -824,7 +826,7 @@ private fun CategoryRow(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF6F8FC), RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -835,7 +837,7 @@ private fun CategoryRow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(1.dp)
-                                .background(Color(0xFFE6EBF5)),
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
                         )
                     }
                 }
@@ -843,7 +845,7 @@ private fun CategoryRow(
                     Text(
                         text = "仅展示最近5笔",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF8B97AA),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.align(Alignment.End),
                     )
                 }
@@ -879,14 +881,14 @@ private fun TransactionDetailRow(
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = Color(0xFF1F2937),
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = transaction.date.toDisplayLabel() + " " + transaction.time.toTimeLabel() + (transaction.description?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = Color(0xFF8B97AA),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -902,7 +904,7 @@ private fun TransactionDetailRow(
 
 @Composable
 private fun SummaryCard(rows: SummaryRows) {
-    Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+    Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -915,9 +917,7 @@ private fun SummaryCard(rows: SummaryRows) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        brush = Brush.verticalGradient(
-                            listOf(Color(0xFFF6F8FF), Color(0xFFF1F4FC)),
-                        ),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(16.dp),
                     )
                     .padding(horizontal = 12.dp, vertical = 10.dp),
@@ -948,7 +948,7 @@ private fun SummaryHeaderCell(
         textAlign = textAlign,
         style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.SemiBold,
-        color = Color(0xFF667085),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
@@ -965,7 +965,7 @@ private fun SummaryDataRow(
             textAlign = TextAlign.Start,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = Color(0xFF1F2937),
+            color = MaterialTheme.colorScheme.onSurface,
         )
         SummaryAmountCell(value = stats.expense, color = ExpenseBlue, emphasize = emphasize)
         SummaryAmountCell(value = stats.income, color = IncomeOrange, emphasize = emphasize)
@@ -1006,7 +1006,7 @@ private fun SummaryDivider() {
         modifier = Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(Color(0xFFDDE3F0)),
+            .background(MaterialTheme.colorScheme.surfaceVariant),
     )
 }
 
@@ -1018,7 +1018,7 @@ private fun SegmentedToggle(
 ) {
     Row(
         modifier = Modifier
-            .background(Color(0xFFF3F4F6), RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(20.dp))
             .padding(3.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -1033,7 +1033,7 @@ private fun SegmentedToggle(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.titleSmall,
-                    color = if (selected) Color.White else Color(0xFF374151),
+                    color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
                 )
             }
         }

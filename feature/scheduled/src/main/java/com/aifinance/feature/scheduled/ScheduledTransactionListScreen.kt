@@ -23,6 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -46,10 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.OnPrimary
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
-import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
-import com.aifinance.core.designsystem.theme.OnSurfaceTertiary
-import com.aifinance.core.designsystem.theme.SurfacePrimary
+
 import com.aifinance.core.model.Category
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.ScheduledRule
@@ -83,14 +81,14 @@ fun ScheduledTransactionListScreen(
     }
 
     Scaffold(
-        containerColor = SurfacePrimary,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "定时记账",
                         style = IcokieTextStyles.titleMedium,
-                        color = OnSurfacePrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.SemiBold,
                     )
                 },
@@ -99,7 +97,7 @@ fun ScheduledTransactionListScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回",
-                            tint = OnSurfaceSecondary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 },
@@ -113,8 +111,8 @@ fun ScheduledTransactionListScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SurfacePrimary,
-                    titleContentColor = OnSurfacePrimary,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
                 ),
             )
         },
@@ -122,7 +120,7 @@ fun ScheduledTransactionListScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF2F2F7))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding),
         ) {
             if (rules.isEmpty()) {
@@ -155,7 +153,7 @@ fun ScheduledTransactionListScreen(
                         Text(
                             text = "- 到底了 -",
                             style = IcokieTextStyles.labelSmall,
-                            color = OnSurfaceTertiary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -182,7 +180,7 @@ private fun ExactAlarmPermissionBanner(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = androidx.compose.material3.CardDefaults.cardColors(
-            containerColor = Color(0xFFFFF3CD)
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
         ),
     ) {
         Column(
@@ -192,20 +190,20 @@ private fun ExactAlarmPermissionBanner(
             Text(
                 text = "⚠️ 权限提醒",
                 style = IcokieTextStyles.bodyLarge,
-                color = Color(0xFF856404),
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
                 text = "定时记账需要精确闹钟权限才能在设定时间准时触发。当前权限未开启，定时记账可能会延迟或无法触发。",
                 style = IcokieTextStyles.bodyMedium,
-                color = Color(0xFF856404),
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
             )
             Button(
                 onClick = onOpenSettings,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF856404),
+                    containerColor = MaterialTheme.colorScheme.onTertiaryContainer,
                 ),
             ) {
                 Text(
@@ -232,14 +230,14 @@ private fun ScheduledEmptyState(
         Text(
             text = "工资、住房…每月重复记账很麻烦？",
             style = IcokieTextStyles.bodyLarge,
-            color = OnSurfaceTertiary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = "固定周期的收支，自动帮你记～",
             style = IcokieTextStyles.bodyMedium,
-            color = OnSurfaceTertiary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(40.dp))

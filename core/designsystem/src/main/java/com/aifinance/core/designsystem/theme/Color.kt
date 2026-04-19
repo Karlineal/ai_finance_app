@@ -92,3 +92,10 @@ val PurpleGrey40 = Color(0xFF625b71)
 
 @Deprecated("Use BrandSecondaryLight instead", ReplaceWith("BrandSecondaryLight"))
 val Pink40 = Color(0xFF7D5260)
+
+// Dark mode specific colors
+val DarkBackground = Color(0xFF0F172A)
+val DarkSurface = Color(0xFF1E293B)
+val DarkSurfaceVariant = Color(0xFF334155)
+val DarkCardBackground = Color(0xFF1E293B)
+val DarkCardBorder = Color(0xFF334155)

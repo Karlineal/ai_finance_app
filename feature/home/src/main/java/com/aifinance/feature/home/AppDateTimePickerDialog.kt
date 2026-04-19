@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,10 +43,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.viewinterop.AndroidView
 import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
-import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
-import com.aifinance.core.designsystem.theme.SurfacePrimary
-import com.aifinance.core.designsystem.theme.SurfaceSecondary
+
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -71,7 +69,7 @@ fun AppDateTimePickerDialog(
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(24.dp),
-            color = SurfacePrimary,
+            color = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp,
         ) {
             Column(
@@ -85,7 +83,7 @@ fun AppDateTimePickerDialog(
                         .width(48.dp)
                         .height(6.dp)
                         .clip(CircleShape)
-                        .background(OnSurfaceSecondary.copy(alpha = 0.3f))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f))
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -93,7 +91,7 @@ fun AppDateTimePickerDialog(
                 Text(
                     text = title,
                     style = IcokieTextStyles.titleLarge,
-                    color = OnSurfacePrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
 
@@ -175,14 +173,14 @@ private fun ManualTimeInputRow(
     onMinuteChange: (String) -> Unit,
 ) {
     val fieldStyle = IcokieTextStyles.titleMedium.copy(
-        color = OnSurfacePrimary,
+        color = MaterialTheme.colorScheme.onSurface,
         textAlign = TextAlign.Center,
     )
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceSecondary)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -190,7 +188,7 @@ private fun ManualTimeInputRow(
         Text(
             text = "时间",
             style = IcokieTextStyles.bodyLarge,
-            color = OnSurfaceSecondary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -212,7 +210,7 @@ private fun ManualTimeInputRow(
                     }
                 },
             )
-            Text(":", style = IcokieTextStyles.titleMedium, color = OnSurfacePrimary)
+            Text(":", style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurface)
             BasicTextField(
                 value = minuteText,
                 onValueChange = onMinuteChange,
@@ -255,10 +253,10 @@ private fun MonthCalendar(
                 Text(
                     text = "${month.year}年${month.monthValue}月",
                     style = IcokieTextStyles.titleLarge,
-                    color = OnSurfacePrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = ">", style = IcokieTextStyles.titleMedium, color = OnSurfaceSecondary)
+                Text(text = ">", style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -274,7 +272,7 @@ private fun MonthCalendar(
                 Text(
                     text = weekday,
                     style = IcokieTextStyles.labelSmall,
-                    color = OnSurfaceSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.width(32.dp),
                 )
             }
@@ -313,7 +311,7 @@ private fun MonthCalendar(
                         ) {
                             Text(
                                 text = dayNumber.toString(),
-                                color = if (selected) Color.White else OnSurfacePrimary,
+                                color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
                                 style = IcokieTextStyles.bodyLarge,
                             )
                         }
@@ -334,14 +332,14 @@ private fun MonthNavButton(
         modifier = Modifier
             .size(28.dp)
             .clip(CircleShape)
-            .background(SurfaceSecondary)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = OnSurfaceSecondary,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(16.dp)
         )
     }
@@ -380,7 +378,7 @@ private fun MonthWheelPicker(
             }
         )
 
-        Text(text = "年", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
+        Text(text = "年", style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
         AndroidView(
             factory = { context ->
@@ -404,7 +402,7 @@ private fun MonthWheelPicker(
             }
         )
 
-        Text(text = "月", style = IcokieTextStyles.bodyLarge, color = OnSurfaceSecondary)
+        Text(text = "月", style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

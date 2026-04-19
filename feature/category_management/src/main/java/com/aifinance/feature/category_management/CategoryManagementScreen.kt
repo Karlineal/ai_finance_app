@@ -75,10 +75,10 @@ fun CategoryManagementScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             )
         },
-        containerColor = Color(0xFFF1F5FB),
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -95,7 +95,7 @@ fun CategoryManagementScreen(
 
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
             ) {
                 Column(
                     modifier = Modifier.padding(14.dp),
@@ -116,7 +116,7 @@ fun CategoryManagementScreen(
                     Text(
                         text = "图标会自动使用分类名称的第一个汉字或首字母。",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF6B7280),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Button(
                         onClick = {
@@ -133,7 +133,7 @@ fun CategoryManagementScreen(
 
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                 modifier = Modifier.fillMaxSize(),
             ) {
                 LazyColumn(
@@ -208,12 +208,12 @@ private fun CategoryRow(
                 Text(
                     text = category.name,
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF111827),
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = if (category.isDefault) "系统分类" else "自定义分类",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (category.isDefault) Color(0xFF64748B) else Color(0xFF2563EB),
+                    color = if (category.isDefault) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -223,7 +223,7 @@ private fun CategoryRow(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "删除分类",
-                    tint = Color(0xFFDC2626),
+                    tint = MaterialTheme.colorScheme.error,
                 )
             }
         }

@@ -75,11 +75,7 @@ import com.aifinance.core.designsystem.theme.ExpenseDefault
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.IncomeDefault
 import com.aifinance.core.designsystem.theme.OnPrimary
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
-import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
-import com.aifinance.core.designsystem.theme.OnSurfaceTertiary
-import com.aifinance.core.designsystem.theme.SurfacePrimary
-import com.aifinance.core.designsystem.theme.SurfaceSecondary
+
 import com.aifinance.core.model.ScheduledEndMode
 import com.aifinance.core.model.ScheduledRecurrence
 import com.aifinance.core.model.TransactionType
@@ -89,6 +85,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -137,14 +134,14 @@ fun ScheduledTransactionAddScreen(
     }
 
     Scaffold(
-        containerColor = SurfacePrimary,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "新建定时记账",
                         style = IcokieTextStyles.titleMedium,
-                        color = OnSurfacePrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.SemiBold,
                     )
                 },
@@ -153,13 +150,13 @@ fun ScheduledTransactionAddScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "返回",
-                            tint = OnSurfaceSecondary,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = SurfacePrimary,
-                    titleContentColor = OnSurfacePrimary,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
                 ),
             )
         },
@@ -167,7 +164,7 @@ fun ScheduledTransactionAddScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF2F2F7))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding),
         ) {
             LazyColumn(
@@ -178,7 +175,7 @@ fun ScheduledTransactionAddScreen(
                 item {
                     Card(
                         shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(containerColor = SurfacePrimary),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                     ) {
                         Column(
@@ -188,29 +185,29 @@ fun ScheduledTransactionAddScreen(
                             Text(
                                 "标题（可选）",
                                 style = IcokieTextStyles.labelMedium,
-                                color = OnSurfaceSecondary,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             OutlinedTextField(
                                 value = form.title,
                                 onValueChange = { viewModel.updateForm { s -> s.copy(title = it) } },
                                 modifier = Modifier.fillMaxWidth(),
                                 placeholder = {
-                                    Text("默认：定时记账", color = OnSurfaceTertiary)
+                                    Text("默认：定时记账", color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 },
                                 singleLine = true,
                                 shape = RoundedCornerShape(16.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = BrandPrimary,
                                     unfocusedBorderColor = BorderSubtle,
-                                    focusedContainerColor = SurfaceSecondary,
-                                    unfocusedContainerColor = SurfaceSecondary,
+                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                                 ),
                             )
 
                             Text(
                                 "类型",
                                 style = IcokieTextStyles.bodyLarge,
-                                color = OnSurfacePrimary,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -235,7 +232,7 @@ fun ScheduledTransactionAddScreen(
                             Text(
                                 text = "选择分类",
                                 style = IcokieTextStyles.bodyLarge,
-                                color = OnSurfacePrimary,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             LazyRow(
                                 modifier = Modifier.fillMaxWidth(),
@@ -256,7 +253,7 @@ fun ScheduledTransactionAddScreen(
                             Text(
                                 "账户与开始时间",
                                 style = IcokieTextStyles.bodyLarge,
-                                color = OnSurfacePrimary,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             val selectedAccount = accounts.find { it.id == form.accountId }
                             Row(
@@ -275,11 +272,11 @@ fun ScheduledTransactionAddScreen(
                                 )
                             }
 
-                            Text(
-                                "每次金额",
-                                style = IcokieTextStyles.bodyLarge,
-                                color = OnSurfacePrimary,
-                            )
+                                Text(
+                                    "每次金额",
+                                    style = IcokieTextStyles.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.Bottom,
@@ -328,7 +325,7 @@ fun ScheduledTransactionAddScreen(
                                                 style = TextStyle(
                                                     fontSize = 40.sp,
                                                     fontWeight = FontWeight.Bold,
-                                                    color = OnSurfaceTertiary,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 ),
                                             )
                                         }
@@ -340,13 +337,13 @@ fun ScheduledTransactionAddScreen(
                             Text(
                                 "重复周期",
                                 style = IcokieTextStyles.bodyLarge,
-                                color = OnSurfacePrimary,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(16.dp))
-                                    .background(SurfaceSecondary)
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
                                     .clickable { showRecurrenceSheet = true }
                                     .padding(horizontal = 16.dp, vertical = 14.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -354,20 +351,20 @@ fun ScheduledTransactionAddScreen(
                                 Text(
                                     recurrenceLabel(form.recurrence),
                                     style = IcokieTextStyles.bodyLarge,
-                                    color = OnSurfacePrimary,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f),
                                 )
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                     contentDescription = null,
-                                    tint = OnSurfaceTertiary,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
 
                             Text(
                                 "结束方式",
                                 style = IcokieTextStyles.bodyLarge,
-                                color = OnSurfacePrimary,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -403,8 +400,8 @@ fun ScheduledTransactionAddScreen(
                                         colors = OutlinedTextFieldDefaults.colors(
                                             focusedBorderColor = BrandPrimary,
                                             unfocusedBorderColor = BorderSubtle,
-                                            focusedContainerColor = SurfaceSecondary,
-                                            unfocusedContainerColor = SurfaceSecondary,
+                                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                                         ),
                                     )
                                 }
@@ -421,7 +418,7 @@ fun ScheduledTransactionAddScreen(
                             }
 
                             form.saveError?.let { err ->
-                                Text(err, color = Color(0xFFDC2626), style = IcokieTextStyles.labelSmall)
+                                Text(err, color = MaterialTheme.colorScheme.error, style = IcokieTextStyles.labelSmall)
                             }
                             Button(
                                 onClick = {
@@ -459,7 +456,7 @@ fun ScheduledTransactionAddScreen(
         ModalBottomSheet(
             onDismissRequest = { showRecurrenceSheet = false },
             sheetState = recurrenceSheetState,
-            containerColor = SurfacePrimary,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
             dragHandle = null,
         ) {
@@ -472,7 +469,7 @@ fun ScheduledTransactionAddScreen(
                 Text(
                     "重复周期",
                     style = IcokieTextStyles.titleMedium,
-                    color = OnSurfacePrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -495,7 +492,7 @@ fun ScheduledTransactionAddScreen(
                         Text(
                             recurrenceLabel(r),
                             style = IcokieTextStyles.bodyLarge,
-                            color = OnSurfacePrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
                         )
                         RadioButton(
@@ -509,7 +506,7 @@ fun ScheduledTransactionAddScreen(
                             },
                             colors = RadioButtonDefaults.colors(
                                 selectedColor = BrandPrimary,
-                                unselectedColor = OnSurfaceTertiary,
+                                unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             ),
                         )
                     }
@@ -525,7 +522,7 @@ fun ScheduledTransactionAddScreen(
         ModalBottomSheet(
             onDismissRequest = { showAccountSheet = false },
             sheetState = accountSheetState,
-            containerColor = SurfacePrimary,
+            containerColor = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
             dragHandle = null,
         ) {
@@ -538,7 +535,7 @@ fun ScheduledTransactionAddScreen(
                 Text(
                     "选择账户",
                     style = IcokieTextStyles.titleMedium,
-                    color = OnSurfacePrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
                 )
@@ -559,7 +556,7 @@ fun ScheduledTransactionAddScreen(
                         Text(
                             acc.name,
                             style = IcokieTextStyles.bodyLarge,
-                            color = OnSurfacePrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
                         )
                         RadioButton(
@@ -573,7 +570,7 @@ fun ScheduledTransactionAddScreen(
                             },
                             colors = RadioButtonDefaults.colors(
                                 selectedColor = BrandPrimary,
-                                unselectedColor = OnSurfaceTertiary,
+                                unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             ),
                         )
                     }

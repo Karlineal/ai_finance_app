@@ -21,13 +21,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
+import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
 import com.aifinance.app.navigation.AiFinanceNavHost
+import com.aifinance.core.data.repository.AppThemeMode
 import com.aifinance.core.designsystem.theme.AiFinanceTheme
 import com.aifinance.feature.category_management.navigation.CATEGORY_MANAGEMENT_ROUTE
 import com.aifinance.feature.budget.navigation.BUDGET_ENTRY_ROUTE
@@ -43,11 +48,21 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private val mainViewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            AiFinanceTheme {
+            val themeMode by mainViewModel.themeMode.collectAsState()
+            val darkTheme = when (themeMode) {
+                AppThemeMode.LIGHT -> false
+                AppThemeMode.DARK -> true
+                AppThemeMode.SYSTEM -> isSystemInDarkTheme()
+                else -> isSystemInDarkTheme()
+            }
+            AiFinanceTheme(darkTheme = darkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

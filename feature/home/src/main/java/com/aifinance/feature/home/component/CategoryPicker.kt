@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -42,10 +43,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
-import com.aifinance.core.designsystem.theme.OnSurfacePrimary
-import com.aifinance.core.designsystem.theme.OnSurfaceSecondary
-import com.aifinance.core.designsystem.theme.SurfacePrimary
-import com.aifinance.core.designsystem.theme.SurfaceSecondary
+
+
 import com.aifinance.core.model.CatalogCategory
 import com.aifinance.core.model.TransactionType
 import java.util.UUID
@@ -98,7 +97,7 @@ fun CategoryPickerBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = SurfacePrimary,
+        containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
     ) {
         CategoryPickerContent(
@@ -138,13 +137,13 @@ fun CategoryPickerContent(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                 ),
-                color = OnSurfacePrimary,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             IconButton(onClick = onDismiss) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "关闭",
-                    tint = OnSurfaceSecondary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp),
                 )
             }
@@ -153,7 +152,7 @@ fun CategoryPickerContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         HorizontalDivider(
-            color = SurfaceSecondary,
+            color = MaterialTheme.colorScheme.surfaceVariant,
             thickness = 1.dp,
         )
 
@@ -259,7 +258,7 @@ private fun CategoryGridItem(
                 fontSize = 12.sp,
                 fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
             ),
-            color = if (isSelected) OnSurfacePrimary else OnSurfaceSecondary,
+            color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             maxLines = 1,
         )
@@ -344,7 +343,7 @@ private fun CategoryListItem(
     val backgroundColor = if (isSelected) {
         category.color.copy(alpha = 0.12f)
     } else {
-        SurfaceSecondary.copy(alpha = 0.5f)
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
     }
 
     Row(
@@ -384,7 +383,7 @@ private fun CategoryListItem(
                 style = IcokieTextStyles.bodyLarge.copy(
                     fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
                 ),
-                color = OnSurfacePrimary,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
 

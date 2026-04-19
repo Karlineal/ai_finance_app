@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -99,7 +100,7 @@ fun HomeSidebarDrawerContent(
         modifier = modifier
             .width(328.dp)
             .fillMaxHeight(),
-        color = Color(0xFFF3F4F8),
+        color = MaterialTheme.colorScheme.background,
     ) {
         Column(
             modifier = Modifier
@@ -163,19 +164,19 @@ private fun LoginHeader(
                         text = if (isLoggedIn) "用户已登录" else "未登录",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F2937),
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         text = if (isLoggedIn) "账号已绑定微信与手机号" else "登录后可同步微信账单与云端数据",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF6B7280),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                     contentDescription = null,
-                    tint = Color(0xFF9CA3AF),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(14.dp),
                 )
             }
@@ -237,7 +238,7 @@ private fun PremiumAvatar(
             Icon(
                 imageVector = Icons.Default.AccountCircle,
                 contentDescription = null,
-                tint = Color(0xFF1D2E47),
+                tint = Color(0xFF94A3B8),
                 modifier = Modifier.size(32.dp),
             )
         }
@@ -250,11 +251,16 @@ private fun LoginChip(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val bg = if (selected) Color(0xFFDDEBFF) else Color.White
-    val textColor = if (selected) Color(0xFF2E5FE6) else Color(0xFF4B5563)
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val bg = if (selected) {
+        if (isDark) Color(0xFF1E3A5F) else Color(0xFFDDEBFF)
+    } else {
+        if (isDark) Color(0xFF1E293B) else Color.White
+    }
+    val textColor = if (selected) Color(0xFF2E5FE6) else MaterialTheme.colorScheme.onSurface
     Box(
         modifier = Modifier
-            .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(14.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
             .background(bg, RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -274,7 +280,7 @@ private fun HeatmapCard(
 ) {
     Card(
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -302,8 +308,8 @@ private fun HeatmapCard(
 @Composable
 private fun HeatmapStatItem(value: String, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = Color(0xFF9CA3AF))
+        Text(text = value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        Text(text = label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -316,7 +322,7 @@ private fun FunctionGridCard(
     onNavigateScheduledTransaction: () -> Unit,
     onNavigateToBudget: () -> Unit,
 ) {
-    val defaultIconTint = Color(0xFF6B7280)
+    val defaultIconTint = MaterialTheme.colorScheme.onSurfaceVariant
     val items = listOf(
         DrawerFunctionItem("图表统计", Icons.Default.PieChart, onNavigateStatistics, defaultIconTint),
         DrawerFunctionItem("资产管理", Icons.Default.CreditCard, onNavigateAssetManagement, defaultIconTint),
@@ -327,7 +333,7 @@ private fun FunctionGridCard(
 
     Card(
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -348,7 +354,7 @@ private fun FunctionGridCard(
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
                             Icon(imageVector = item.icon, contentDescription = null, tint = item.iconTint, modifier = Modifier.size(24.dp))
-                            Text(text = item.label, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF374151))
+                            Text(text = item.label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                     repeat(3 - rowItems.size) {
@@ -364,7 +370,7 @@ private fun FunctionGridCard(
 private fun SettingEntryCard(onNavigateSettings: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onNavigateSettings),
@@ -377,13 +383,13 @@ private fun SettingEntryCard(onNavigateSettings: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Icon(imageVector = Icons.Default.Settings, contentDescription = null, tint = Color(0xFF6B7280))
+                Icon(imageVector = Icons.Default.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(text = "设置", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                 contentDescription = null,
-                tint = Color(0xFF9CA3AF),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(14.dp),
             )
         }

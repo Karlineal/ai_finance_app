@@ -5,12 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,10 +28,12 @@ fun HeatMapSquare(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
     val backgroundColor = when (activity) {
         DayActivity.WithIncome -> Color(0xFFFF9800)
         DayActivity.ExpenseOnly -> Color(0xFFA1B9F8)
-        DayActivity.None -> Color(0xFFF0F1F4)
+        DayActivity.None -> if (isDark) Color(0xFF334155) else Color(0xFFF0F1F4)
     }
 
     val todayPrimaryColor = Color(0xFF2E5FE6)
@@ -40,7 +44,7 @@ fun HeatMapSquare(
     val dayNumberColor = when (activity) {
         DayActivity.WithIncome -> Color.White.copy(alpha = 0.92f)
         DayActivity.ExpenseOnly -> Color.Black.copy(alpha = 0.60f)
-        DayActivity.None -> Color.Black.copy(alpha = 0.45f)
+        DayActivity.None -> if (isDark) Color(0xFF94A3B8) else Color.Black.copy(alpha = 0.45f)
     }
 
     Box(
