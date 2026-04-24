@@ -23,6 +23,10 @@ val TransferDefault = Color(0xFF3B82F6)
 val TransferLight = Color(0xFF60A5FA)
 val TransferBackground = Color(0xFFE6F4F1) // Light pale mint green for transfer transactions
 
+val ExpenseCardBackground = ExpenseDefault.copy(alpha = 0.08f)
+val IncomeCardBackground = IncomeDefault.copy(alpha = 0.08f)
+val TransferCardBackground = TransferDefault.copy(alpha = 0.08f)
+
 // Transaction type accent colors for text/icons on pastel backgrounds
 val IncomeAccent = Color(0xFFB8860B) // Warm amber - readable on pale yellow
 val ExpenseAccent = Color(0xFF2B7BB9) // Steel blue - readable on pale blue

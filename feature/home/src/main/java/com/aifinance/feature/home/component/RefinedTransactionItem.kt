@@ -35,7 +35,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aifinance.core.designsystem.theme.ExpenseCardBackground
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
+import com.aifinance.core.designsystem.theme.IncomeCardBackground
+import com.aifinance.core.designsystem.theme.TransferCardBackground
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.Category
 import com.aifinance.core.model.CategoryCatalog
@@ -228,11 +231,11 @@ private fun Transaction.resolveRefinedVisual(customCategory: Category? = null): 
 
     val typeColors = when (type) {
         TransactionType.EXPENSE -> TypeColors(
-            background = Color(0xFF7F1D1D).copy(alpha = 0.4f),
+            background = ExpenseCardBackground,
             amount = MaterialTheme.colorScheme.error
         )
         TransactionType.INCOME -> TypeColors(
-            background = Color(0xFF064E3B).copy(alpha = 0.4f),
+            background = IncomeCardBackground,
             amount = MaterialTheme.colorScheme.tertiary
         )
         TransactionType.TRANSFER -> {
@@ -242,7 +245,7 @@ private fun Transaction.resolveRefinedVisual(customCategory: Category? = null): 
                 MaterialTheme.colorScheme.tertiary
             }
             TypeColors(
-                background = Color(0xFF1E3A5F).copy(alpha = 0.4f),
+                background = TransferCardBackground,
                 amount = amountColor
             )
         }
