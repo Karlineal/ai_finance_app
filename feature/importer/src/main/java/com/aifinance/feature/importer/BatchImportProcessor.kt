@@ -19,6 +19,7 @@ data class ProcessedImportRow(
 
 data class BatchImportResult(
     val rows: List<ProcessedImportRow>,
+    val confidentCategoryThreshold: Float = 0.72f,
 ) {
     val importableRows: List<ProcessedImportRow>
         get() = rows.filterNot { it.isDuplicate }
@@ -27,11 +28,17 @@ data class BatchImportResult(
         get() = rows.count { it.isDuplicate }
 
     val categorizedCount: Int
-        get() = rows.count { it.confidence >= 0.72f }
+        get() = rows.count { it.confidence >= confidentCategoryThreshold }
 }
 
-object BatchImportProcessor {
-    private val incomeRules = listOf(
+data class BatchImportConfig(
+    val incomeRules: List<CategoryRule> = BatchImportRuleCatalog.defaultIncomeRules,
+    val expenseRules: List<CategoryRule> = BatchImportRuleCatalog.defaultExpenseRules,
+    val confidentCategoryThreshold: Float = 0.72f,
+)
+
+object BatchImportRuleCatalog {
+    val defaultIncomeRules = listOf(
         CategoryRule(CategoryCatalog.Ids.IncomeCareer, 0.95f, "\u5de5\u8d44", "\u85aa\u8d44", "\u85aa\u6c34", "\u5956\u91d1", "\u52b3\u52a1"),
         CategoryRule(CategoryCatalog.Ids.IncomeBusiness, 0.9f, "\u7ecf\u8425", "\u8d27\u6b3e", "\u9500\u552e", "\u6536\u6b3e"),
         CategoryRule(CategoryCatalog.Ids.IncomeInsurance, 0.88f, "\u7406\u8d54", "\u4fdd\u9669", "\u7406\u8d22", "\u5229\u606f", "\u80a1\u606f"),
@@ -40,7 +47,7 @@ object BatchImportProcessor {
         CategoryRule(CategoryCatalog.Ids.IncomeLiving, 0.82f, "\u751f\u6d3b\u8d39", "\u8865\u8d34", "\u62a5\u9500"),
     )
 
-    private val expenseRules = listOf(
+    val defaultExpenseRules = listOf(
         CategoryRule(CategoryCatalog.Ids.ExpenseFood, 0.95f, "\u9910", "\u996d", "\u5496\u5561", "\u5976\u8336", "\u5916\u5356", "\u8d85\u5e02", "mcdonald", "kfc", "starbucks"),
         CategoryRule(CategoryCatalog.Ids.ExpenseTransport, 0.92f, "\u5730\u94c1", "\u516c\u4ea4", "\u6253\u8f66", "\u6ef4\u6ef4", "\u9ad8\u94c1", "\u673a\u7968", "\u52a0\u6cb9", "\u505c\u8f66"),
         CategoryRule(CategoryCatalog.Ids.ExpenseShopping, 0.9f, "\u6dd8\u5b9d", "\u4eac\u4e1c", "\u62fc\u591a\u591a", "\u5546\u573a", "\u8d2d\u7269", "\u670d\u9970", "\u6570\u7801"),
@@ -50,22 +57,25 @@ object BatchImportProcessor {
         CategoryRule(CategoryCatalog.Ids.ExpenseEducation, 0.88f, "\u5b66\u8d39", "\u8bfe\u7a0b", "\u6559\u80b2", "\u4e66", "\u57f9\u8bad"),
         CategoryRule(CategoryCatalog.Ids.ExpenseEntertainment, 0.86f, "\u7535\u5f71", "\u6e38\u620f", "\u97f3\u4e50", "\u89c6\u9891", "\u4f1a\u5458", "\u65c5\u6e38"),
     )
+}
 
+object BatchImportProcessor {
     fun process(
         rows: List<ParsedBankBill>,
         existingTransactions: List<Transaction>,
+        config: BatchImportConfig = BatchImportConfig(),
     ): BatchImportResult {
         val seenInBatch = mutableSetOf<String>()
-        val existingKeys = existingTransactions.map { it.toDuplicateKey() }.toSet()
+        val existingKeys = existingTransactions.map { it.toStrictDuplicateKey() }.toSet()
 
         val processed = rows.map { row ->
-            val duplicateKey = row.toDuplicateKey()
+            val duplicateKey = row.toStrictDuplicateKey()
             val duplicateReason = when {
                 duplicateKey in existingKeys -> "\u5df2\u5b58\u5728\u76f8\u540c\u4ea4\u6613"
                 !seenInBatch.add(duplicateKey) -> "\u672c\u6b21\u5bfc\u5165\u6587\u4ef6\u5185\u91cd\u590d"
                 else -> null
             }
-            val suggestion = suggestCategory(row)
+            val suggestion = suggestCategory(row, config)
             ProcessedImportRow(
                 row = row,
                 categoryId = suggestion.categoryId,
@@ -73,11 +83,17 @@ object BatchImportProcessor {
                 duplicateReason = duplicateReason,
             )
         }
-        return BatchImportResult(processed)
+        return BatchImportResult(
+            rows = processed,
+            confidentCategoryThreshold = config.confidentCategoryThreshold,
+        )
     }
 
-    fun suggestCategory(row: ParsedBankBill): CategorySuggestion {
-        val rules = if (row.type == TransactionType.INCOME) incomeRules else expenseRules
+    fun suggestCategory(
+        row: ParsedBankBill,
+        config: BatchImportConfig = BatchImportConfig(),
+    ): CategorySuggestion {
+        val rules = if (row.type == TransactionType.INCOME) config.incomeRules else config.expenseRules
         val text = "${row.title} ${row.note.orEmpty()}".normalizeForMatch()
         val matched = rules.firstOrNull { rule -> rule.keywords.any { text.contains(it.normalizeForMatch()) } }
         if (matched != null) {
@@ -91,23 +107,21 @@ object BatchImportProcessor {
         return CategorySuggestion(fallback, 0.45f)
     }
 
-    private fun Transaction.toDuplicateKey(): String {
+    private fun Transaction.toStrictDuplicateKey(): String {
         return listOf(
             date.toString(),
             type.name,
             amount.normalizedAmount(),
             title.normalizeForMatch(),
-            description.orEmpty().normalizeForMatch(),
         ).joinToString("|")
     }
 
-    private fun ParsedBankBill.toDuplicateKey(): String {
+    private fun ParsedBankBill.toStrictDuplicateKey(): String {
         return listOf(
             dateTime.toLocalDate().toString(),
             type.name,
             amount.normalizedAmount(),
             title.normalizeForMatch(),
-            note.orEmpty().normalizeForMatch(),
         ).joinToString("|")
     }
 
@@ -127,7 +141,7 @@ data class CategorySuggestion(
     val confidence: Float,
 )
 
-private data class CategoryRule(
+data class CategoryRule(
     val categoryId: UUID,
     val confidence: Float,
     val keywords: List<String>,

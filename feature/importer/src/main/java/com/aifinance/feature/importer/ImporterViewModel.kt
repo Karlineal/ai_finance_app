@@ -122,7 +122,7 @@ class ImporterViewModel @Inject constructor(
                         rawText = row.note,
                         aiCategory = processed.categoryId,
                         aiConfidence = processed.confidence,
-                        userConfirmed = processed.confidence >= 0.72f,
+                        userConfirmed = processed.confidence >= result.confidentCategoryThreshold,
                         isPending = !row.includeInExpense,
                     )
                     transactionRepository.insertTransaction(transaction)

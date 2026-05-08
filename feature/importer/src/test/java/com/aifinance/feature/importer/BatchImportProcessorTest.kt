@@ -24,7 +24,7 @@ class BatchImportProcessorTest {
             amount = BigDecimal("28.50"),
             currency = "CNY",
             title = "\u661f\u5df4\u514b\u5496\u5561",
-            description = "\u62ff\u94c1",
+            description = "\u95e8\u5e97\u626b\u7801\u652f\u4ed8",
             date = LocalDate.of(2026, 5, 8),
         )
         val rows = listOf(
@@ -39,6 +39,39 @@ class BatchImportProcessorTest {
         assertEquals(2, result.duplicateCount)
         assertEquals(1, result.importableRows.size)
         assertEquals(CategoryCatalog.Ids.ExpenseTransport, result.importableRows.single().categoryId)
+    }
+
+    @Test
+    fun `process returns empty result for empty input`() {
+        val result = BatchImportProcessor.process(emptyList(), emptyList())
+
+        assertTrue(result.rows.isEmpty())
+        assertTrue(result.importableRows.isEmpty())
+        assertEquals(0, result.duplicateCount)
+        assertEquals(0, result.categorizedCount)
+    }
+
+    @Test
+    fun `process handles all duplicate rows`() {
+        val existing = Transaction(
+            accountId = UUID.randomUUID(),
+            categoryId = CategoryCatalog.Ids.ExpenseFood,
+            type = TransactionType.EXPENSE,
+            amount = BigDecimal("28.50"),
+            currency = "CNY",
+            title = "\u661f\u5df4\u514b\u5496\u5561",
+            description = "\u5386\u53f2\u8d26\u5355\u5907\u6ce8",
+            date = LocalDate.of(2026, 5, 8),
+        )
+        val rows = listOf(
+            bill("\u661f\u5df4\u514b\u5496\u5561", "\u62ff\u94c1", "28.50"),
+            bill("\u661f\u5df4\u514b\u5496\u5561", "\u5e97\u5458\u5907\u6ce8", "28.50"),
+        )
+
+        val result = BatchImportProcessor.process(rows, listOf(existing))
+
+        assertEquals(2, result.duplicateCount)
+        assertTrue(result.importableRows.isEmpty())
     }
 
     @Test
@@ -72,6 +105,25 @@ class BatchImportProcessorTest {
 
         assertEquals(CategoryCatalog.Ids.ExpenseOther, suggestion.categoryId)
         assertFalse(suggestion.confidence >= 0.72f)
+    }
+
+    @Test
+    fun `suggestCategory supports injected rule configuration`() {
+        val config = BatchImportConfig(
+            expenseRules = listOf(
+                CategoryRule(
+                    categoryId = CategoryCatalog.Ids.ExpenseEducation,
+                    confidence = 0.98f,
+                    keywords = listOf("\u6587\u5177\u5e97"),
+                ),
+            ),
+        )
+        val stationery = bill("\u6821\u95e8\u53e3\u6587\u5177\u5e97", "\u7b14\u8bb0\u672c", "12.00")
+
+        val suggestion = BatchImportProcessor.suggestCategory(stationery, config)
+
+        assertEquals(CategoryCatalog.Ids.ExpenseEducation, suggestion.categoryId)
+        assertTrue(suggestion.confidence == 0.98f)
     }
 
     @Test
