@@ -31,6 +31,7 @@ coil = "2.5.0"
 lottie = "6.3.0"
 
 junit = "4.13.2"
+poi = "5.2.5"
 junitExt = "1.1.5"
 espresso = "3.5.1"
 mockk = "1.13.9"
@@ -79,6 +80,9 @@ lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", versio
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+
+apache-poi = { group = "org.apache.poi", name = "poi", version.ref = "poi" }
+apache-poi-ooxml = { group = "org.apache.poi", name = "poi-ooxml", version.ref = "poi" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitExt" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
