@@ -43,7 +43,12 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.json)
 
+    implementation(libs.apache.poi)
+    implementation(libs.apache.poi.ooxml)
+
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
+
+    testImplementation(libs.junit)
 }
