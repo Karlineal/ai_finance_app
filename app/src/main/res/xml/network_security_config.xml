@@ -3,8 +3,5 @@
     <!-- 允许明文通信（如需调试） -->
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">api.deepseek.com</domain>
-        <pin-set expiration="2025-12-31">
-            <!-- 可选：证书固定，增强安全性 -->
-        </pin-set>
     </domain-config>
 </network-security-config>
