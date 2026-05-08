@@ -91,6 +91,7 @@ class AssistantViewModel @Inject constructor(
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun sendImageForOCR(imageUri: Uri, file: File) {
         _uiState.value = _uiState.value.copy(isLoading = true)
 

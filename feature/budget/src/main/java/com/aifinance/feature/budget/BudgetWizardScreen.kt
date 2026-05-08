@@ -20,7 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -363,7 +363,7 @@ private fun FixedExpenseStep(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(text = "选择一个常见固定支出", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Divider()
+                    HorizontalDivider()
                     val templates = listOf("房租/房贷", "车贷", "水电/通讯", "保险")
                     templates.forEach { name ->
                         TextButton(
@@ -552,7 +552,7 @@ private fun CategoryBreakdownStep(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
-                    Divider()
+                    HorizontalDivider()
                     // 与 ViewModel 中推荐分类保持一致
                     val candidates = listOf(
                         CategoryCandidate(com.aifinance.core.model.CategoryCatalog.Ids.ExpenseFood, "餐饮"),

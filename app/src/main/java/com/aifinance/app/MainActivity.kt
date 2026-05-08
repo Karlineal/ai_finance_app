@@ -33,7 +33,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import com.aifinance.app.navigation.AiFinanceNavHost
 import com.aifinance.core.data.repository.AppThemeMode
-import com.aifinance.core.designsystem.theme.AiFinanceTheme
+import com.aifinance.core.designsystem.theme.IcokieTheme
 import com.aifinance.feature.category_management.navigation.CATEGORY_MANAGEMENT_ROUTE
 import com.aifinance.feature.budget.navigation.BUDGET_ENTRY_ROUTE
 import com.aifinance.feature.home.HomeSidebarDrawerContent
@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
                 AppThemeMode.SYSTEM -> isSystemInDarkTheme()
                 else -> isSystemInDarkTheme()
             }
-            AiFinanceTheme(darkTheme = darkTheme) {
+            IcokieTheme(darkTheme = darkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

@@ -1403,6 +1403,7 @@ private fun AIRecordSuccessView(
     accounts: List<Account>,
     selectedAccountId: UUID?,
     onSelectAccount: () -> Unit,
+    @Suppress("UNUSED_PARAMETER")
     onNavigateToAssetManagement: () -> Unit,
     onSave: (
         amount: String,
@@ -1464,14 +1465,14 @@ private fun AIRecordSuccessView(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val amountConfidence = result.confidence?.amount ?: 1f
+                val amountConfidence = result.confidence.amount
                 Text(
                     text = "金额: ¥${result.amount}",
                     style = IcokieTextStyles.bodyLarge,
                     color = if (isLowConfidence("amount", amountConfidence)) lowConfidenceColor else MaterialTheme.colorScheme.onSurface
                 )
 
-                val typeConfidence = result.confidence?.type ?: 1f
+                val typeConfidence = result.confidence.type
                 Text(
                     text = "类型: ${if (result.type == TransactionType.INCOME) "收入" else "支出"}",
                     style = IcokieTextStyles.bodyMedium,
@@ -1479,7 +1480,7 @@ private fun AIRecordSuccessView(
                 )
 
                 if (result.category.isNotEmpty()) {
-                    val categoryConfidence = result.confidence?.category ?: 1f
+                    val categoryConfidence = result.confidence.category
                     Text(
                         text = "分类: ${result.category}",
                         style = IcokieTextStyles.bodyMedium,
@@ -1488,7 +1489,7 @@ private fun AIRecordSuccessView(
                 }
 
                 if (result.merchant.isNotEmpty()) {
-                    val merchantConfidence = result.confidence?.merchant ?: 1f
+                    val merchantConfidence = result.confidence.merchant
                     Text(
                         text = "商家: ${result.merchant}",
                         style = IcokieTextStyles.bodyMedium,
@@ -1496,7 +1497,7 @@ private fun AIRecordSuccessView(
                     )
                 }
 
-                val dateConfidence = result.confidence?.date ?: 1f
+                val dateConfidence = result.confidence.date
                 Text(
                     text = "日期: ${result.date}",
                     style = IcokieTextStyles.bodyMedium,
@@ -1509,7 +1510,7 @@ private fun AIRecordSuccessView(
                 )
 
                 if (!result.paymentTime.isNullOrEmpty()) {
-                    val paymentTimeConfidence = result.confidence?.paymentTime ?: 1f
+                    val paymentTimeConfidence = result.confidence.paymentTime
                     Text(
                         text = "支付时间: ${result.paymentTime}",
                         style = IcokieTextStyles.bodyMedium,
@@ -1518,7 +1519,7 @@ private fun AIRecordSuccessView(
                 }
 
                 if (!result.paymentMethod.isNullOrEmpty()) {
-                    val paymentMethodConfidence = result.confidence?.paymentMethod ?: 1f
+                    val paymentMethodConfidence = result.confidence.paymentMethod
                     Text(
                         text = "支付方式: ${result.paymentMethod}",
                         style = IcokieTextStyles.bodyMedium,
@@ -1527,7 +1528,7 @@ private fun AIRecordSuccessView(
                 }
 
                 if (!result.paymentAccount.isNullOrEmpty()) {
-                    val paymentAccountConfidence = result.confidence?.paymentAccount ?: 1f
+                    val paymentAccountConfidence = result.confidence.paymentAccount
                     Text(
                         text = "支付账户: ${result.paymentAccount}",
                         style = IcokieTextStyles.bodyMedium,
@@ -1536,7 +1537,7 @@ private fun AIRecordSuccessView(
                 }
 
                 if (!result.description.isNullOrEmpty()) {
-                    val descriptionConfidence = result.confidence?.description ?: 1f
+                    val descriptionConfidence = result.confidence.description
                     Text(
                         text = "描述: ${result.description}",
                         style = IcokieTextStyles.bodyMedium,

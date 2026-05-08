@@ -55,6 +55,7 @@ data class BudgetDashboardUiState(
     val nowDate: LocalDate = LocalDate.now(),
 )
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class BudgetDashboardViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,

@@ -63,6 +63,7 @@ private val TileEmpty = Color(0xFFF0F1F4)
 @Composable
 fun HomeDrawerContent(
     onNavigateToStatistics: () -> Unit,
+    @Suppress("UNUSED_PARAMETER")
     onNavigateToTransactions: () -> Unit,
     onNavigateToAssetManagement: () -> Unit,
     onNavigateToSettings: () -> Unit,

@@ -472,7 +472,6 @@ private fun BalanceCard(
     onStatisticsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val elevation = IcokieTheme.elevation
     var hideAmount by remember { mutableStateOf(false) }
     val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
     var indicatorVisible by remember { mutableStateOf(true) }
@@ -518,7 +517,6 @@ private fun BalanceCard(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 2.dp, vertical = 1.dp),
-                        elevation = elevation.cardElevation,
                     )
                 } else {
                     MonthlyExpenseGlassCard(
@@ -532,7 +530,6 @@ private fun BalanceCard(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 2.dp, vertical = 1.dp),
-                        elevation = elevation.cardElevation,
                     )
                 }
             }
@@ -577,7 +574,6 @@ private fun NetAssetGlassCard(
     onAssetManageClick: () -> Unit,
     secureMoney: (BigDecimal) -> String,
     modifier: Modifier = Modifier,
-    elevation: androidx.compose.ui.unit.Dp,
 ) {
     NetAssetGradientCard(modifier = modifier) {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -663,7 +659,6 @@ private fun MonthlyExpenseGlassCard(
     onStatisticsClick: () -> Unit,
     secureMoney: (BigDecimal) -> String,
     modifier: Modifier = Modifier,
-    elevation: androidx.compose.ui.unit.Dp,
 ) {
     val monthlyBalance = income - expense
 

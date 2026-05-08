@@ -421,11 +421,6 @@ private fun CategoryChip(
     } else {
         MaterialTheme.colorScheme.surfaceVariant
     }
-    val borderColor = if (isSelected) {
-        Color(category.color)
-    } else {
-        Color.Transparent
-    }
     val contentColor = if (isSelected) {
         Color(category.color)
     } else {

@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -92,7 +92,7 @@ fun BudgetDashboardScreen(
             title = { Text("预算管理", fontWeight = FontWeight.Bold) },
             navigationIcon = {
                 IconButton(onClick = onNavigateBack) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "返回")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
@@ -216,7 +216,7 @@ private fun SummaryCard(
                 Text("¥${formatAmount(remainingBudget)}", fontWeight = FontWeight.Bold, color = if (remainingBudget < BigDecimal.ZERO) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface)
             }
 
-            LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth(), color = Color(0xFF2E5FE6))
+            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth(), color = Color(0xFF2E5FE6))
 
             deficitText?.let { t ->
                 Text(t, color = Color(0xFFEF4444), fontWeight = FontWeight.SemiBold)
@@ -511,7 +511,7 @@ private fun CategoryUsageList(
                             )
                         }
                         LinearProgressIndicator(
-                            progress = progress.coerceIn(0f, 1f),
+                            progress = { progress.coerceIn(0f, 1f) },
                             modifier = Modifier.fillMaxWidth(),
                             color = color,
                         )

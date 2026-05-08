@@ -316,6 +316,7 @@ private fun HeatmapStatItem(value: String, label: String) {
 @Composable
 private fun FunctionGridCard(
     onNavigateStatistics: () -> Unit,
+    @Suppress("UNUSED_PARAMETER")
     onNavigateTransactions: () -> Unit,
     onNavigateAssetManagement: () -> Unit,
     onNavigateCategoryManagement: () -> Unit,
