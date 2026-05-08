@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -66,6 +67,7 @@ fun HomeSidebarDrawerContent(
     onNavigateScheduledTransaction: () -> Unit = {},
     onNavigateToAllRecords: (java.time.LocalDate) -> Unit = {},
     onNavigateToBudget: () -> Unit = {},
+    onNavigateToBillImport: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -129,6 +131,7 @@ fun HomeSidebarDrawerContent(
                 onNavigateCategoryManagement = onNavigateCategoryManagement,
                 onNavigateScheduledTransaction = onNavigateScheduledTransaction,
                 onNavigateToBudget = onNavigateToBudget,
+                onNavigateToBillImport = onNavigateToBillImport,
             )
 
             SettingEntryCard(onNavigateSettings = onNavigateSettings)
@@ -322,6 +325,7 @@ private fun FunctionGridCard(
     onNavigateCategoryManagement: () -> Unit,
     onNavigateScheduledTransaction: () -> Unit,
     onNavigateToBudget: () -> Unit,
+    onNavigateToBillImport: () -> Unit,
 ) {
     val defaultIconTint = MaterialTheme.colorScheme.onSurfaceVariant
     val items = listOf(
@@ -330,6 +334,7 @@ private fun FunctionGridCard(
         DrawerFunctionItem("预算管理", Icons.Default.AutoGraph, onNavigateToBudget, defaultIconTint),
         DrawerFunctionItem("分类管理", Icons.Default.Category, onNavigateCategoryManagement, defaultIconTint),
         DrawerFunctionItem("定时记账", Icons.Default.CalendarMonth, onNavigateScheduledTransaction, defaultIconTint),
+        DrawerFunctionItem("账单导入", Icons.Default.UploadFile, onNavigateToBillImport, defaultIconTint),
     )
 
     Card(

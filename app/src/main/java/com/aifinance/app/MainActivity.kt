@@ -43,6 +43,7 @@ import com.aifinance.feature.scheduled.navigation.SCHEDULED_TRANSACTION_ROUTE
 import com.aifinance.feature.settings.navigation.SETTINGS_ROUTE
 import com.aifinance.feature.statistics.navigation.STATISTICS_ROUTE
 import com.aifinance.feature.transactions.navigation.TRANSACTIONS_ROUTE
+import com.aifinance.feature.importer.navigation.BILL_IMPORT_ROUTE
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -154,6 +155,12 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onNavigateToBudget = {
                                         navController.navigate(BUDGET_ENTRY_ROUTE) {
+                                            launchSingleTop = true
+                                        }
+                                        closeDrawer()
+                                    },
+                                    onNavigateToBillImport = {
+                                        navController.navigate(BILL_IMPORT_ROUTE) {
                                             launchSingleTop = true
                                         }
                                         closeDrawer()

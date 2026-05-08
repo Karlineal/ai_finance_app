@@ -43,6 +43,7 @@ import com.aifinance.feature.transactions.navigation.calendarTransactionsScreen
 import com.aifinance.feature.transactions.navigation.navigateToTransactionDetail
 import com.aifinance.feature.transactions.navigation.transactionDetailScreen
 import com.aifinance.feature.transactions.navigation.transactionsScreen
+import com.aifinance.feature.importer.navigation.billImportScreen
 
 @Composable
 fun AiFinanceNavHost(
@@ -166,6 +167,7 @@ fun AiFinanceNavHost(
             onBack = { navController.popBackStack() },
             onSuccess = { navController.popBackStack() }
         )
+        billImportScreen(onBack = { navController.popBackStack() })
 
         // Budget (初始化向导 + 预算管理主页)
         composable(BUDGET_ENTRY_ROUTE) {
