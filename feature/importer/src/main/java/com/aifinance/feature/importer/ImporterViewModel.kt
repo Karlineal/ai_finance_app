@@ -53,7 +53,6 @@ class ImporterViewModel @Inject constructor(
 
     fun importBankStatement(context: Context, uri: Uri) {
         importWithParser(
-            uri = uri,
             parser = { BankStatementParser.parse(context, uri) },
             sourceType = TransactionSourceType.IMPORTED_BANK,
             successLabel = "银行账单",
@@ -63,13 +62,11 @@ class ImporterViewModel @Inject constructor(
     fun importSelectedStatement(context: Context, uri: Uri) {
         when (_uiState.value.selectedChannel) {
             ImportChannel.WECHAT -> importWithParser(
-                uri = uri,
                 parser = { WechatBillParser.parse(context, uri) },
                 sourceType = TransactionSourceType.IMPORTED_WECHAT,
                 successLabel = "微信账单",
             )
             ImportChannel.ALIPAY -> importWithParser(
-                uri = uri,
                 parser = { AlipayBillParser.parse(context, uri) },
                 sourceType = TransactionSourceType.IMPORTED_ALIPAY,
                 successLabel = "支付宝账单",
@@ -79,7 +76,6 @@ class ImporterViewModel @Inject constructor(
     }
 
     private fun importWithParser(
-        uri: Uri,
         parser: () -> List<ParsedBankBill>,
         sourceType: TransactionSourceType,
         successLabel: String,
