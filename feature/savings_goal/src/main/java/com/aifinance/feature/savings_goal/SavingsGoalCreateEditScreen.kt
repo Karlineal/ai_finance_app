@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +38,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -48,6 +51,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.format.DateTimeParseException
 import java.util.UUID
 
@@ -77,6 +81,10 @@ fun SavingsGoalCreateEditScreen(
     var notes by rememberSaveable { mutableStateOf("") }
     var didLoad by rememberSaveable(goalId) { mutableStateOf(false) }
     var submitAttempted by rememberSaveable { mutableStateOf(false) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
+    val endDatePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = endDate.toLocalDateOrNull()?.toEpochMillis(),
+    )
 
     LaunchedEffect(editingGoal?.id) {
         if (editingGoal != null && !didLoad) {
@@ -176,9 +184,14 @@ fun SavingsGoalCreateEditScreen(
                         )
                         OutlinedTextField(
                             value = endDate,
-                            onValueChange = { endDate = it },
+                            onValueChange = {},
                             label = { Text("截止日期") },
-                            trailingIcon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
+                            trailingIcon = {
+                                IconButton(onClick = { showEndDatePicker = true }) {
+                                    Icon(Icons.Default.CalendarMonth, contentDescription = "选择截止日期")
+                                }
+                            },
+                            readOnly = true,
                             singleLine = true,
                             isError = submitAttempted && validation.endDateError != null,
                             supportingText = errorText(submitAttempted, validation.endDateError),
@@ -240,6 +253,29 @@ fun SavingsGoalCreateEditScreen(
             Spacer(Modifier.height(24.dp))
         }
     }
+
+    if (showEndDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showEndDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        endDatePickerState.selectedDateMillis?.let { millis ->
+                            endDate = millis.toLocalDate().toString()
+                        }
+                        showEndDatePicker = false
+                    },
+                ) {
+                    Text("确认")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndDatePicker = false }) { Text("取消") }
+            },
+        ) {
+            DatePicker(state = endDatePickerState)
+        }
+    }
 }
 
 @Composable
@@ -291,6 +327,7 @@ private fun validateForm(
         startDateError = if (start == null) "请输入有效日期" else null,
         endDateError = when {
             end == null -> "请输入有效日期"
+            end.isBefore(LocalDate.now()) -> "截止日期不能早于今天"
             start != null && end.isBefore(start) -> "截止日期不能早于开始日期"
             else -> null
         },
@@ -304,6 +341,14 @@ private fun String.toLocalDateOrNull(): LocalDate? {
     } catch (_: DateTimeParseException) {
         null
     }
+}
+
+private fun LocalDate.toEpochMillis(): Long {
+    return atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+}
+
+private fun Long.toLocalDate(): LocalDate {
+    return Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()
 }
 
 private fun String.filterAmountInput(): String {

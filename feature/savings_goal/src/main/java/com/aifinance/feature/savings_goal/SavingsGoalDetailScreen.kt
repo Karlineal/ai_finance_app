@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,6 +55,7 @@ import com.aifinance.core.data.repository.SavingsGoalCalculator
 import com.aifinance.core.model.SavingsGoal
 import com.aifinance.core.model.SavingsGoalStatus
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -131,6 +135,8 @@ private fun GoalDetailContent(
     modifier: Modifier = Modifier,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDepositDialog by remember { mutableStateOf(false) }
+    var showWithdrawDialog by remember { mutableStateOf(false) }
     val progress = SavingsGoalCalculator.calculateProgress(goal.currentAmount, goal.targetAmount)
     val remaining = goal.targetAmount.subtract(goal.currentAmount).coerceAtLeast(BigDecimal.ZERO)
     val daysRemaining = SavingsGoalCalculator.calculateDaysRemaining(goal.endDate)
@@ -218,6 +224,14 @@ private fun GoalDetailContent(
                         }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        Button(onClick = { showDepositDialog = true }, modifier = Modifier.weight(1f)) {
+                            Text("存入")
+                        }
+                        OutlinedButton(onClick = { showWithdrawDialog = true }, modifier = Modifier.weight(1f)) {
+                            Text("取出")
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         FilledTonalButton(onClick = onMarkCompleted, modifier = Modifier.weight(1f)) {
                             Text("标记完成")
                         }
@@ -271,6 +285,77 @@ private fun GoalDetailContent(
             },
         )
     }
+
+    if (showDepositDialog) {
+        AmountAdjustDialog(
+            title = "存入金额",
+            confirmText = "存入",
+            onDismiss = { showDepositDialog = false },
+            onConfirm = { amount ->
+                onAdjust(amount)
+                showDepositDialog = false
+            },
+        )
+    }
+
+    if (showWithdrawDialog) {
+        AmountAdjustDialog(
+            title = "取出金额",
+            confirmText = "取出",
+            onDismiss = { showWithdrawDialog = false },
+            onConfirm = { amount ->
+                onAdjust(amount.negate())
+                showWithdrawDialog = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun AmountAdjustDialog(
+    title: String,
+    confirmText: String,
+    onDismiss: () -> Unit,
+    onConfirm: (BigDecimal) -> Unit,
+) {
+    var amountText by remember { mutableStateOf("") }
+    val amount = amountText.toBigDecimalOrNull()
+    val amountError = amountText.isNotBlank() && (amount == null || amount <= BigDecimal.ZERO)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            OutlinedTextField(
+                value = amountText,
+                onValueChange = { amountText = it.filterAmountInput() },
+                label = { Text("金额") },
+                prefix = { Text("¥") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                isError = amountError,
+                supportingText = if (amountError) {
+                    { Text("请输入大于 0 的金额") }
+                } else {
+                    null
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                enabled = amount != null && amount > BigDecimal.ZERO,
+                onClick = {
+                    onConfirm(amount!!.setScale(2, RoundingMode.HALF_UP))
+                },
+            ) {
+                Text(confirmText)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("取消") }
+        },
+    )
 }
 
 @Composable
@@ -301,6 +386,21 @@ private fun SuggestionRow(label: String, value: String) {
         Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, fontWeight = FontWeight.Bold)
     }
+}
+
+private fun String.filterAmountInput(): String {
+    val builder = StringBuilder()
+    var hasDot = false
+    forEach { char ->
+        when {
+            char.isDigit() -> builder.append(char)
+            char == '.' && !hasDot -> {
+                builder.append(char)
+                hasDot = true
+            }
+        }
+    }
+    return builder.toString()
 }
 
 @Composable
