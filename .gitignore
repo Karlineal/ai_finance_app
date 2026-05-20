@@ -18,3 +18,10 @@ Thumbs.db
 
 # Worktrees
 .worktrees/
+
+# Accidentally tracked junk (cleaned up)
+capture_screen.bat
+project_plan.html
+
+# Build output (kotlin class files)
+core/model/bin/
