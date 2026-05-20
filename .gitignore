@@ -25,3 +25,8 @@ project_plan.html
 
 # Build output (kotlin class files)
 core/model/bin/
+
+# Development docs
+CLAUDE.md
+GITHUB_WORKFLOW.md
+PLAN.md
