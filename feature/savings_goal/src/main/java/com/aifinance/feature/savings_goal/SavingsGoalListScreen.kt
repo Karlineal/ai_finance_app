@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,6 +59,7 @@ import java.text.DecimalFormat
 private val QuickAmounts = listOf("10", "50", "100", "500")
 private val MoneyFormat = DecimalFormat("#,##0.00")
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavingsGoalListScreen(
     onNavigateToCreate: () -> Unit,
