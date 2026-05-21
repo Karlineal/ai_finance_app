@@ -6,6 +6,8 @@ import com.aifinance.core.data.repository.BudgetRepository
 import com.aifinance.core.data.repository.BudgetRepositoryImpl
 import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.CategoryRepositoryImpl
+import com.aifinance.core.data.repository.SavingsGoalRepository
+import com.aifinance.core.data.repository.SavingsGoalRepositoryImpl
 import com.aifinance.core.data.repository.ScheduledRuleRepository
 import com.aifinance.core.data.repository.ScheduledRuleRepositoryImpl
 import com.aifinance.core.data.repository.TransactionRepository
@@ -57,5 +59,11 @@ abstract class RepositoryModule {
     abstract fun bindBudgetRepository(
         impl: BudgetRepositoryImpl
     ): BudgetRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSavingsGoalRepository(
+        impl: SavingsGoalRepositoryImpl
+    ): SavingsGoalRepository
 
 }

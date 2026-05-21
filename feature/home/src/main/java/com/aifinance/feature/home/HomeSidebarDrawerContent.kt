@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.UploadFile
@@ -68,6 +69,7 @@ fun HomeSidebarDrawerContent(
     onNavigateToAllRecords: (java.time.LocalDate) -> Unit = {},
     onNavigateToBudget: () -> Unit = {},
     onNavigateToBillImport: () -> Unit = {},
+    onNavigateToSavingsGoal: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -132,6 +134,7 @@ fun HomeSidebarDrawerContent(
                 onNavigateScheduledTransaction = onNavigateScheduledTransaction,
                 onNavigateToBudget = onNavigateToBudget,
                 onNavigateToBillImport = onNavigateToBillImport,
+                onNavigateToSavingsGoal = onNavigateToSavingsGoal,
             )
 
             SettingEntryCard(onNavigateSettings = onNavigateSettings)
@@ -326,12 +329,14 @@ private fun FunctionGridCard(
     onNavigateScheduledTransaction: () -> Unit,
     onNavigateToBudget: () -> Unit,
     onNavigateToBillImport: () -> Unit,
+    onNavigateToSavingsGoal: () -> Unit,
 ) {
     val defaultIconTint = MaterialTheme.colorScheme.onSurfaceVariant
     val items = listOf(
         DrawerFunctionItem("图表统计", Icons.Default.PieChart, onNavigateStatistics, defaultIconTint),
         DrawerFunctionItem("资产管理", Icons.Default.CreditCard, onNavigateAssetManagement, defaultIconTint),
         DrawerFunctionItem("预算管理", Icons.Default.AutoGraph, onNavigateToBudget, defaultIconTint),
+        DrawerFunctionItem("攒钱计划", Icons.Default.Savings, onNavigateToSavingsGoal, defaultIconTint),
         DrawerFunctionItem("分类管理", Icons.Default.Category, onNavigateCategoryManagement, defaultIconTint),
         DrawerFunctionItem("定时记账", Icons.Default.CalendarMonth, onNavigateScheduledTransaction, defaultIconTint),
         DrawerFunctionItem("账单导入", Icons.Default.UploadFile, onNavigateToBillImport, defaultIconTint),

@@ -44,6 +44,12 @@ import com.aifinance.feature.transactions.navigation.navigateToTransactionDetail
 import com.aifinance.feature.transactions.navigation.transactionDetailScreen
 import com.aifinance.feature.transactions.navigation.transactionsScreen
 import com.aifinance.feature.importer.navigation.billImportScreen
+import com.aifinance.feature.savings_goal.navigation.SAVINGS_GOAL_DETAIL_ROUTE
+import com.aifinance.feature.savings_goal.navigation.SAVINGS_GOAL_EDIT_ROUTE
+import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalCreate
+import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalDetail
+import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalEdit
+import com.aifinance.feature.savings_goal.navigation.savingsGoalNavigation
 
 @Composable
 fun AiFinanceNavHost(
@@ -201,5 +207,12 @@ fun AiFinanceNavHost(
                 },
             )
         }
+
+        savingsGoalNavigation(
+            onNavigateToCreate = { navController.navigateToSavingsGoalCreate() },
+            onNavigateToDetail = { goalId -> navController.navigateToSavingsGoalDetail(goalId) },
+            onNavigateToEdit = { goalId -> navController.navigateToSavingsGoalEdit(goalId) },
+            onBack = { navController.popBackStack() }
+        )
     }
 }

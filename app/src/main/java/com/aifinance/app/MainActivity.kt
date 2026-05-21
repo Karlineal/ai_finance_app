@@ -44,6 +44,7 @@ import com.aifinance.feature.settings.navigation.SETTINGS_ROUTE
 import com.aifinance.feature.statistics.navigation.STATISTICS_ROUTE
 import com.aifinance.feature.transactions.navigation.TRANSACTIONS_ROUTE
 import com.aifinance.feature.importer.navigation.BILL_IMPORT_ROUTE
+import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalList
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -163,6 +164,10 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate(BILL_IMPORT_ROUTE) {
                                             launchSingleTop = true
                                         }
+                                        closeDrawer()
+                                    },
+                                    onNavigateToSavingsGoal = {
+                                        navController.navigateToSavingsGoalList()
                                         closeDrawer()
                                     },
                                     modifier = Modifier.fillMaxHeight()

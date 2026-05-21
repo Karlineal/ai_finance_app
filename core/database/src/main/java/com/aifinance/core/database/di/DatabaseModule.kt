@@ -6,6 +6,7 @@ import com.aifinance.core.database.AiFinanceDatabase
 import com.aifinance.core.database.DatabaseCallback
 import com.aifinance.core.database.dao.AccountDao
 import com.aifinance.core.database.dao.CategoryDao
+import com.aifinance.core.database.dao.SavingsGoalDao
 import com.aifinance.core.database.dao.ScheduledRuleDao
 import com.aifinance.core.database.dao.TransactionDao
 import dagger.Module
@@ -28,6 +29,7 @@ object DatabaseModule {
         categoryDao: Provider<CategoryDao>,
         transactionDao: Provider<TransactionDao>,
         scheduledRuleDao: Provider<ScheduledRuleDao>,
+        savingsGoalDao: Provider<SavingsGoalDao>,
     ): AiFinanceDatabase {
         return Room.databaseBuilder(
             context,
@@ -35,7 +37,7 @@ object DatabaseModule {
             "ai_finance.db"
         )
             .fallbackToDestructiveMigration()
-            .addCallback(DatabaseCallback(accountDao, categoryDao, transactionDao, scheduledRuleDao))
+            .addCallback(DatabaseCallback(accountDao, categoryDao, transactionDao, scheduledRuleDao, savingsGoalDao))
             .build()
     }
 
@@ -50,4 +52,7 @@ object DatabaseModule {
 
     @Provides
     fun provideScheduledRuleDao(database: AiFinanceDatabase) = database.scheduledRuleDao()
+
+    @Provides
+    fun provideSavingsGoalDao(database: AiFinanceDatabase) = database.savingsGoalDao()
 }
