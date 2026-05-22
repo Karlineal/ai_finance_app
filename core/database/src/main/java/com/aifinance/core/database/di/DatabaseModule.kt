@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.aifinance.core.database.AiFinanceDatabase
 import com.aifinance.core.database.DatabaseCallback
+import com.aifinance.core.database.migration.MIGRATION_6_7
 import com.aifinance.core.database.dao.AccountDao
 import com.aifinance.core.database.dao.CategoryDao
 import com.aifinance.core.database.dao.SavingsGoalDao
@@ -37,7 +38,7 @@ object DatabaseModule {
             AiFinanceDatabase::class.java,
             "ai_finance.db"
         )
-            .fallbackToDestructiveMigration()
+            .addMigrations(MIGRATION_6_7)
             .addCallback(DatabaseCallback(accountDao, categoryDao, transactionDao, scheduledRuleDao, savingsGoalDao))
             .build()
     }

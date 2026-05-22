@@ -83,7 +83,6 @@ fun SavingsGoalDetailScreen(
                 goal = goal,
                 records = records,
                 accounts = accounts,
-                onBack = onBack,
                 onDelete = {
                     viewModel.deleteGoal(goal)
                     onBack()
@@ -106,7 +105,6 @@ private fun GoalDetailContent(
     goal: SavingsGoal,
     records: List<SavingsRecord>,
     accounts: List<Account>,
-    onBack: () -> Unit,
     onDelete: () -> Unit,
     onMarkCompleted: () -> Unit,
     onMarkFailed: () -> Unit,
@@ -121,8 +119,6 @@ private fun GoalDetailContent(
     val progress = SavingsGoalCalculator.calculateProgress(goal.currentAmount, goal.targetAmount)
     val remaining = goal.targetAmount.subtract(goal.currentAmount).coerceAtLeast(BigDecimal.ZERO)
     val daysRemaining = SavingsGoalCalculator.calculateDaysRemaining(goal.endDate)
-    val dailySuggestion = SavingsGoalCalculator.calculateDailySuggestion(goal.currentAmount, goal.targetAmount, goal.endDate)
-    val weeklySuggestion = SavingsGoalCalculator.calculateWeeklySuggestion(goal.currentAmount, goal.targetAmount, goal.endDate)
     val statusColor = when {
         goal.status == SavingsGoalStatus.COMPLETED -> Color(0xFF22C55E)
         goal.status == SavingsGoalStatus.FAILED || SavingsGoalCalculator.isOverdue(goal.endDate, goal.status) -> Color(0xFFEF4444)
@@ -361,7 +357,6 @@ private fun CheckInDialog(
     val selectedAccount = availableAccounts.find { it.id == selectedAccountId }
 
     val currentPeriod = remember(dateText) {
-        val date = runCatching { LocalDate.parse(dateText) }.getOrNull() ?: LocalDate.now()
         SavingsGoalCalculator.getCurrentPeriodIndex(goal.startDate, goal.savingsMethod, goal.frequency)
     }
     
