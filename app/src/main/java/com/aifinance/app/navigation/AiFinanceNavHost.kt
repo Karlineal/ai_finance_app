@@ -1,0 +1,219 @@
+package com.aifinance.app.navigation
+
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import androidx.navigation.compose.NavHost
+import com.aifinance.feature.add_transaction.navigation.addTransactionScreen
+import com.aifinance.feature.category_management.navigation.categoryManagementScreen
+import com.aifinance.feature.budget.BudgetDashboardScreen
+import com.aifinance.feature.budget.BudgetEntryScreen
+import com.aifinance.feature.budget.BudgetWizardScreen
+import com.aifinance.feature.budget.navigation.BUDGET_DASHBOARD_ROUTE
+import com.aifinance.feature.budget.navigation.BUDGET_ENTRY_ROUTE
+import com.aifinance.feature.budget.navigation.BUDGET_WIZARD_ROUTE
+import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
+import com.aifinance.feature.home.ADD_ASSET_ACCOUNT_ROUTE
+import com.aifinance.feature.home.ADD_ASSET_DETAIL_ROUTE
+import com.aifinance.feature.home.EDIT_ASSET_ACCOUNT_ROUTE
+import com.aifinance.feature.home.AddAssetAccountScreen
+import com.aifinance.feature.home.AddAssetDetailScreen
+import com.aifinance.feature.home.AssetManagementScreen
+import com.aifinance.feature.home.EditAssetAccountScreen
+import com.aifinance.feature.home.addAssetDetailRoute
+import com.aifinance.feature.home.editAssetAccountRoute
+import com.aifinance.feature.home.navigation.HOME_ROUTE
+import com.aifinance.feature.home.navigation.homeScreen
+import com.aifinance.feature.scheduled.navigation.navigateToScheduledTransactionAdd
+import com.aifinance.feature.scheduled.navigation.scheduledTransactionAddScreen
+import com.aifinance.feature.scheduled.navigation.scheduledTransactionScreen
+import com.aifinance.feature.statistics.navigation.navigateToStatistics
+import com.aifinance.feature.settings.navigation.settingsScreen
+import com.aifinance.feature.statistics.navigation.statisticsScreen
+import com.aifinance.feature.transactions.navigation.TRANSACTIONS_ROUTE
+import com.aifinance.feature.transactions.navigation.calendarTransactionsScreen
+import com.aifinance.feature.transactions.navigation.navigateToTransactionDetail
+import com.aifinance.feature.transactions.navigation.transactionDetailScreen
+import com.aifinance.feature.transactions.navigation.transactionsScreen
+import com.aifinance.feature.importer.navigation.billImportScreen
+import com.aifinance.feature.savings_goal.navigation.SAVINGS_GOAL_DETAIL_ROUTE
+import com.aifinance.feature.savings_goal.navigation.SAVINGS_GOAL_EDIT_ROUTE
+import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalCreate
+import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalDetail
+import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalEdit
+import com.aifinance.feature.savings_goal.navigation.savingsGoalNavigation
+
+@Composable
+fun AiFinanceNavHost(
+    navController: NavHostController,
+    onOpenDrawer: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    NavHost(
+        navController = navController,
+        startDestination = HOME_ROUTE,
+        modifier = modifier,
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -it / 3 },
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        }
+    ) {
+        homeScreen(
+            onOpenDrawer = onOpenDrawer,
+            onNavigateToAssetManagement = {
+                navController.navigate(ASSET_MANAGEMENT_ROUTE)
+            },
+            onNavigateToStatistics = {
+                navController.navigateToStatistics()
+            },
+            onNavigateToTransactionDetail = { transactionId ->
+                navController.navigateToTransactionDetail(transactionId)
+            },
+        )
+
+        composable(ASSET_MANAGEMENT_ROUTE) {
+            AssetManagementScreen(
+                onBack = { navController.popBackStack() },
+                onAddAccount = { navController.navigate(ADD_ASSET_ACCOUNT_ROUTE) },
+                onAccountClick = { accountId ->
+                    navController.navigate(editAssetAccountRoute(accountId))
+                }
+            )
+        }
+
+        composable(ADD_ASSET_ACCOUNT_ROUTE) {
+            AddAssetAccountScreen(
+                onBack = { navController.popBackStack() },
+                onPresetClick = { presetKey ->
+                    navController.navigate(addAssetDetailRoute(presetKey))
+                }
+            )
+        }
+
+        composable(
+            route = ADD_ASSET_DETAIL_ROUTE,
+            arguments = listOf(navArgument("presetKey") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val presetKey = backStackEntry.arguments?.getString("presetKey") ?: "custom_asset"
+            AddAssetDetailScreen(
+                presetKey = presetKey,
+                onBack = { navController.popBackStack() },
+                onSaved = {
+                    navController.popBackStack(ASSET_MANAGEMENT_ROUTE, inclusive = false)
+                }
+            )
+        }
+
+        composable(
+            route = EDIT_ASSET_ACCOUNT_ROUTE,
+            arguments = listOf(navArgument("accountId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val accountId = backStackEntry.arguments?.getString("accountId") ?: ""
+            EditAssetAccountScreen(
+                accountId = accountId,
+                onBack = { navController.popBackStack() },
+                onSaved = {
+                    navController.popBackStack(ASSET_MANAGEMENT_ROUTE, inclusive = false)
+                }
+            )
+        }
+
+        transactionsScreen(
+            onNavigateToTransactionDetail = { transactionId ->
+                navController.navigateToTransactionDetail(transactionId)
+            }
+        )
+        calendarTransactionsScreen(
+            onBack = { navController.popBackStack() },
+            onNavigateToTransactionDetail = { transactionId ->
+                navController.navigateToTransactionDetail(transactionId)
+            },
+        )
+        transactionDetailScreen(
+            onBack = { navController.popBackStack() },
+            onSaved = { navController.popBackStack() },
+        )
+        statisticsScreen(onBack = { navController.popBackStack() })
+        settingsScreen(onBack = { navController.popBackStack() })
+        categoryManagementScreen(onBack = { navController.popBackStack() })
+        scheduledTransactionScreen(
+            onBack = { navController.popBackStack() },
+            onNavigateToAdd = { navController.navigateToScheduledTransactionAdd() },
+        )
+        scheduledTransactionAddScreen(onBack = { navController.popBackStack() })
+        addTransactionScreen(
+            onBack = { navController.popBackStack() },
+            onSuccess = { navController.popBackStack() }
+        )
+        billImportScreen(onBack = { navController.popBackStack() })
+
+        // Budget (初始化向导 + 预算管理主页)
+        composable(BUDGET_ENTRY_ROUTE) {
+            BudgetEntryScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onOpenBudgetWizard = {
+                    navController.navigate(BUDGET_WIZARD_ROUTE) { launchSingleTop = true }
+                },
+            )
+        }
+        composable(BUDGET_WIZARD_ROUTE) {
+            BudgetWizardScreen(
+                onBack = { navController.popBackStack() },
+                onCompleted = {
+                    navController.navigate(BUDGET_ENTRY_ROUTE) {
+                        popUpTo(BUDGET_WIZARD_ROUTE) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+            )
+        }
+        composable(BUDGET_DASHBOARD_ROUTE) {
+            BudgetDashboardScreen(
+                onNavigateBack = { navController.navigate(BUDGET_WIZARD_ROUTE) { launchSingleTop = true } },
+                onAdjustBudget = { navController.navigate(BUDGET_WIZARD_ROUTE) { launchSingleTop = true } },
+                onNoActivePlanNavigateToSetup = {
+                    navController.navigate(BUDGET_WIZARD_ROUTE) {
+                        popUpTo(BUDGET_DASHBOARD_ROUTE) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+            )
+        }
+
+        savingsGoalNavigation(
+            onNavigateToCreate = { navController.navigateToSavingsGoalCreate() },
+            onNavigateToDetail = { goalId -> navController.navigateToSavingsGoalDetail(goalId) },
+            onNavigateToEdit = { goalId -> navController.navigateToSavingsGoalEdit(goalId) },
+            onNavigateToAddAccount = { navController.navigate(ADD_ASSET_ACCOUNT_ROUTE) },
+            onBack = { navController.popBackStack() }
+        )
+    }
+}
