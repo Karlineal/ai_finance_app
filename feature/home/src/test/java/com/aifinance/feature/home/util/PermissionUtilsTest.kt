@@ -71,15 +71,12 @@ class PermissionUtilsTest {
     @Test
     fun `hasStoragePermission should return true when READ_EXTERNAL_STORAGE is granted on API below 33`() {
         // Given: API < 33 且存储权限已授予
-        every { mockContext.applicationInfo } returns mockk {
-            every { targetSdkVersion } returns 32
-        }
         every {
             ContextCompat.checkSelfPermission(mockContext, Manifest.permission.READ_EXTERNAL_STORAGE)
         } returns PackageManager.PERMISSION_GRANTED
 
         // When: 检查存储权限
-        val result = PermissionUtils.hasStoragePermission(mockContext)
+        val result = PermissionUtils.hasStoragePermission(mockContext, sdkVersion = 32)
 
         // Then: 应该返回 true
         assertTrue(result)
@@ -88,15 +85,12 @@ class PermissionUtilsTest {
     @Test
     fun `hasStoragePermission should return false when READ_EXTERNAL_STORAGE is denied on API below 33`() {
         // Given: API < 33 且存储权限未授予
-        every { mockContext.applicationInfo } returns mockk {
-            every { targetSdkVersion } returns 32
-        }
         every {
             ContextCompat.checkSelfPermission(mockContext, Manifest.permission.READ_EXTERNAL_STORAGE)
         } returns PackageManager.PERMISSION_DENIED
 
         // When: 检查存储权限
-        val result = PermissionUtils.hasStoragePermission(mockContext)
+        val result = PermissionUtils.hasStoragePermission(mockContext, sdkVersion = 32)
 
         // Then: 应该返回 false
         assertFalse(result)
@@ -105,15 +99,12 @@ class PermissionUtilsTest {
     @Test
     fun `hasStoragePermission should return true when READ_MEDIA_IMAGES is granted on API 33 and above`() {
         // Given: API >= 33 且媒体图片权限已授予
-        every { mockContext.applicationInfo } returns mockk {
-            every { targetSdkVersion } returns 34
-        }
         every {
             ContextCompat.checkSelfPermission(mockContext, Manifest.permission.READ_MEDIA_IMAGES)
         } returns PackageManager.PERMISSION_GRANTED
 
         // When: 检查存储权限
-        val result = PermissionUtils.hasStoragePermission(mockContext)
+        val result = PermissionUtils.hasStoragePermission(mockContext, sdkVersion = 34)
 
         // Then: 应该返回 true
         assertTrue(result)
@@ -122,15 +113,12 @@ class PermissionUtilsTest {
     @Test
     fun `hasStoragePermission should return false when READ_MEDIA_IMAGES is denied on API 33 and above`() {
         // Given: API >= 33 且媒体图片权限未授予
-        every { mockContext.applicationInfo } returns mockk {
-            every { targetSdkVersion } returns 34
-        }
         every {
             ContextCompat.checkSelfPermission(mockContext, Manifest.permission.READ_MEDIA_IMAGES)
         } returns PackageManager.PERMISSION_DENIED
 
         // When: 检查存储权限
-        val result = PermissionUtils.hasStoragePermission(mockContext)
+        val result = PermissionUtils.hasStoragePermission(mockContext, sdkVersion = 34)
 
         // Then: 应该返回 false
         assertFalse(result)

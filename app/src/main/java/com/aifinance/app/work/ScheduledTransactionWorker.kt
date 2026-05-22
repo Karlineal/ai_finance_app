@@ -23,6 +23,8 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.util.UUID
+import kotlinx.coroutines.flow.firstOrNull
+import java.math.BigDecimal
 
 class ScheduledTransactionWorker(
     context: Context,
@@ -67,22 +69,95 @@ class ScheduledTransactionWorker(
         }
 
         return try {
-            val categoryName = rule.categoryId?.let { categoryRepository.getCategoryById(it)?.name }
-            val transaction = Transaction(
-                accountId = rule.accountId,
-                categoryId = rule.categoryId,
-                type = rule.transactionType,
-                amount = rule.amount,
-                currency = rule.currency,
-                title = rule.title.ifBlank { "定时记账" },
-                description = categoryName,
-                date = today,
-                time = now,
-                sourceType = TransactionSourceType.SCHEDULED,
-                userConfirmed = true,
-            )
-            transactionRepository.insertTransaction(transaction)
-            Log.i("ScheduledWorker", "定时记账已创建: ${rule.title}, 金额=${rule.amount}, 日期=$today")
+            if (rule.title.startsWith("SAVINGS_GOAL_")) {
+                val goalIdStr = rule.title.removePrefix("SAVINGS_GOAL_")
+                val goalId = UUID.fromString(goalIdStr)
+                val goal = entryPoint.savingsGoalRepository().getGoalById(goalId).firstOrNull()
+                if (goal == null || goal.status != com.aifinance.core.model.SavingsGoalStatus.ACTIVE) {
+                    scheduledRuleScheduler.cancelRule(ruleId)
+                    return Result.success()
+                }
+
+                val periodIndex = com.aifinance.core.data.repository.SavingsGoalCalculator.getCurrentPeriodIndex(goal.startDate, goal.savingsMethod, goal.frequency)
+                
+                val amountToSave = when (goal.savingsMethod) {
+                    com.aifinance.core.model.SavingsMethod.DAILY_365 -> 
+                        com.aifinance.core.data.repository.SavingsGoalCalculator.calculateDay365Amount(periodIndex, goal.baseAmount ?: BigDecimal.ONE)
+                    com.aifinance.core.model.SavingsMethod.WEEKLY_52 -> 
+                        com.aifinance.core.data.repository.SavingsGoalCalculator.calculateWeek52Amount(periodIndex, goal.baseAmount ?: BigDecimal(10))
+                    com.aifinance.core.model.SavingsMethod.MONTHLY_12 -> 
+                        com.aifinance.core.data.repository.SavingsGoalCalculator.calculateMonth12Amount(periodIndex, goal.baseAmount ?: BigDecimal(100))
+                    com.aifinance.core.model.SavingsMethod.FIXED_AMOUNT -> 
+                        goal.fixedAmount ?: BigDecimal.ZERO
+                    com.aifinance.core.model.SavingsMethod.FLEXIBLE -> 
+                        BigDecimal.ZERO
+                }
+
+                if (amountToSave > BigDecimal.ZERO) {
+                    val record = com.aifinance.core.model.SavingsRecord(
+                        id = UUID.randomUUID(),
+                        savingsGoalId = goalId,
+                        amount = amountToSave,
+                        date = today,
+                        note = "自动打卡",
+                        periodIndex = periodIndex,
+                        createdAt = now
+                    )
+                    entryPoint.savingsGoalRepository().addRecord(record)
+                    
+                    val txOut = Transaction(
+                        id = UUID.randomUUID(),
+                        accountId = rule.accountId,
+                        categoryId = rule.categoryId,
+                        type = rule.transactionType,
+                        amount = amountToSave,
+                        currency = "CNY",
+                        title = "转出-攒钱小荷包",
+                        description = "攒钱计划自动扣款：${goal.name}",
+                        date = today,
+                        time = now,
+                        sourceType = TransactionSourceType.SCHEDULED,
+                        userConfirmed = true
+                    )
+                    
+                    val txIn = Transaction(
+                        id = UUID.randomUUID(),
+                        accountId = goal.accountId,
+                        categoryId = rule.categoryId,
+                        type = rule.transactionType,
+                        amount = amountToSave,
+                        currency = "CNY",
+                        title = "转入-攒钱小荷包",
+                        description = "攒钱计划自动扣款：${goal.name}",
+                        date = today,
+                        time = now,
+                        sourceType = TransactionSourceType.SCHEDULED,
+                        userConfirmed = true
+                    )
+                    
+                    transactionRepository.insertTransaction(txOut)
+                    transactionRepository.insertTransaction(txIn)
+                    Log.i("ScheduledWorker", "自动攒钱已执行: ${goal.name}, 金额=$amountToSave, 日期=$today")
+                }
+            } else {
+                val categoryName = rule.categoryId?.let { categoryRepository.getCategoryById(it)?.name }
+                val transaction = Transaction(
+                    id = UUID.randomUUID(),
+                    accountId = rule.accountId,
+                    categoryId = rule.categoryId,
+                    type = rule.transactionType,
+                    amount = rule.amount,
+                    currency = rule.currency,
+                    title = rule.title.ifBlank { "定时记账" },
+                    description = categoryName,
+                    date = today,
+                    time = now,
+                    sourceType = TransactionSourceType.SCHEDULED,
+                    userConfirmed = true,
+                )
+                transactionRepository.insertTransaction(transaction)
+                Log.i("ScheduledWorker", "定时记账已创建: ${rule.title}, 金额=${rule.amount}, 日期=$today")
+            }
 
             val newCount = rule.firedCount + 1
             val fireLocal = LocalDateTime.of(today, LocalTime.of(rule.startHour, rule.startMinute))
@@ -161,4 +236,5 @@ interface ScheduledWorkerEntryPoint {
     fun transactionRepository(): TransactionRepository
     fun categoryRepository(): CategoryRepository
     fun scheduledRuleScheduler(): ScheduledRuleScheduler
+    fun savingsGoalRepository(): com.aifinance.core.data.repository.SavingsGoalRepository
 }

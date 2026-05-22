@@ -14,6 +14,18 @@ enum class SavingsGoalStatus {
     FAILED     // 未达成（过期或放弃）
 }
 
+enum class SavingsMethod {
+    WEEKLY_52,       // 52周存钱法
+    DAILY_365,       // 365天存钱法
+    MONTHLY_12,      // 12月月存
+    FIXED_AMOUNT,    // 定额存钱
+    FLEXIBLE,        // 灵活存钱
+}
+
+enum class SavingsFrequency {
+    DAILY, WEEKLY, MONTHLY
+}
+
 /**
  * 攒钱计划领域模型
  */
@@ -27,6 +39,10 @@ data class SavingsGoal(
     val endDate: LocalDate,
     val status: SavingsGoalStatus,
     val notes: String?,
+    val savingsMethod: SavingsMethod,
+    val fixedAmount: BigDecimal?,
+    val frequency: SavingsFrequency?,
+    val baseAmount: BigDecimal?,
     val createdAt: Instant,
     val updatedAt: Instant
 )

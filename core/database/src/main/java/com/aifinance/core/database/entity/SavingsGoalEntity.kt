@@ -4,8 +4,10 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.aifinance.core.model.SavingsFrequency
 import com.aifinance.core.model.SavingsGoal
 import com.aifinance.core.model.SavingsGoalStatus
+import com.aifinance.core.model.SavingsMethod
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -34,6 +36,10 @@ data class SavingsGoalEntity(
     val endDate: LocalDate,
     val status: String, // 存储枚举的 String 表达形式形式
     val notes: String?,
+    val savingsMethod: String,
+    val fixedAmount: BigDecimal?,
+    val frequency: String?,
+    val baseAmount: BigDecimal?,
     val createdAt: Instant,
     val updatedAt: Instant
 )
@@ -51,6 +57,10 @@ fun SavingsGoalEntity.toDomain() = SavingsGoal(
     endDate = endDate,
     status = SavingsGoalStatus.valueOf(status),
     notes = notes,
+    savingsMethod = SavingsMethod.valueOf(savingsMethod),
+    fixedAmount = fixedAmount,
+    frequency = frequency?.let { SavingsFrequency.valueOf(it) },
+    baseAmount = baseAmount,
     createdAt = createdAt,
     updatedAt = updatedAt
 )
@@ -68,6 +78,10 @@ fun SavingsGoal.toEntity() = SavingsGoalEntity(
     endDate = endDate,
     status = status.name,
     notes = notes,
+    savingsMethod = savingsMethod.name,
+    fixedAmount = fixedAmount,
+    frequency = frequency?.name,
+    baseAmount = baseAmount,
     createdAt = createdAt,
     updatedAt = updatedAt
 )

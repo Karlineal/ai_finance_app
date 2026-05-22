@@ -805,6 +805,7 @@ private fun accountPresetSections(): List<AccountPresetSection> {
                 AccountPreset("fund", "基金", "🟠", AccountType.INVESTMENT, "基金账户", 0xFFEA580C.toInt()),
                 AccountPreset("yu_e_bao", "余额宝", "🟡", AccountType.INVESTMENT, "余额宝", 0xFFEAB308.toInt()),
                 AccountPreset("ling_qian_tong", "零钱通", "💎", AccountType.INVESTMENT, "零钱通", 0xFF22C55E.toInt()),
+                AccountPreset("small_piggy", "攒钱小荷包", "💰", AccountType.INVESTMENT, "攒钱小荷包", 0xFFEAB308.toInt()),
             )
         ),
     )

@@ -1,10 +1,12 @@
 package com.aifinance.core.data.repository
 
 import com.aifinance.core.database.dao.SavingsGoalDao
+import com.aifinance.core.database.dao.SavingsRecordDao
 import com.aifinance.core.database.entity.toDomain
 import com.aifinance.core.database.entity.toEntity
 import com.aifinance.core.model.SavingsGoal
 import com.aifinance.core.model.SavingsGoalStatus
+import com.aifinance.core.model.SavingsRecord
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
@@ -16,6 +18,7 @@ import javax.inject.Singleton
 @Singleton
 class SavingsGoalRepositoryImpl @Inject constructor(
     private val savingsGoalDao: SavingsGoalDao,
+    private val savingsRecordDao: SavingsRecordDao,
 ) : SavingsGoalRepository {
 
     override fun getAllGoals(): Flow<List<SavingsGoal>> {
@@ -57,5 +60,21 @@ class SavingsGoalRepositoryImpl @Inject constructor(
                 updatedAt = Instant.now(),
             ),
         )
+    }
+
+    override fun getRecordsByGoalId(goalId: UUID): Flow<List<SavingsRecord>> {
+        return savingsRecordDao.getRecordsByGoalId(goalId).map { entities ->
+            entities.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun addRecord(record: SavingsRecord) {
+        savingsRecordDao.insertRecord(record.toEntity())
+        savingsGoalDao.updateCurrentAmountProgress(record.savingsGoalId, record.amount, Instant.now())
+    }
+
+    override suspend fun deleteRecord(record: SavingsRecord) {
+        savingsRecordDao.deleteRecord(record.toEntity())
+        savingsGoalDao.updateCurrentAmountProgress(record.savingsGoalId, record.amount.negate(), Instant.now())
     }
 }

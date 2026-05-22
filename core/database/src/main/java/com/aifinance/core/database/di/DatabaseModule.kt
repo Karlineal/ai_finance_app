@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.room.Room
 import com.aifinance.core.database.AiFinanceDatabase
 import com.aifinance.core.database.DatabaseCallback
+import com.aifinance.core.database.migration.MIGRATION_6_7
 import com.aifinance.core.database.dao.AccountDao
 import com.aifinance.core.database.dao.CategoryDao
 import com.aifinance.core.database.dao.SavingsGoalDao
+import com.aifinance.core.database.dao.SavingsRecordDao
 import com.aifinance.core.database.dao.ScheduledRuleDao
 import com.aifinance.core.database.dao.TransactionDao
 import dagger.Module
@@ -36,7 +38,7 @@ object DatabaseModule {
             AiFinanceDatabase::class.java,
             "ai_finance.db"
         )
-            .fallbackToDestructiveMigration()
+            .addMigrations(MIGRATION_6_7)
             .addCallback(DatabaseCallback(accountDao, categoryDao, transactionDao, scheduledRuleDao, savingsGoalDao))
             .build()
     }
@@ -54,5 +56,8 @@ object DatabaseModule {
     fun provideScheduledRuleDao(database: AiFinanceDatabase) = database.scheduledRuleDao()
 
     @Provides
-    fun provideSavingsGoalDao(database: AiFinanceDatabase) = database.savingsGoalDao()
+    fun provideSavingsGoalDao(db: AiFinanceDatabase): SavingsGoalDao = db.savingsGoalDao()
+
+    @Provides
+    fun provideSavingsRecordDao(db: AiFinanceDatabase): SavingsRecordDao = db.savingsRecordDao()
 }

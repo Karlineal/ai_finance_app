@@ -2,6 +2,7 @@ package com.aifinance.core.data.repository
 
 import com.aifinance.core.model.SavingsGoal
 import com.aifinance.core.model.SavingsGoalStatus
+import com.aifinance.core.model.SavingsRecord
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.util.UUID
@@ -14,4 +15,8 @@ interface SavingsGoalRepository {
     suspend fun deleteGoal(goal: SavingsGoal)
     suspend fun adjustSavedAmount(id: UUID, delta: BigDecimal)
     suspend fun updateStatus(id: UUID, status: SavingsGoalStatus)
+    
+    fun getRecordsByGoalId(goalId: UUID): Flow<List<SavingsRecord>>
+    suspend fun addRecord(record: SavingsRecord)
+    suspend fun deleteRecord(record: SavingsRecord)
 }

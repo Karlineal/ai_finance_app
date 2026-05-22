@@ -67,10 +67,11 @@ object PermissionUtils {
      * - API >= 33: 使用 READ_MEDIA_IMAGES
      *
      * @param context 上下文
+     * @param sdkVersion SDK 版本号，用于测试时模拟不同版本，默认使用当前设备版本
      * @return 如果已授予返回 true，否则返回 false
      */
-    fun hasStoragePermission(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    fun hasStoragePermission(context: Context, sdkVersion: Int = Build.VERSION.SDK_INT): Boolean {
+        return if (sdkVersion >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.READ_MEDIA_IMAGES

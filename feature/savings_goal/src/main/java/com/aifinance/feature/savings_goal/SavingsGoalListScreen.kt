@@ -3,17 +3,7 @@ package com.aifinance.feature.savings_goal
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -24,18 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -64,42 +43,40 @@ private val MoneyFormat = DecimalFormat("#,##0.00")
 fun SavingsGoalListScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
+    onNavigateToAddAccount: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SavingsGoalViewModel = hiltViewModel(),
 ) {
     val goals by viewModel.goals.collectAsStateWithLifecycle()
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text("攒钱计划", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
-            )
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onNavigateToCreate,
-                icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text("新建计划") },
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-    ) { innerPadding ->
-        if (goals.isEmpty()) {
-            EmptyGoals(
-                onCreate = onNavigateToCreate,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-            )
-        } else {
+    if (goals.isEmpty()) {
+        SavingsGoalCreateEditScreen(
+            goalId = null,
+            onSaved = { /* It will automatically transition when goal is saved */ },
+            onBack = onBack
+        )
+    } else {
+        Scaffold(
+            modifier = modifier.fillMaxSize(),
+            topBar = {
+                TopAppBar(
+                    title = { Text("攒钱计划", fontWeight = FontWeight.Bold) },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onNavigateToAddAccount) {
+                            Icon(Icons.Default.Add, contentDescription = "添加账户")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.background,
+        ) { innerPadding ->
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -108,6 +85,11 @@ fun SavingsGoalListScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item { Spacer(Modifier.size(4.dp)) }
+                
+                item {
+                    SavingsEntryBanner(onClick = onNavigateToCreate)
+                }
+
                 items(goals, key = { it.id }) { goal ->
                     SavingsGoalCard(
                         goal = goal,
@@ -124,35 +106,48 @@ fun SavingsGoalListScreen(
 }
 
 @Composable
-private fun EmptyGoals(
-    onCreate: () -> Unit,
+private fun SavingsEntryBanner(
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(72.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    .size(48.dp)
+                    .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    imageVector = Icons.Default.Savings,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(36.dp),
+                Text("💰", style = MaterialTheme.typography.headlineSmall)
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "新建攒钱计划",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "开启攒钱计划，快乐攒钱",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                 )
             }
-            Text("暂无攒钱计划", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(
-                "创建一个目标，开始记录每一次靠近它的存款。",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
             )
-            AssistChip(onClick = onCreate, label = { Text("创建计划") })
         }
     }
 }
@@ -170,6 +165,14 @@ private fun SavingsGoalCard(
         goal.status == SavingsGoalStatus.COMPLETED -> Color(0xFF22C55E)
         goal.status == SavingsGoalStatus.FAILED || isOverdue -> Color(0xFFEF4444)
         else -> MaterialTheme.colorScheme.primary
+    }
+
+    val methodText = when (goal.savingsMethod) {
+        com.aifinance.core.model.SavingsMethod.WEEKLY_52 -> "52周存钱"
+        com.aifinance.core.model.SavingsMethod.DAILY_365 -> "365天存钱"
+        com.aifinance.core.model.SavingsMethod.MONTHLY_12 -> "12月存单"
+        com.aifinance.core.model.SavingsMethod.FIXED_AMOUNT -> "定额存钱"
+        com.aifinance.core.model.SavingsMethod.FLEXIBLE -> "灵活存钱"
     }
 
     Card(
@@ -210,7 +213,7 @@ private fun SavingsGoalCard(
                         StatusIcon(goal.status, isOverdue)
                     }
                     Text(
-                        "目标 ¥${formatMoney(goal.targetAmount)}",
+                        "$methodText · 目标 ¥${formatMoney(goal.targetAmount)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -228,16 +231,25 @@ private fun SavingsGoalCard(
             }
 
             if (goal.status == SavingsGoalStatus.ACTIVE) {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    QuickAmounts.forEach { amount ->
-                        AssistChip(
-                            onClick = { onQuickAmount(amount) },
-                            label = { Text("+¥$amount") },
-                        )
+                if (goal.savingsMethod == com.aifinance.core.model.SavingsMethod.FLEXIBLE) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        QuickAmounts.forEach { amount ->
+                            AssistChip(
+                                onClick = { onQuickAmount(amount) },
+                                label = { Text("+¥$amount") },
+                            )
+                        }
+                    }
+                } else {
+                    androidx.compose.material3.Button(
+                        onClick = onClick,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("去打卡")
                     }
                 }
             }

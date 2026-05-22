@@ -34,12 +34,14 @@ fun NavGraphBuilder.savingsGoalNavigation(
     onNavigateToCreate: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
     onNavigateToEdit: (String) -> Unit,
+    onNavigateToAddAccount: () -> Unit,
     onBack: () -> Unit
 ) {
     composable(SAVINGS_GOAL_LIST_ROUTE) {
         SavingsGoalListScreen(
             onNavigateToCreate = onNavigateToCreate,
             onNavigateToDetail = onNavigateToDetail,
+            onNavigateToAddAccount = onNavigateToAddAccount,
             onBack = onBack,
         )
     }

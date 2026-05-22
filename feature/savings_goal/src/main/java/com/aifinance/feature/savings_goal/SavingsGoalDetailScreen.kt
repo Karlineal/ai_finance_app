@@ -1,48 +1,19 @@
 package com.aifinance.feature.savings_goal
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Savings
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,10 +23,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.data.repository.SavingsGoalCalculator
-import com.aifinance.core.model.SavingsGoal
-import com.aifinance.core.model.SavingsGoalStatus
+import com.aifinance.core.model.*
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,6 +41,7 @@ fun SavingsGoalDetailScreen(
     viewModel: SavingsGoalViewModel = hiltViewModel(),
 ) {
     val goals by viewModel.goals.collectAsStateWithLifecycle()
+    val accounts by viewModel.accounts.collectAsStateWithLifecycle()
     val goal = remember(goals, goalId) {
         runCatching { UUID.fromString(goalId) }.getOrNull()?.let { id ->
             goals.firstOrNull { it.id == id }
@@ -104,9 +78,11 @@ fun SavingsGoalDetailScreen(
                     .padding(innerPadding),
             )
         } else {
+            val records by viewModel.getRecordsForGoal(goal.id).collectAsStateWithLifecycle(emptyList())
             GoalDetailContent(
                 goal = goal,
-                onBack = onBack,
+                records = records,
+                accounts = accounts,
                 onDelete = {
                     viewModel.deleteGoal(goal)
                     onBack()
@@ -114,7 +90,8 @@ fun SavingsGoalDetailScreen(
                 onMarkCompleted = { viewModel.updateStatus(goal.id, SavingsGoalStatus.COMPLETED) },
                 onMarkFailed = { viewModel.updateStatus(goal.id, SavingsGoalStatus.FAILED) },
                 onReactivate = { viewModel.updateStatus(goal.id, SavingsGoalStatus.ACTIVE) },
-                onAdjust = { viewModel.adjustSavedAmount(goal.id, it) },
+                onAddRecord = { record, sourceId -> viewModel.addRecord(record, sourceId) },
+                onDeleteRecord = { viewModel.deleteRecord(it) },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
@@ -126,26 +103,34 @@ fun SavingsGoalDetailScreen(
 @Composable
 private fun GoalDetailContent(
     goal: SavingsGoal,
-    onBack: () -> Unit,
+    records: List<SavingsRecord>,
+    accounts: List<Account>,
     onDelete: () -> Unit,
     onMarkCompleted: () -> Unit,
     onMarkFailed: () -> Unit,
     onReactivate: () -> Unit,
-    onAdjust: (BigDecimal) -> Unit,
+    onAddRecord: (SavingsRecord, UUID?) -> Unit,
+    onDeleteRecord: (SavingsRecord) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var showDepositDialog by remember { mutableStateOf(false) }
-    var showWithdrawDialog by remember { mutableStateOf(false) }
+    var showCheckInDialog by remember { mutableStateOf(false) }
+    
     val progress = SavingsGoalCalculator.calculateProgress(goal.currentAmount, goal.targetAmount)
     val remaining = goal.targetAmount.subtract(goal.currentAmount).coerceAtLeast(BigDecimal.ZERO)
     val daysRemaining = SavingsGoalCalculator.calculateDaysRemaining(goal.endDate)
-    val dailySuggestion = SavingsGoalCalculator.calculateDailySuggestion(goal.currentAmount, goal.targetAmount, goal.endDate)
-    val weeklySuggestion = SavingsGoalCalculator.calculateWeeklySuggestion(goal.currentAmount, goal.targetAmount, goal.endDate)
     val statusColor = when {
         goal.status == SavingsGoalStatus.COMPLETED -> Color(0xFF22C55E)
         goal.status == SavingsGoalStatus.FAILED || SavingsGoalCalculator.isOverdue(goal.endDate, goal.status) -> Color(0xFFEF4444)
         else -> MaterialTheme.colorScheme.primary
+    }
+
+    val methodText = when (goal.savingsMethod) {
+        SavingsMethod.WEEKLY_52 -> "52周存钱"
+        SavingsMethod.DAILY_365 -> "365天存钱"
+        SavingsMethod.MONTHLY_12 -> "12月存单"
+        SavingsMethod.FIXED_AMOUNT -> "定额存钱"
+        SavingsMethod.FLEXIBLE -> "灵活存钱"
     }
 
     Column(
@@ -176,6 +161,11 @@ private fun GoalDetailContent(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Text(
+                    "$methodText · 进度 ${(progress * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = statusColor,
+                )
                 LinearProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.fillMaxWidth(),
@@ -197,40 +187,22 @@ private fun GoalDetailContent(
             )
         }
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        ) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("存款建议", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                SuggestionRow("每天建议", "¥${formatMoney(dailySuggestion)}")
-                SuggestionRow("每周建议", "¥${formatMoney(weeklySuggestion)}")
-                SuggestionRow("计划周期", "${goal.startDate} 至 ${goal.endDate}")
-            }
-        }
-
         if (goal.status == SavingsGoalStatus.ACTIVE) {
+            Button(
+                onClick = { showCheckInDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                Text("打卡存入", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            }
+            
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("快捷存入", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        listOf("10", "50", "100", "500").forEach { amount ->
-                            AssistChip(onClick = { onAdjust(BigDecimal(amount)) }, label = { Text("+¥$amount") })
-                        }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        Button(onClick = { showDepositDialog = true }, modifier = Modifier.weight(1f)) {
-                            Text("存入")
-                        }
-                        OutlinedButton(onClick = { showWithdrawDialog = true }, modifier = Modifier.weight(1f)) {
-                            Text("取出")
-                        }
-                    }
+                    Text("计划操作", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         FilledTonalButton(onClick = onMarkCompleted, modifier = Modifier.weight(1f)) {
                             Text("标记完成")
@@ -244,6 +216,21 @@ private fun GoalDetailContent(
         } else {
             Button(onClick = onReactivate, modifier = Modifier.fillMaxWidth()) {
                 Text("重新启用")
+            }
+        }
+
+        if (records.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("存入记录", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    records.forEach { record ->
+                        RecordItem(record = record, onDelete = { onDeleteRecord(record) })
+                    }
+                }
             }
         }
 
@@ -286,76 +273,212 @@ private fun GoalDetailContent(
         )
     }
 
-    if (showDepositDialog) {
-        AmountAdjustDialog(
-            title = "存入金额",
-            confirmText = "存入",
-            onDismiss = { showDepositDialog = false },
-            onConfirm = { amount ->
-                onAdjust(amount)
-                showDepositDialog = false
-            },
-        )
-    }
-
-    if (showWithdrawDialog) {
-        AmountAdjustDialog(
-            title = "取出金额",
-            confirmText = "取出",
-            onDismiss = { showWithdrawDialog = false },
-            onConfirm = { amount ->
-                onAdjust(amount.negate())
-                showWithdrawDialog = false
-            },
+    if (showCheckInDialog) {
+        CheckInDialog(
+            goal = goal,
+            accounts = accounts,
+            onDismiss = { showCheckInDialog = false },
+            onConfirm = { date, amount, note, period, sourceAccountId ->
+                val record = SavingsRecord(
+                    id = UUID.randomUUID(),
+                    savingsGoalId = goal.id,
+                    amount = amount,
+                    date = date,
+                    note = note,
+                    periodIndex = period,
+                    createdAt = Instant.now()
+                )
+                onAddRecord(record, sourceAccountId)
+                showCheckInDialog = false
+            }
         )
     }
 }
 
 @Composable
-private fun AmountAdjustDialog(
-    title: String,
-    confirmText: String,
+private fun RecordItem(record: SavingsRecord, onDelete: () -> Unit) {
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                "第${record.periodIndex}期 - ${record.date}",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+            record.note?.takeIf { it.isNotBlank() }?.let { note ->
+                Text(note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Text("+¥${formatMoney(record.amount)}", style = MaterialTheme.typography.titleMedium, color = Color(0xFF22C55E))
+        IconButton(onClick = { showDeleteConfirm = true }) {
+            Icon(Icons.Default.Delete, contentDescription = "删除记录", tint = MaterialTheme.colorScheme.error)
+        }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("删除存入记录") },
+            text = { Text("确定要删除这笔 ¥${formatMoney(record.amount)} 的存入记录吗？这也会同时扣除计划里的已存金额。") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDelete()
+                    showDeleteConfirm = false
+                }) { Text("删除", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("取消") }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CheckInDialog(
+    goal: SavingsGoal,
+    accounts: List<Account>,
     onDismiss: () -> Unit,
-    onConfirm: (BigDecimal) -> Unit,
+    onConfirm: (LocalDate, BigDecimal, String?, Int, UUID?) -> Unit,
 ) {
-    var amountText by remember { mutableStateOf("") }
+    var dateText by remember { mutableStateOf(LocalDate.now().toString()) }
+    var noteText by remember { mutableStateOf("") }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+    
+    // Filter available source accounts (typically funds, excluding piggy bank itself or liabilities if strictly needed, but let's just show active non-liability accounts)
+    val availableAccounts = accounts.filter { it.id != goal.accountId && (it.type == AccountType.BANK || it.type == AccountType.DIGITAL_WALLET || it.type == AccountType.CASH || it.type == AccountType.INVESTMENT) }
+    var selectedAccountId by remember { mutableStateOf(availableAccounts.firstOrNull()?.id) }
+    val selectedAccount = availableAccounts.find { it.id == selectedAccountId }
+
+    val currentPeriod = remember(dateText) {
+        SavingsGoalCalculator.getCurrentPeriodIndex(goal.startDate, goal.savingsMethod, goal.frequency)
+    }
+    
+    val defaultAmount = remember(currentPeriod, goal) {
+        when (goal.savingsMethod) {
+            SavingsMethod.WEEKLY_52 -> SavingsGoalCalculator.calculateWeek52Amount(currentPeriod, goal.baseAmount ?: BigDecimal(10))
+            SavingsMethod.DAILY_365 -> SavingsGoalCalculator.calculateDay365Amount(currentPeriod, goal.baseAmount ?: BigDecimal(1))
+            SavingsMethod.MONTHLY_12 -> SavingsGoalCalculator.calculateMonth12Amount(currentPeriod, goal.baseAmount ?: BigDecimal(100))
+            SavingsMethod.FIXED_AMOUNT -> goal.fixedAmount ?: BigDecimal.ZERO
+            SavingsMethod.FLEXIBLE -> BigDecimal.ZERO
+        }
+    }
+    
+    var amountText by remember { mutableStateOf(if (defaultAmount > BigDecimal.ZERO) defaultAmount.stripTrailingZeros().toPlainString() else "") }
+    
     val amount = amountText.toBigDecimalOrNull()
     val amountError = amountText.isNotBlank() && (amount == null || amount <= BigDecimal.ZERO)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
+        title = { Text("打卡存入 (第${currentPeriod}期)") },
         text = {
-            OutlinedTextField(
-                value = amountText,
-                onValueChange = { amountText = it.filterAmountInput() },
-                label = { Text("金额") },
-                prefix = { Text("¥") },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                isError = amountError,
-                supportingText = if (amountError) {
-                    { Text("请输入大于 0 的金额") }
-                } else {
-                    null
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = dateText,
+                    onValueChange = {},
+                    label = { Text("打卡日期 (支持补签)") },
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { showDatePicker = true }) {
+                            Icon(Icons.Default.CalendarMonth, null)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                ) {
+                    OutlinedTextField(
+                        value = selectedAccount?.name ?: "无可用账户",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("付款账户") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                        },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+                    if (availableAccounts.isNotEmpty()) {
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                        ) {
+                            availableAccounts.forEach { acc ->
+                                DropdownMenuItem(
+                                    text = { Text("${acc.icon} ${acc.name}") },
+                                    onClick = {
+                                        selectedAccountId = acc.id
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = amountText,
+                    onValueChange = { amountText = it.filterAmountInput() },
+                    label = { Text("存入金额") },
+                    prefix = { Text("¥") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    isError = amountError,
+                    supportingText = if (amountError) { { Text("请输入大于 0 的金额") } } else null,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    value = noteText,
+                    onValueChange = { noteText = it },
+                    label = { Text("备注 (可选)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         },
         confirmButton = {
             TextButton(
                 enabled = amount != null && amount > BigDecimal.ZERO,
                 onClick = {
-                    onConfirm(amount!!.setScale(2, RoundingMode.HALF_UP))
+                    val date = runCatching { LocalDate.parse(dateText) }.getOrNull() ?: LocalDate.now()
+                    onConfirm(date, amount!!.setScale(2, RoundingMode.HALF_UP), noteText.ifBlank { null }, currentPeriod, selectedAccountId)
                 },
-            ) {
-                Text(confirmText)
-            }
+            ) { Text("确认存入") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("取消") }
         },
     )
+    
+    if (showDatePicker) {
+        val state = rememberDatePickerState(
+            initialSelectedDateMillis = runCatching { LocalDate.parse(dateText) }.getOrNull()?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    state.selectedDateMillis?.let {
+                        dateText = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toString()
+                    }
+                    showDatePicker = false
+                }) { Text("确定") }
+            },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("取消") } }
+        ) {
+            DatePicker(state)
+        }
+    }
 }
 
 @Composable
@@ -373,18 +496,6 @@ private fun DetailStatCard(
             Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         }
-    }
-}
-
-@Composable
-private fun SuggestionRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, fontWeight = FontWeight.Bold)
     }
 }
 

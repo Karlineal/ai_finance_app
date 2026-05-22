@@ -212,6 +212,7 @@ fun AiFinanceNavHost(
             onNavigateToCreate = { navController.navigateToSavingsGoalCreate() },
             onNavigateToDetail = { goalId -> navController.navigateToSavingsGoalDetail(goalId) },
             onNavigateToEdit = { goalId -> navController.navigateToSavingsGoalEdit(goalId) },
+            onNavigateToAddAccount = { navController.navigate(ADD_ASSET_ACCOUNT_ROUTE) },
             onBack = { navController.popBackStack() }
         )
     }
