@@ -30,3 +30,19 @@ core/model/bin/
 CLAUDE.md
 GITHUB_WORKFLOW.md
 PLAN.md
+
+# Local Claude settings
+.claude/settings.local.json
+
+# Media files (screenshots/recordings should not be tracked)
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# Temporary images in repo root (project resources go in src/main/res/)
+/*.png
+/*.jpg
+/*.jpeg
+/*.gif
+/*.webp
