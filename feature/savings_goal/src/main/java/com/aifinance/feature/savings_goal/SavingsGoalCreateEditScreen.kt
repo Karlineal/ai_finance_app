@@ -266,7 +266,7 @@ fun SavingsGoalCreateEditScreen(
                             text = exampleText,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
 
