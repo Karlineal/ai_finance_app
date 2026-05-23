@@ -929,3 +929,12 @@ private fun formatDateTime(dateTime: LocalDateTime): String {
         dateTime.minute,
     )
 }
+
+private fun accountTypeDisplayName(type: AccountType): String = when (type) {
+    AccountType.CASH -> "现金"
+    AccountType.BANK -> "银行卡"
+    AccountType.CREDIT_CARD -> "信用卡"
+    AccountType.INVESTMENT -> "投资理财"
+    AccountType.DIGITAL_WALLET -> "数字钱包"
+    AccountType.OTHER -> "其他"
+}
