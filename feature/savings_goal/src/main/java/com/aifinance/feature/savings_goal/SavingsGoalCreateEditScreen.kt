@@ -32,8 +32,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import com.aifinance.core.designsystem.theme.SavingsDashedLine
 import com.aifinance.core.designsystem.theme.SavingsDashedLineDark
 import com.aifinance.core.designsystem.theme.SavingsPigBg
@@ -191,21 +191,46 @@ fun SavingsGoalCreateEditScreen(
 
                 val isDarkTheme = isSystemInDarkTheme()
                 Box(modifier = Modifier.fillMaxWidth().height(imageHeight)) {
-                    Image(
-                        painter = painterResource(id = R.drawable.img_savings_header),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer { alpha = if (isDarkTheme) 0.15f else 1f },
-                        contentScale = ContentScale.FillBounds
-                    )
-
-                    // Dark overlay for dark theme
                     if (isDarkTheme) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color(0xF20F172A))
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(Color(0xFF1E3A5F), Color(0xFF0F172A))
+                                    )
+                                )
+                        )
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 48.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "开启「攒钱计划」",
+                                fontSize = 26.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "快乐攒钱 安全无忧",
+                                fontSize = 15.sp,
+                                color = Color(0xFF94A3B8),
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                            Text(
+                                text = "🐷",
+                                fontSize = 56.sp,
+                                modifier = Modifier.padding(top = 16.dp)
+                            )
+                        }
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.img_savings_header),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.FillBounds
                         )
                     }
 
@@ -221,7 +246,7 @@ fun SavingsGoalCreateEditScreen(
                     Column(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .padding(top = imageHeight * 0.53f) // Align with blank space
+                            .padding(top = if (isDarkTheme) imageHeight * 0.42f else imageHeight * 0.53f)
                             .padding(horizontal = 24.dp)
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -240,7 +265,7 @@ fun SavingsGoalCreateEditScreen(
                         Text(
                             text = exampleText,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
 
@@ -581,11 +606,7 @@ private fun MethodCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = when {
-        isSelected -> MaterialTheme.colorScheme.primary
-        isSystemInDarkTheme() -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-        else -> Color.Transparent
-    }
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
     val backgroundColor = if (isSelected)
         if (isSystemInDarkTheme()) SavingsSelectedBgDark else SavingsSelectedBg
     else
@@ -602,7 +623,7 @@ private fun MethodCard(
         color = backgroundColor,
         border = BorderStroke(1.5.dp, borderColor),
         tonalElevation = if (isSelected) 0.dp else 2.dp,
-        shadowElevation = if (isSystemInDarkTheme()) 0.dp else 2.dp
+        shadowElevation = if (isSelected) 0.dp else 2.dp
     ) {
         Box(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
             Column(
