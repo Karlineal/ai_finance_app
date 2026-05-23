@@ -850,7 +850,7 @@ private fun MonthlySummaryCard(
     val spacing = IcokieTheme.spacing
     val elevation = IcokieTheme.elevation
 
-        Row(
+    Row(
             modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(spacing.cardSpacing)
         ) {
