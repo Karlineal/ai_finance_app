@@ -51,7 +51,7 @@ ai-finance-android/
 | **UI** | Jetpack Compose + Material Design 3 |
 | **架构** | MVVM + Repository Pattern + Clean Architecture |
 | **依赖注入** | Hilt |
-| **数据库** | Room (SQLite) |
+| **数据库** | Room v2.6.1 (SQLite), 当前版本 v8 |
 | **网络** | Retrofit 2.9.0 + OkHttp 4.12.0 + Kotlinx Serialization |
 | **导航** | Compose Navigation |
 | **异步** | Kotlin Coroutines + Flow |
@@ -97,6 +97,8 @@ ai-finance-android/
 - **快速分类**：点击分类标签可直接修改分类
 - **长按删除**：长按交易记录可删除
 - **交易类型**：收入、支出、转账
+- **转账记录关联删除**：删除转账记录时自动删除关联的配对记录（转入/转出），并同步更新攒钱计划金额
+- **转账颜色区分**：转出记录显示红色，转入记录显示绿色，增强可读性
 
 ### ⏰ 定时记账
 - **定时规则管理**：创建周期性记账规则
@@ -115,8 +117,19 @@ ai-finance-android/
   - 添加账户：支持多种预设账户类型（储蓄卡、微信、支付宝、信用卡、股票基金等）
   - 编辑账户：点击账户可修改名称、余额、备注等
   - 删除账户：支持删除不再使用的账户
+- **按类型分组展示**：账户按资金账户 / 理财账户 / 信用账户 / 其他分组，每组独立标题与颜色标识
+- **颜色区分**：每个账户卡片使用专属颜色（图标背景 + 左侧彩色竖条），视觉上快速辨识账户类型
 - **负债追踪**：信用卡、花呗、借呗等负债账户管理
 - **净资产实时计算**：资产减去负债，实时计算净资产
+
+### 🎯 攒钱计划
+- **储蓄目标管理**：创建多个攒钱计划（52周存钱法、365天存钱法、12存单法、定额存钱等），设定目标金额与截止日期
+- **自动储蓄计划**：支持按日/周/月定时自动从默认账户扣款存入攒钱计划
+- **专属账户**：每个攒钱计划自动创建专属"小荷包"账户，独立管理资金
+- **进度跟踪**：环形进度条展示完成比例，实时显示已存金额与剩余天数
+- **快捷存入**：一键快速存入预设金额，自动创建转入/转出转账记录
+- **转账关联**：存入/取出自动创建配对转账记录，删除时级联同步
+- **状态管理**：进行中 → 已完成 / 已放弃
 
 ### ⚙️ 设置
 - **主题切换**：支持浅色 / 深色 / 跟随系统三种模式，全局深色模式已适配所有模块
@@ -161,13 +174,6 @@ ai-finance-android/
 - [ ] ☁️ **数据备份/恢复**
 - [ ] 🔒 **本地加密存储**
 - [ ] 🔔 **记账提醒（推送通知）**
-
-### 攒钱计划（开发中）
-- [ ] **储蓄目标管理**：创建多个攒钱计划，设定目标金额与截止日期
-- [ ] **进度跟踪**：环形进度条、每日/每周建议存款、倒计时
-- [ ] **存入/取出操作**：支持快捷金额一键存入，记录每笔操作
-- [ ] **状态管理**：进行中 → 已完成 / 已放弃
-- [ ] **燃尽图**：理想存款线与实际存款折线对比（P1）
 
 ---
 
@@ -260,6 +266,7 @@ data class Transaction(
     val time: Instant,            // 时间
     val isPending: Boolean,       // 是否待确认
     val sourceType: TransactionSourceType,  // 来源（手动/导入/OCR）
+    val linkedTransactionId: UUID?,         // 关联转账记录ID（转入/转出配对）
     // ... AI 相关字段
 )
 ```
@@ -269,9 +276,14 @@ data class Transaction(
 data class Account(
     val id: UUID,
     val name: String,             // 账户名称
-    val type: AccountType,        // 类型（现金/银行卡/信用卡等）
-    val balance: BigDecimal,      // 余额
-    val isAsset: Boolean,         // 是否为资产
+    val type: AccountType,        // 类型（现金/银行卡/信用卡/理财等）
+    val initialBalance: BigDecimal,  // 初始余额
+    val currentBalance: BigDecimal,  // 当前余额
+    val color: Int,               // 账户主题色
+    val icon: String,             // 图标 emoji
+    val note: String?,            // 备注
+    val includeInTotalAssets: Boolean,  // 是否计入总资产
+    val isDefaultIncomeExpense: Boolean, // 是否为默认收支账户
     // ...
 )
 ```
