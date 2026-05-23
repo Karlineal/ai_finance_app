@@ -189,18 +189,19 @@ fun SavingsGoalCreateEditScreen(
                 val screenWidth = configuration.screenWidthDp.dp
                 val imageHeight = screenWidth * (1844f / 853f)
 
+                val isDarkTheme = isSystemInDarkTheme()
                 Box(modifier = Modifier.fillMaxWidth().height(imageHeight)) {
                     Image(
                         painter = painterResource(id = R.drawable.img_savings_header),
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
-                            .graphicsLayer { alpha = if (isSystemInDarkTheme()) 0.15f else 1f },
+                            .graphicsLayer { alpha = if (isDarkTheme) 0.15f else 1f },
                         contentScale = ContentScale.FillBounds
                     )
 
                     // Dark overlay for dark theme
-                    if (isSystemInDarkTheme()) {
+                    if (isDarkTheme) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
