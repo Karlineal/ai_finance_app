@@ -5,6 +5,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 val MIGRATION_6_7 = object : Migration(6, 7) {
     override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE savings_goals ADD COLUMN savingsMethod TEXT NOT NULL DEFAULT 'FLEXIBLE'")
+        db.execSQL("ALTER TABLE savings_goals ADD COLUMN fixedAmount TEXT")
+        db.execSQL("ALTER TABLE savings_goals ADD COLUMN frequency TEXT")
+        db.execSQL("ALTER TABLE savings_goals ADD COLUMN baseAmount TEXT")
+
         db.execSQL(
             """
             CREATE TABLE IF NOT EXISTS savings_records (

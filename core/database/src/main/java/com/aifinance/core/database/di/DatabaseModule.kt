@@ -39,6 +39,7 @@ object DatabaseModule {
             "ai_finance.db"
         )
             .addMigrations(MIGRATION_6_7)
+            .fallbackToDestructiveMigration()
             .addCallback(DatabaseCallback(accountDao, categoryDao, transactionDao, scheduledRuleDao, savingsGoalDao))
             .build()
     }
