@@ -33,6 +33,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import com.aifinance.core.designsystem.theme.SavingsDashedLine
 import com.aifinance.core.designsystem.theme.SavingsDashedLineDark
 import com.aifinance.core.designsystem.theme.SavingsPigBg
@@ -192,7 +193,9 @@ fun SavingsGoalCreateEditScreen(
                     Image(
                         painter = painterResource(id = R.drawable.img_savings_header),
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer { alpha = if (isSystemInDarkTheme()) 0.15f else 1f },
                         contentScale = ContentScale.FillBounds
                     )
 
@@ -201,7 +204,7 @@ fun SavingsGoalCreateEditScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color(0xCC0F172A))
+                                .background(Color(0xF20F172A))
                         )
                     }
 
@@ -236,7 +239,7 @@ fun SavingsGoalCreateEditScreen(
                         Text(
                             text = exampleText,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     }
 
@@ -577,7 +580,11 @@ private fun MethodCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+    val borderColor = when {
+        isSelected -> MaterialTheme.colorScheme.primary
+        isSystemInDarkTheme() -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+        else -> Color.Transparent
+    }
     val backgroundColor = if (isSelected)
         if (isSystemInDarkTheme()) SavingsSelectedBgDark else SavingsSelectedBg
     else
@@ -594,7 +601,7 @@ private fun MethodCard(
         color = backgroundColor,
         border = BorderStroke(1.5.dp, borderColor),
         tonalElevation = if (isSelected) 0.dp else 2.dp,
-        shadowElevation = if (isSelected) 0.dp else 2.dp
+        shadowElevation = if (isSystemInDarkTheme()) 0.dp else 2.dp
     ) {
         Box(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
             Column(
