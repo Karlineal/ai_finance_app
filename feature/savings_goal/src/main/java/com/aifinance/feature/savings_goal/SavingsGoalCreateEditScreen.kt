@@ -32,7 +32,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.aifinance.core.designsystem.theme.SavingsDashedLine
 import com.aifinance.core.designsystem.theme.SavingsDashedLineDark
@@ -189,48 +188,20 @@ fun SavingsGoalCreateEditScreen(
                 val screenWidth = configuration.screenWidthDp.dp
                 val imageHeight = screenWidth * (1844f / 853f)
 
-                val isDarkTheme = isSystemInDarkTheme()
                 Box(modifier = Modifier.fillMaxWidth().height(imageHeight)) {
-                    if (isDarkTheme) {
+                    Image(
+                        painter = painterResource(id = R.drawable.img_savings_header),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.FillBounds
+                    )
+
+                    // Dark overlay for dark theme
+                    if (isSystemInDarkTheme()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(
-                                    Brush.verticalGradient(
-                                        colors = listOf(Color(0xFF1E3A5F), Color(0xFF0F172A))
-                                    )
-                                )
-                        )
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(top = 48.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "开启「攒钱计划」",
-                                fontSize = 26.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "快乐攒钱 安全无忧",
-                                fontSize = 15.sp,
-                                color = Color(0xFF94A3B8),
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-                            Text(
-                                text = "🐷",
-                                fontSize = 56.sp,
-                                modifier = Modifier.padding(top = 16.dp)
-                            )
-                        }
-                    } else {
-                        Image(
-                            painter = painterResource(id = R.drawable.img_savings_header),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillBounds
+                                .background(Color(0xCC0F172A))
                         )
                     }
 
@@ -246,7 +217,7 @@ fun SavingsGoalCreateEditScreen(
                     Column(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .padding(top = if (isDarkTheme) imageHeight * 0.42f else imageHeight * 0.53f)
+                            .padding(top = imageHeight * 0.53f) // Align with blank space
                             .padding(horizontal = 24.dp)
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -264,8 +235,9 @@ fun SavingsGoalCreateEditScreen(
                         }
                         Text(
                             text = exampleText,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
 
