@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -97,6 +99,19 @@ fun AssetManagementScreen(
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
     val summary by viewModel.summary.collectAsStateWithLifecycle()
 
+    val groupedAccounts = remember(accounts) {
+        val groups = listOf(
+            listOf(AccountType.CASH, AccountType.BANK, AccountType.DIGITAL_WALLET) to ("💰 资金账户（资产）" to Color(0xFF2563EB)),
+            listOf(AccountType.INVESTMENT) to ("📈 理财账户（资产）" to Color(0xFFF59E0B)),
+            listOf(AccountType.CREDIT_CARD) to ("💳 信用账户（负债）" to Color(0xFFEF4444)),
+            listOf(AccountType.OTHER) to ("📁 其他" to Color(0xFF9CA3AF)),
+        )
+        groups.mapNotNull { (types, label) ->
+            val filtered = accounts.filter { it.type in types }
+            if (filtered.isEmpty()) null else Triple(label.first, label.second, filtered)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -171,57 +186,84 @@ fun AssetManagementScreen(
                 }
             }
 
-            items(accounts, key = { it.id }) { account ->
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.clickable { onAccountClick(account.id) }
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+            groupedAccounts.forEachIndexed { groupIndex, (title, titleColor, groupAccounts) ->
+                item(key = "group_header_$title") {
+                    Text(
+                        text = title,
+                        style = IcokieTextStyles.titleMedium,
+                        color = titleColor,
+                        modifier = Modifier.padding(
+                            top = if (groupIndex == 0) 0.dp else 8.dp,
+                            bottom = 4.dp,
+                        ),
+                    )
+                }
+                items(groupAccounts, key = { it.id }) { account ->
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.clickable { onAccountClick(account.id) },
                     ) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min),
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center,
+                                    .width(4.dp)
+                                    .fillMaxHeight()
+                                    .background(Color(account.color)),
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Text(account.icon)
-                            }
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    if (account.isDefaultIncomeExpense) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .clip(CircleShape)
+                                            .background(Color(account.color).copy(alpha = 0.14f)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text(account.icon)
+                                    }
+                                    Column {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            if (account.isDefaultIncomeExpense) {
+                                                Text(
+                                                    text = "默认",
+                                                    style = IcokieTextStyles.labelSmall,
+                                                    color = BrandPrimary,
+                                                    modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                                                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                                                )
+                                            }
+                                            Text(account.name, style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                                        }
                                         Text(
-                                            text = "默认",
+                                            text = account.note.takeUnless { it.isNullOrBlank() } ?: accountTypeDisplayName(account.type),
                                             style = IcokieTextStyles.labelSmall,
-                                            color = BrandPrimary,
-                                            modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
-                                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
-                                    Text(account.name, style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                                 }
                                 Text(
-                                    text = account.note.takeUnless { it.isNullOrBlank() } ?: account.type.toDisplayName(),
-                                    style = IcokieTextStyles.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    text = "¥${account.currentBalance.setScale(2, RoundingMode.HALF_UP).toPlainString()}",
+                                    style = IcokieTextStyles.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                         }
-                        Text(
-                            text = "¥${account.currentBalance.setScale(2, RoundingMode.HALF_UP).toPlainString()}",
-                            style = IcokieTextStyles.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
                     }
                 }
             }
@@ -875,17 +917,6 @@ private fun SwitchRow(
             Text(text = subtitle, style = IcokieTextStyles.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
-
-private fun AccountType.toDisplayName(): String {
-    return when (this) {
-        AccountType.CASH -> "现金"
-        AccountType.BANK -> "储蓄卡"
-        AccountType.CREDIT_CARD -> "信用账户"
-        AccountType.INVESTMENT -> "理财账户"
-        AccountType.DIGITAL_WALLET -> "数字钱包"
-        AccountType.OTHER -> "其他"
     }
 }
 

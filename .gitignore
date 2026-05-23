@@ -32,7 +32,7 @@ GITHUB_WORKFLOW.md
 PLAN.md
 
 # Local Claude settings
-.claude/settings.local.json
+.claude/
 
 # Media files (screenshots/recordings should not be tracked)
 *.mp4
