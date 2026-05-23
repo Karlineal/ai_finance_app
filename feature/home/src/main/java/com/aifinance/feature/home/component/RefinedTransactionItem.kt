@@ -239,8 +239,8 @@ private fun Transaction.resolveRefinedVisual(customCategory: Category? = null): 
             amount = MaterialTheme.colorScheme.tertiary
         )
         TransactionType.TRANSFER -> {
-            val amountColor = if (title.startsWith("转出至")) {
-                MaterialTheme.colorScheme.secondary
+            val amountColor = if (title.startsWith("转出")) {
+                MaterialTheme.colorScheme.error
             } else {
                 MaterialTheme.colorScheme.tertiary
             }
@@ -273,9 +273,9 @@ private fun Transaction.prettyAmount(): String {
         TransactionType.INCOME -> "+¥$value"
         TransactionType.EXPENSE -> "-¥$value"
         TransactionType.TRANSFER -> {
-            if (title.startsWith("转出至")) {
+            if (title.startsWith("转出")) {
                 "-¥$value"
-            } else if (title.startsWith("转入自")) {
+            } else if (title.startsWith("转入")) {
                 "+¥$value"
             } else {
                 "¥$value"

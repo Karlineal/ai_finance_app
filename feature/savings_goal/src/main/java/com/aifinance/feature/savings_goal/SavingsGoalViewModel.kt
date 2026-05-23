@@ -139,6 +139,27 @@ class SavingsGoalViewModel @Inject constructor(
         }
     }
 
+    fun quickSave(goalId: UUID, amount: BigDecimal) {
+        viewModelScope.launch {
+            val defaultAccount = accountRepository.getActiveAccounts().firstOrNull()
+                ?.firstOrNull { it.isDefaultIncomeExpense }
+                ?: accountRepository.getActiveAccounts().firstOrNull()
+                ?.firstOrNull { it.type == AccountType.CASH || it.type == AccountType.BANK }
+
+            val record = SavingsRecord(
+                id = UUID.randomUUID(),
+                savingsGoalId = goalId,
+                amount = amount,
+                date = LocalDate.now(),
+                note = "快速存入",
+                periodIndex = 0,
+                createdAt = Instant.now()
+            )
+
+            addRecord(record, defaultAccount?.id)
+        }
+    }
+
     fun updateStatus(id: UUID, status: SavingsGoalStatus) {
         viewModelScope.launch {
             savingsGoalRepository.updateStatus(id, status)
@@ -160,6 +181,8 @@ class SavingsGoalViewModel @Inject constructor(
                     val now = Instant.now()
                     val today = LocalDate.now()
                     
+                    val pairId = UUID.randomUUID()
+
                     val txOut = Transaction(
                         id = UUID.randomUUID(),
                         accountId = sourceAccountId,
@@ -170,9 +193,10 @@ class SavingsGoalViewModel @Inject constructor(
                         title = "转出-攒钱小荷包",
                         description = "攒钱计划：${goal.name} 打卡",
                         date = today,
-                        time = now
+                        time = now,
+                        linkedTransactionId = pairId
                     )
-                    
+
                     val txIn = Transaction(
                         id = UUID.randomUUID(),
                         accountId = targetAccountId,
@@ -183,9 +207,10 @@ class SavingsGoalViewModel @Inject constructor(
                         title = "转入-攒钱小荷包",
                         description = "攒钱计划：${goal.name} 打卡",
                         date = today,
-                        time = now
+                        time = now,
+                        linkedTransactionId = pairId
                     )
-                    
+
                     transactionRepository.insertTransaction(txOut)
                     transactionRepository.insertTransaction(txIn)
                 }
@@ -196,6 +221,12 @@ class SavingsGoalViewModel @Inject constructor(
     fun deleteRecord(record: SavingsRecord) {
         viewModelScope.launch {
             savingsGoalRepository.deleteRecord(record)
+
+            val goal = savingsGoalRepository.getGoalById(record.savingsGoalId).firstOrNull()
+            if (goal != null) {
+                val description = "攒钱计划：${goal.name} 打卡"
+                transactionRepository.deleteTransfersByDescription(record.date, description)
+            }
         }
     }
 }

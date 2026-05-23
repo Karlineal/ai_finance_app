@@ -95,7 +95,7 @@ fun SavingsGoalListScreen(
                         goal = goal,
                         onClick = { onNavigateToDetail(goal.id.toString()) },
                         onQuickAmount = { amount ->
-                            viewModel.adjustSavedAmount(goal.id, BigDecimal(amount))
+                            viewModel.quickSave(goal.id, BigDecimal(amount))
                         },
                     )
                 }

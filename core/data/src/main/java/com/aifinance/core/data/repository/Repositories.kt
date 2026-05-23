@@ -14,6 +14,8 @@ interface TransactionRepository {
     suspend fun insertTransaction(transaction: Transaction)
     suspend fun updateTransaction(transaction: Transaction)
     suspend fun deleteTransaction(transaction: Transaction)
+    suspend fun deleteTransactionWithLinked(transaction: Transaction)
+    suspend fun deleteTransfersByDescription(date: java.time.LocalDate, description: String?)
     suspend fun clearAllTransactionHistory()
 }
 

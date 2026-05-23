@@ -30,6 +30,7 @@ data class Transaction(
     val ocrSourceId: UUID? = null,
     val paymentMethod: String? = null,
     val paymentAccount: String? = null,
+    val linkedTransactionId: UUID? = null,
 )
 
 enum class TransactionType {

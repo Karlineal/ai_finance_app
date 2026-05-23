@@ -25,6 +25,9 @@ interface SavingsGoalDao {
     @Query("SELECT * FROM savings_goals WHERE accountId = :accountId ORDER BY createdAt DESC")
     fun getSavingsGoalsByAccount(accountId: UUID): Flow<List<SavingsGoalEntity>>
 
+    @Query("SELECT * FROM savings_goals WHERE accountId = :accountId LIMIT 1")
+    suspend fun getGoalByAccountId(accountId: UUID): SavingsGoalEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSavingsGoal(goal: SavingsGoalEntity)
 

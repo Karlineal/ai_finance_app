@@ -19,4 +19,6 @@ interface SavingsGoalRepository {
     fun getRecordsByGoalId(goalId: UUID): Flow<List<SavingsRecord>>
     suspend fun addRecord(record: SavingsRecord)
     suspend fun deleteRecord(record: SavingsRecord)
+    suspend fun getGoalByAccountId(accountId: UUID): SavingsGoal?
+    suspend fun deleteRecordByGoalDateAmount(savingsGoalId: UUID, date: java.time.LocalDate, amount: BigDecimal)
 }

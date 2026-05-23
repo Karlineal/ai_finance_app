@@ -196,6 +196,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun deleteTransactionWithLinked(transaction: Transaction) {
+        viewModelScope.launch {
+            transactionRepository.deleteTransactionWithLinked(transaction)
+        }
+    }
+
     fun updateTransactionCategory(
         transaction: Transaction,
         categoryId: UUID,

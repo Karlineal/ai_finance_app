@@ -25,7 +25,7 @@ import com.aifinance.core.database.entity.TransactionEntity
         SavingsGoalEntity::class,
         SavingsRecordEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

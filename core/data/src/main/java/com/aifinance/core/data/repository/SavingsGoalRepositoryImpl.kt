@@ -77,4 +77,16 @@ class SavingsGoalRepositoryImpl @Inject constructor(
         savingsRecordDao.deleteRecord(record.toEntity())
         savingsGoalDao.updateCurrentAmountProgress(record.savingsGoalId, record.amount.negate(), Instant.now())
     }
+
+    override suspend fun getGoalByAccountId(accountId: UUID): SavingsGoal? {
+        return savingsGoalDao.getGoalByAccountId(accountId)?.toDomain()
+    }
+
+    override suspend fun deleteRecordByGoalDateAmount(savingsGoalId: UUID, date: java.time.LocalDate, amount: BigDecimal) {
+        val record = savingsRecordDao.getRecordByGoalDateAmount(savingsGoalId, date, amount)
+        if (record != null) {
+            savingsRecordDao.deleteRecord(record)
+            savingsGoalDao.updateCurrentAmountProgress(savingsGoalId, record.amount.negate(), Instant.now())
+        }
+    }
 }

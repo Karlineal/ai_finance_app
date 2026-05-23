@@ -10,6 +10,7 @@ import com.aifinance.core.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
+import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,6 +19,7 @@ import javax.inject.Singleton
 class TransactionRepositoryImpl @Inject constructor(
     private val transactionDao: TransactionDao,
     private val accountDao: AccountDao,
+    private val savingsGoalRepository: SavingsGoalRepository,
 ) : TransactionRepository {
 
     override fun getAllTransactions(): Flow<List<Transaction>> {
@@ -70,6 +72,61 @@ class TransactionRepositoryImpl @Inject constructor(
         val existing = transactionDao.getTransactionById(transaction.id)?.toDomain() ?: transaction
         transactionDao.delete(existing.toEntity())
         applyBalanceImpact(existing, direction = -1)
+    }
+
+    override suspend fun deleteTransactionWithLinked(transaction: Transaction) {
+        val existing = transactionDao.getTransactionById(transaction.id)?.toDomain() ?: transaction
+        val linkedId = existing.linkedTransactionId
+
+        // Detect savings-goal transfer before deletion for cascade cleanup
+        val isSavingsGoalTransfer = existing.title.contains("攒钱小荷包") ||
+            existing.description?.contains("攒钱计划") == true
+
+        // Delete the primary transaction
+        transactionDao.delete(existing.toEntity())
+        applyBalanceImpact(existing, direction = -1)
+
+        // Delete the linked paired transaction if exists
+        val linkedTx = if (linkedId != null) {
+            transactionDao.getTransactionByLinkedId(linkedId, existing.id)?.toDomain()
+        } else {
+            // Fallback for old data without linkedTransactionId: match by date/amount/description
+            transactionDao.findLinkedTransfer(
+                date = existing.date,
+                amount = existing.amount.toPlainString(),
+                description = existing.description,
+                excludeId = existing.id
+            )?.toDomain()
+        }
+
+        if (linkedTx != null) {
+            transactionDao.delete(linkedTx.toEntity())
+            applyBalanceImpact(linkedTx, direction = -1)
+        }
+
+        // Reverse cascade: delete the corresponding SavingsRecord
+        if (isSavingsGoalTransfer) {
+            val goalAccountId = when {
+                existing.title.startsWith("转入") -> existing.accountId
+                linkedTx?.title?.startsWith("转入") == true -> linkedTx.accountId
+                else -> existing.accountId
+            }
+            val goal = savingsGoalRepository.getGoalByAccountId(goalAccountId)
+            if (goal != null) {
+                savingsGoalRepository.deleteRecordByGoalDateAmount(
+                    savingsGoalId = goal.id,
+                    date = existing.date,
+                    amount = existing.amount
+                )
+            }
+        }
+    }
+
+    override suspend fun deleteTransfersByDescription(date: java.time.LocalDate, description: String?) {
+        val transfers = transactionDao.getTransfersByDescription(date, description)
+        transfers.forEach { tx ->
+            deleteTransaction(tx.toDomain())
+        }
     }
 
     override suspend fun clearAllTransactionHistory() {
@@ -135,6 +192,7 @@ private fun TransactionEntity.toDomain(): Transaction {
         ocrSourceId = ocrSourceId,
         paymentMethod = paymentMethod,
         paymentAccount = paymentAccount,
+        linkedTransactionId = linkedTransactionId,
     )
 }
 
@@ -163,5 +221,6 @@ private fun Transaction.toEntity(): TransactionEntity {
         ocrSourceId = ocrSourceId,
         paymentMethod = paymentMethod,
         paymentAccount = paymentAccount,
+        linkedTransactionId = linkedTransactionId,
     )
 }

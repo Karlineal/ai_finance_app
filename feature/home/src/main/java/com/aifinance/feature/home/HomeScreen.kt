@@ -343,6 +343,7 @@ fun RecordHomeContent(
         }
 
         pendingDeleteTransaction?.let { transaction ->
+            val isLinkedTransfer = transaction.type == com.aifinance.core.model.TransactionType.TRANSFER && transaction.linkedTransactionId != null
             AlertDialog(
                 onDismissRequest = { pendingDeleteTransaction = null },
                 title = {
@@ -353,7 +354,11 @@ fun RecordHomeContent(
                 },
                 text = {
                     Text(
-                        text = "确认删除这条账单记录吗？",
+                        text = if (isLinkedTransfer) {
+                            "该记录是攒钱计划转账记录，确认删除将同时删除关联的转入/转出记录。"
+                        } else {
+                            "确认删除这条账单记录吗？"
+                        },
                         style = IcokieTextStyles.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -361,7 +366,11 @@ fun RecordHomeContent(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            viewModel.deleteTransaction(transaction)
+                            if (isLinkedTransfer) {
+                                viewModel.deleteTransactionWithLinked(transaction)
+                            } else {
+                                viewModel.deleteTransaction(transaction)
+                            }
                             pendingDeleteTransaction = null
                             transientSuccessMessage = "删除成功"
                         }

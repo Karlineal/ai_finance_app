@@ -18,4 +18,7 @@ interface SavingsRecordDao {
 
     @Query("SELECT COUNT(*) FROM savings_records WHERE savingsGoalId = :goalId")
     suspend fun getRecordCountByGoalId(goalId: UUID): Int
+
+    @Query("SELECT * FROM savings_records WHERE savingsGoalId = :goalId AND date = :date AND amount = :amount LIMIT 1")
+    suspend fun getRecordByGoalDateAmount(goalId: UUID, date: java.time.LocalDate, amount: java.math.BigDecimal): SavingsRecordEntity?
 }

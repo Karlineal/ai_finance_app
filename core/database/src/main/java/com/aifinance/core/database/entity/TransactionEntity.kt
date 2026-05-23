@@ -33,4 +33,5 @@ data class TransactionEntity(
     val ocrSourceId: UUID?,
     val paymentMethod: String? = null,
     val paymentAccount: String? = null,
+    val linkedTransactionId: UUID? = null,
 )
