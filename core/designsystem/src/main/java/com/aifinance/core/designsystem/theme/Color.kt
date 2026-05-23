@@ -103,3 +103,21 @@ val DarkSurface = Color(0xFF1E293B)
 val DarkSurfaceVariant = Color(0xFF334155)
 val DarkCardBackground = Color(0xFF1E293B)
 val DarkCardBorder = Color(0xFF334155)
+
+// Savings Goal 专用语义颜色 — 浅色主题
+val SavingsSelectedBg = Color(0xFFF3F8FF)
+val SavingsSummaryBg = Color(0xFFF4F6FB)
+val SavingsPigBg = Color(0xFFE6F0FD)
+val SavingsPigBorder = Color(0xFFD4E4FC)
+val SavingsFormBg = Color(0xFFFFFFFF)
+val SavingsSwitchTrack = Color(0xFFABC2FA)
+val SavingsDashedLine = Color(0xFFE5E7EB)
+
+// Savings Goal 专用语义颜色 — 深色主题
+val SavingsSelectedBgDark = Color(0xFF1E3A5F)
+val SavingsSummaryBgDark = Color(0xFF1E293B)
+val SavingsPigBgDark = Color(0xFF1E3A5F)
+val SavingsPigBorderDark = Color(0xFF334155)
+val SavingsFormBgDark = Color(0xFF1E293B)
+val SavingsSwitchTrackDark = Color(0xFF3B5998)
+val SavingsDashedLineDark = Color(0xFF475569)

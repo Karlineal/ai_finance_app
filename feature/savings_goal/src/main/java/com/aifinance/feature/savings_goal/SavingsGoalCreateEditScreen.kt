@@ -13,6 +13,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -32,6 +33,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.aifinance.core.designsystem.theme.SavingsDashedLine
+import com.aifinance.core.designsystem.theme.SavingsDashedLineDark
+import com.aifinance.core.designsystem.theme.SavingsPigBg
+import com.aifinance.core.designsystem.theme.SavingsPigBgDark
+import com.aifinance.core.designsystem.theme.SavingsPigBorder
+import com.aifinance.core.designsystem.theme.SavingsPigBorderDark
+import com.aifinance.core.designsystem.theme.SavingsSelectedBg
+import com.aifinance.core.designsystem.theme.SavingsSelectedBgDark
+import com.aifinance.core.designsystem.theme.SavingsSummaryBg
+import com.aifinance.core.designsystem.theme.SavingsSummaryBgDark
+import com.aifinance.core.designsystem.theme.SavingsSwitchTrack
+import com.aifinance.core.designsystem.theme.SavingsSwitchTrackDark
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -168,7 +181,7 @@ fun SavingsGoalCreateEditScreen(
             Box(
                 modifier = modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF3F5F9))
+                    .background(MaterialTheme.colorScheme.background)
                     .verticalScroll(rememberScrollState())
             ) {
                 val configuration = LocalConfiguration.current
@@ -182,6 +195,15 @@ fun SavingsGoalCreateEditScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.FillBounds
                     )
+
+                    // Dark overlay for dark theme
+                    if (isSystemInDarkTheme()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0xCC0F172A))
+                        )
+                    }
 
                     // Invisible clickable back button over the image's back icon
                     Box(
@@ -227,7 +249,7 @@ fun SavingsGoalCreateEditScreen(
                             .fillMaxWidth(0.85f)
                             .height(52.dp),
                         shape = RoundedCornerShape(26.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                     ) {
                         Text("去存钱", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
@@ -249,10 +271,10 @@ fun SavingsGoalCreateEditScreen(
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                             }
                         },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF4F6F9)),
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
                     )
                 },
-                containerColor = Color(0xFFF4F6F9),
+                containerColor = MaterialTheme.colorScheme.background,
             ) { innerPadding ->
                 Column(
                     modifier = Modifier
@@ -266,7 +288,7 @@ fun SavingsGoalCreateEditScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth().padding(top = 28.dp),
                             shape = RoundedCornerShape(20.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                         ) {
                             Column(Modifier.padding(horizontal = 20.dp, vertical = 24.dp)) {
@@ -289,21 +311,22 @@ fun SavingsGoalCreateEditScreen(
                                         ),
                                         decorationBox = { innerTextField ->
                                             if (name.isEmpty()) {
-                                                Text("请输入计划名称", color = Color.Gray, fontSize = 18.sp)
+                                                Text("请输入计划名称", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 18.sp)
                                             }
                                             innerTextField()
                                         },
                                         modifier = Modifier.width(IntrinsicSize.Min)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Icon(Icons.Default.Edit, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                                 }
 
                                 Spacer(modifier = Modifier.height(24.dp))
                                 // Dashed line
+                                val dashedLineColor = if (isSystemInDarkTheme()) SavingsDashedLineDark else SavingsDashedLine
                                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxWidth().height(1.dp)) {
                                     drawLine(
-                                        color = Color(0xFFE5E7EB),
+                                        color = dashedLineColor,
                                         start = androidx.compose.ui.geometry.Offset(0f, 0f),
                                         end = androidx.compose.ui.geometry.Offset(size.width, 0f),
                                         pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
@@ -353,7 +376,7 @@ fun SavingsGoalCreateEditScreen(
                                     Switch(
                                         checked = isAutoDeduct,
                                         onCheckedChange = { isAutoDeduct = it },
-                                        colors = SwitchDefaults.colors(checkedTrackColor = Color(0xFFABC2FA))
+                                        colors = SwitchDefaults.colors(checkedTrackColor = if (isSystemInDarkTheme()) SavingsSwitchTrackDark else SavingsSwitchTrack)
                                     )
                                 }
 
@@ -369,11 +392,11 @@ fun SavingsGoalCreateEditScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(Color(0xFFF4F6FB), RoundedCornerShape(12.dp))
+                                        .background(if (isSystemInDarkTheme()) SavingsSummaryBgDark else SavingsSummaryBg, RoundedCornerShape(12.dp))
                                         .padding(vertical = 12.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(exampleText, fontSize = 13.sp, color = Color(0xFF4B5563))
+                                    Text(exampleText, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -383,8 +406,8 @@ fun SavingsGoalCreateEditScreen(
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
                                 .size(56.dp)
-                                .background(Color(0xFFE6F0FD), CircleShape)
-                                .border(1.dp, Color(0xFFD4E4FC), CircleShape),
+                                .background(if (isSystemInDarkTheme()) SavingsPigBgDark else SavingsPigBg, CircleShape)
+                                .border(1.dp, if (isSystemInDarkTheme()) SavingsPigBorderDark else SavingsPigBorder, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text("🐷", fontSize = 28.sp)
@@ -403,12 +426,12 @@ fun SavingsGoalCreateEditScreen(
                             Icon(
                                 imageVector = if (agreedToTerms) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
                                 contentDescription = null,
-                                tint = if (agreedToTerms) Color.Gray else Color.LightGray,
+                                tint = if (agreedToTerms) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outline,
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("我已阅读并同意", fontSize = 12.sp, color = Color.Gray)
-                            Text("《攒钱计划服务协议》", fontSize = 12.sp, color = Color.DarkGray)
+                            Text("我已阅读并同意", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("《攒钱计划服务协议》", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
                         }
                         
                         Spacer(modifier = Modifier.height(16.dp))
@@ -450,8 +473,8 @@ fun SavingsGoalCreateEditScreen(
                             modifier = Modifier.fillMaxWidth().height(52.dp),
                             shape = RoundedCornerShape(26.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFABC2FA),
-                                disabledContainerColor = Color(0xFFD6E0FB)
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                disabledContainerColor = MaterialTheme.colorScheme.outlineVariant
                             ),
                             enabled = name.isNotBlank() && targetAmount.toBigDecimalOrNull()?.let { it > BigDecimal.ZERO } == true && agreedToTerms
                         ) {
@@ -506,9 +529,9 @@ private fun FormRow(label: String, value: String, onClick: () -> Unit) {
     ) {
         Text(label, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
         Spacer(modifier = Modifier.weight(1f))
-        Text(value, fontSize = 15.sp, color = Color.Gray)
+        Text(value, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.width(4.dp))
-        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(16.dp))
+        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
     }
 }
 
@@ -554,10 +577,16 @@ private fun MethodCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = if (isSelected) Color(0xFF2563EB) else Color.Transparent
-    val backgroundColor = if (isSelected) Color(0xFFF3F8FF) else Color.White
-    val titleColor = if (isSelected) Color(0xFF2563EB) else MaterialTheme.colorScheme.onSurface
-    val subtitleColor = if (isSelected) Color(0xFF6082B6) else MaterialTheme.colorScheme.onSurfaceVariant
+    val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+    val backgroundColor = if (isSelected)
+        if (isSystemInDarkTheme()) SavingsSelectedBgDark else SavingsSelectedBg
+    else
+        MaterialTheme.colorScheme.surface
+    val titleColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+    val subtitleColor = if (isSelected)
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+    else
+        MaterialTheme.colorScheme.onSurfaceVariant
 
     Surface(
         modifier = modifier.clickable(onClick = onClick),
@@ -590,7 +619,7 @@ private fun MethodCard(
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Selected",
-                    tint = Color(0xFF2563EB),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.TopEnd).size(18.dp)
                 )
             } else {
@@ -598,7 +627,7 @@ private fun MethodCard(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .size(18.dp)
-                        .border(1.dp, Color.LightGray, CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
                 )
             }
         }
