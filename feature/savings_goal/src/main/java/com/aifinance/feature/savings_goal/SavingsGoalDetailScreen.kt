@@ -115,6 +115,7 @@ private fun GoalDetailContent(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showCheckInDialog by remember { mutableStateOf(false) }
+    var checkInPeriod by remember { mutableStateOf<Int?>(null) }
     
     val progress = SavingsGoalCalculator.calculateProgress(goal.currentAmount, goal.targetAmount)
     val remaining = goal.targetAmount.subtract(goal.currentAmount).coerceAtLeast(BigDecimal.ZERO)
@@ -189,7 +190,10 @@ private fun GoalDetailContent(
 
         if (goal.status == SavingsGoalStatus.ACTIVE) {
             Button(
-                onClick = { showCheckInDialog = true },
+                onClick = {
+                    checkInPeriod = null
+                    showCheckInDialog = true
+                },
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(16.dp)
             ) {
@@ -217,6 +221,17 @@ private fun GoalDetailContent(
             Button(onClick = onReactivate, modifier = Modifier.fillMaxWidth()) {
                 Text("重新启用")
             }
+        }
+
+        if (goal.savingsMethod == SavingsMethod.DAILY_365 || goal.savingsMethod == SavingsMethod.WEEKLY_52) {
+            SavingsRecordSection(
+                goal = goal,
+                records = records,
+                onPeriodClick = { period ->
+                    checkInPeriod = period
+                    showCheckInDialog = true
+                },
+            )
         }
 
         if (records.isNotEmpty()) {
@@ -277,7 +292,12 @@ private fun GoalDetailContent(
         CheckInDialog(
             goal = goal,
             accounts = accounts,
-            onDismiss = { showCheckInDialog = false },
+            initialPeriod = checkInPeriod,
+            completedPeriods = records.map { it.periodIndex }.toSet(),
+            onDismiss = {
+                showCheckInDialog = false
+                checkInPeriod = null
+            },
             onConfirm = { date, amount, note, period, sourceAccountId ->
                 val record = SavingsRecord(
                     id = UUID.randomUUID(),
@@ -290,6 +310,7 @@ private fun GoalDetailContent(
                 )
                 onAddRecord(record, sourceAccountId)
                 showCheckInDialog = false
+                checkInPeriod = null
             }
         )
     }
@@ -343,6 +364,8 @@ private fun RecordItem(record: SavingsRecord, onDelete: () -> Unit) {
 private fun CheckInDialog(
     goal: SavingsGoal,
     accounts: List<Account>,
+    initialPeriod: Int? = null,
+    completedPeriods: Set<Int> = emptySet(),
     onDismiss: () -> Unit,
     onConfirm: (LocalDate, BigDecimal, String?, Int, UUID?) -> Unit,
 ) {
@@ -351,14 +374,15 @@ private fun CheckInDialog(
     var showDatePicker by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
     
-    // Filter available source accounts (typically funds, excluding piggy bank itself or liabilities if strictly needed, but let's just show active non-liability accounts)
     val availableAccounts = accounts.filter { it.id != goal.accountId && (it.type == AccountType.BANK || it.type == AccountType.DIGITAL_WALLET || it.type == AccountType.CASH || it.type == AccountType.INVESTMENT) }
     var selectedAccountId by remember { mutableStateOf(availableAccounts.firstOrNull()?.id) }
     val selectedAccount = availableAccounts.find { it.id == selectedAccountId }
 
-    val currentPeriod = remember(dateText) {
-        SavingsGoalCalculator.getCurrentPeriodIndex(goal.startDate, goal.savingsMethod, goal.frequency)
+    val currentPeriod = remember(dateText, initialPeriod) {
+        initialPeriod ?: SavingsGoalCalculator.getCurrentPeriodIndex(goal.startDate, goal.savingsMethod, goal.frequency)
     }
+
+    val periodAlreadySaved = currentPeriod in completedPeriods
     
     val defaultAmount = remember(currentPeriod, goal) {
         when (goal.savingsMethod) {
@@ -370,7 +394,7 @@ private fun CheckInDialog(
         }
     }
     
-    var amountText by remember { mutableStateOf(if (defaultAmount > BigDecimal.ZERO) defaultAmount.stripTrailingZeros().toPlainString() else "") }
+    var amountText by remember(currentPeriod) { mutableStateOf(if (defaultAmount > BigDecimal.ZERO) defaultAmount.stripTrailingZeros().toPlainString() else "") }
     
     val amount = amountText.toBigDecimalOrNull()
     val amountError = amountText.isNotBlank() && (amount == null || amount <= BigDecimal.ZERO)
@@ -380,6 +404,21 @@ private fun CheckInDialog(
         title = { Text("打卡存入 (第${currentPeriod}期)") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (periodAlreadySaved) {
+                    Text(
+                        "该期已存入，重复存入将追加一笔记录。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                if (initialPeriod != null && (goal.savingsMethod == SavingsMethod.DAILY_365 || goal.savingsMethod == SavingsMethod.WEEKLY_52)) {
+                    Text(
+                        "本期应存 ¥${formatMoney(defaultAmount)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
                 OutlinedTextField(
                     value = dateText,
                     onValueChange = {},
