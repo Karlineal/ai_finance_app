@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -83,7 +86,7 @@ fun SavingsRecordSection(
         SavingsMethod.WEEKLY_52 -> 52
         else -> return
     }
-    val completedPeriods = records.map { it.periodIndex }.toSet()
+    val completedPeriods = remember(records) { records.map { it.periodIndex }.toSet() }
     val completedCount = (1..totalPeriods).count { it in completedPeriods }
 
     var viewMode by rememberSaveable { mutableStateOf(SavingsRecordViewMode.CHECK_IN) }
@@ -147,7 +150,7 @@ fun SavingsRecordSection(
                     Box(
                         modifier = Modifier
                             .size(8.dp)
-                            .background(Color(0xFFFF9800), RoundedCornerShape(4.dp)),
+                            .background(MaterialTheme.colorScheme.tertiary, RoundedCornerShape(4.dp)),
                     )
                     Text(
                         text = "$completedCount / $totalPeriods",
@@ -212,7 +215,8 @@ private fun CheckInCardListView(
         columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxWidth()
-            .height(520.dp),
+            .heightIn(min = 520.dp, max = 4000.dp)
+            .wrapContentHeight(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -246,7 +250,7 @@ private fun CheckInPeriodCard(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(12.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
                 .padding(horizontal = 12.dp, vertical = 10.dp),
         ) {
             Column(
@@ -275,7 +279,7 @@ private fun CheckInPeriodCard(
                     )
                     .border(
                         width = 1.5.dp,
-                        color = if (isCompleted) MaterialTheme.colorScheme.primary else Color(0xFFCBD5E1),
+                        color = if (isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                         shape = CircleShape,
                     ),
                 contentAlignment = Alignment.Center,
@@ -301,7 +305,7 @@ private fun ColoringShapeView(
     completedPeriods: Set<Int>,
     onPeriodClick: (Int) -> Unit,
 ) {
-    val layout = SavingsPixelShapes.layoutFor(shape, totalPeriods)
+    val layout = remember(shape, totalPeriods) { SavingsPixelShapes.layoutFor(shape, totalPeriods) }
     val cellSize = 30.dp
     val gap = 2.dp
     val gridWidth = cellSize * layout.width + gap * (layout.width - 1)
@@ -316,7 +320,7 @@ private fun ColoringShapeView(
                 .fillMaxWidth()
                 .height(420.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFF1F5F9)),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
         ) {
             val density = LocalDensity.current
             val gridWidthPx = with(density) { gridWidth.toPx() }
@@ -491,7 +495,7 @@ private fun ColoringEndTile(
     val backgroundColor = when {
         isCompleted -> MaterialTheme.colorScheme.primary
         onClick != null -> Color.White
-        else -> Color(0xFFE8EEF7)
+        else -> MaterialTheme.colorScheme.surface
     }
     val textColor = when {
         isCompleted -> Color.White
@@ -503,7 +507,7 @@ private fun ColoringEndTile(
         modifier = modifier
             .clip(RoundedCornerShape(5.dp))
             .background(backgroundColor)
-            .border(0.5.dp, Color(0xFFDCE3ED), RoundedCornerShape(5.dp))
+            .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(5.dp))
             .then(
                 if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
             ),
@@ -540,7 +544,7 @@ private fun ColoringPeriodTile(
         modifier = modifier
             .clip(RoundedCornerShape(5.dp))
             .background(backgroundColor)
-            .border(0.5.dp, Color(0xFFDCE3ED), RoundedCornerShape(5.dp))
+            .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(5.dp))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {

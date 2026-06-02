@@ -223,7 +223,8 @@ private fun GoalDetailContent(
             }
         }
 
-        if (goal.savingsMethod == SavingsMethod.DAILY_365 || goal.savingsMethod == SavingsMethod.WEEKLY_52) {
+        if ((goal.savingsMethod == SavingsMethod.DAILY_365 || goal.savingsMethod == SavingsMethod.WEEKLY_52)
+            && goal.status == SavingsGoalStatus.ACTIVE) {
             SavingsRecordSection(
                 goal = goal,
                 records = records,
@@ -293,7 +294,7 @@ private fun GoalDetailContent(
             goal = goal,
             accounts = accounts,
             initialPeriod = checkInPeriod,
-            completedPeriods = records.map { it.periodIndex }.toSet(),
+            completedPeriods = remember(records) { records.map { it.periodIndex }.toSet() },
             onDismiss = {
                 showCheckInDialog = false
                 checkInPeriod = null
