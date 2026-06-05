@@ -89,7 +89,8 @@ object SavingsPixelShapes {
                 val xx = x * x
                 val yy = y * y
                 val a = xx + yy - 1f
-                if (a * a * a <= xx * y * y * y) count++
+                // 用 y² 替代 y³，使心形在 y<0 时也存在（完整覆盖网格高度）
+                if (a * a * a <= xx * yy * yy) count++
             }
         }
         return count
@@ -113,7 +114,7 @@ object SavingsPixelShapes {
                 val xx = x * x
                 val yy = y * y
                 val a = xx + yy - 1f
-                if (a * a * a <= xx * y * y * y) {
+                if (a * a * a <= xx * yy * yy) {
                     slots += row to col
                 }
             }
