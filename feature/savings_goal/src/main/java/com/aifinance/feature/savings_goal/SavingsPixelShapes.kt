@@ -1,20 +1,5 @@
 package com.aifinance.feature.savings_goal
 
-/**
- * 与 HTML 参考一致的行定义：left 方块 + gap 空白 + right 方块，在 maxWidth 列网格中居中。
- */
-data class RowDef(
-    val left: Int,
-    val gap: Int = 0,
-    val right: Int = 0,
-    val isEndRow: Boolean = false,
-)
-
-enum class SavingsColoringShape {
-    HEART,
-    /** 365 天：小狗 | 52 周：小木屋 */
-    ALT,
-}
 
 data class PixelCell(
     val row: Int,
@@ -29,203 +14,162 @@ data class PixelShapeLayout(
     val cells: List<PixelCell>,
 )
 
-private enum class EndStyle {
-    /** 365 爱心：365 个编号格 + 独立 end 行 */
-    SEPARATE_END_ROW,
-    /** 52 周：共 N 格，最后一格为第 N 期且显示 end */
-    MARK_LAST_BLOCK,
-    /** 365 小狗：共 N+1 格，前 N 格编号，最后一格为 end */
-    TRAILING_END_CELL,
+enum class SavingsColoringShape {
+    HEART,
+    /** 52 周：小木屋 */
+    CABIN,
 }
 
 object SavingsPixelShapes {
-
-    private const val HEART_365_MAX_WIDTH = 25
-    private const val DOG_365_MAX_WIDTH = 26
-    private const val SHAPE_52_MAX_WIDTH = 10
 
     fun layoutFor(shape: SavingsColoringShape, totalPeriods: Int): PixelShapeLayout {
         require(totalPeriods > 0)
         return when (shape) {
             SavingsColoringShape.HEART -> when (totalPeriods) {
-                52 -> buildFromHtmlRows(
-                    rowDefs = heart52Rows(),
-                    maxWidth = SHAPE_52_MAX_WIDTH,
-                    totalPeriods = totalPeriods,
-                    endStyle = EndStyle.MARK_LAST_BLOCK,
-                )
-                else -> buildFromHtmlRows(
-                    rowDefs = heart365Rows(),
-                    maxWidth = HEART_365_MAX_WIDTH,
-                    totalPeriods = totalPeriods,
-                    endStyle = EndStyle.SEPARATE_END_ROW,
-                )
+                52 -> buildFromMatrix(CABIN_52_MATRIX, totalPeriods)
+                else -> buildHeart(totalPeriods)
             }
-            SavingsColoringShape.ALT -> when (totalPeriods) {
-                52 -> buildFromHtmlRows(
-                    rowDefs = cabin52Rows(),
-                    maxWidth = SHAPE_52_MAX_WIDTH,
-                    totalPeriods = totalPeriods,
-                    endStyle = EndStyle.MARK_LAST_BLOCK,
-                )
-                else -> buildFromHtmlRows(
-                    rowDefs = dog365Rows(),
-                    maxWidth = DOG_365_MAX_WIDTH,
-                    totalPeriods = totalPeriods,
-                    endStyle = EndStyle.TRAILING_END_CELL,
-                )
+            SavingsColoringShape.CABIN -> when (totalPeriods) {
+                52 -> buildFromMatrix(CABIN_52_MATRIX, totalPeriods)
+                else -> buildHeart(totalPeriods)
             }
         }
     }
 
-    /** 366 方块爱心（HTML 原版结构） */
-    private fun heart365Rows(): List<RowDef> = listOf(
-        RowDef(left = 6, gap = 7, right = 6),
-        RowDef(left = 8, gap = 5, right = 8),
-        RowDef(left = 10, gap = 3, right = 10),
-        RowDef(left = 12, gap = 1, right = 12),
-        RowDef(left = 25),
-        RowDef(left = 25),
-        RowDef(left = 25),
-        RowDef(left = 25),
-        RowDef(left = 25),
-        RowDef(left = 25),
-        RowDef(left = 23),
-        RowDef(left = 21),
-        RowDef(left = 19),
-        RowDef(left = 17),
-        RowDef(left = 15),
-        RowDef(left = 13),
-        RowDef(left = 11),
-        RowDef(left = 9),
-        RowDef(left = 7),
-        RowDef(left = 5),
-        RowDef(left = 3),
-        RowDef(left = 1, isEndRow = true),
-    )
+    // ─────────────────────────────────────────────────
+    //  心形算法生成
+    //  使用经典心形曲线方程 (x²+y²-1)³ ≤ x²·y³
+    //  通过二分搜索自动调整缩放，精确生成 totalPeriods 个格子
+    // ─────────────────────────────────────────────────
 
-    /** 366 方块小狗 */
-    private fun dog365Rows(): List<RowDef> = listOf(
-        RowDef(left = 4, gap = 10, right = 4),
-        RowDef(left = 6, gap = 8, right = 6),
-        RowDef(left = 7, gap = 6, right = 7),
-        RowDef(left = 8, gap = 4, right = 8),
-        RowDef(left = 22),
-        RowDef(left = 24),
-        RowDef(left = 26),
-        RowDef(left = 24),
-        RowDef(left = 22),
-        RowDef(left = 20),
-        RowDef(left = 16),
-        RowDef(left = 14),
-        RowDef(left = 18),
-        RowDef(left = 20),
-        RowDef(left = 22),
-        RowDef(left = 24),
-        RowDef(left = 24),
-        RowDef(left = 24),
-        RowDef(left = 8, gap = 8, right = 8),
-    )
+    private fun buildHeart(totalPeriods: Int): PixelShapeLayout {
+        // 365 天：25 列 × 22 行 = 550 个候选格子，心形约占 66%
+        val width = 25
+        val height = 22
+        val cells = findHeartCells(width, height, totalPeriods)
+        return PixelShapeLayout(width = width, height = height, cells = cells)
+    }
 
-    /** 52 周迷你爱心 */
-    private fun heart52Rows(): List<RowDef> = listOf(
-        RowDef(left = 2, gap = 2, right = 2),
-        RowDef(left = 4, right = 4),
-        RowDef(left = 10),
-        RowDef(left = 10),
-        RowDef(left = 8),
-        RowDef(left = 6),
-        RowDef(left = 4),
-        RowDef(left = 2),
-    )
+    /**
+     * 用二分搜索找到合适的缩放因子，使心形恰好包含 [targetCells] 个格子。
+     * 缩放越大 → 心形越小 → 格子越少。
+     */
+    private fun findHeartCells(
+        width: Int,
+        height: Int,
+        targetCells: Int,
+    ): List<PixelCell> {
+        var lo = 0.5f
+        var hi = 3.0f
+        var result = heartCellsAtScale(width, height, targetCells, lo)
 
-    /** 52 周温馨小木屋 */
-    private fun cabin52Rows(): List<RowDef> = listOf(
-        RowDef(left = 2),
-        RowDef(left = 4),
-        RowDef(left = 6),
-        RowDef(left = 8),
-        RowDef(left = 10),
-        RowDef(left = 6),
-        RowDef(left = 6),
-        RowDef(left = 6),
-        RowDef(left = 4),
-    )
-
-    private fun buildFromHtmlRows(
-        rowDefs: List<RowDef>,
-        maxWidth: Int,
-        totalPeriods: Int,
-        endStyle: EndStyle,
-    ): PixelShapeLayout {
-        val blockSlots = mutableListOf<Pair<Int, Int>>()
-        var endRowSlot: Pair<Int, Int>? = null
-
-        rowDefs.forEachIndexed { row, def ->
-            if (def.isEndRow) {
-                val indent = (maxWidth - def.left) / 2
-                endRowSlot = row to (indent)
-                return@forEachIndexed
+        repeat(10) {
+            val mid = (lo + hi) / 2f
+            val count = countHeartCells(width, height, mid)
+            if (count >= targetCells) {
+                result = heartCellsAtScale(width, height, targetCells, mid)
+                hi = mid
+            } else {
+                lo = mid
             }
-            val rowWidth = def.left + def.gap + def.right
-            val indent = (maxWidth - rowWidth) / 2
-            var col = indent
-            repeat(def.left) {
-                blockSlots += row to col
-                col++
+        }
+        return result
+    }
+
+    private fun countHeartCells(width: Int, height: Int, scale: Float): Int {
+        val xScale = width.toFloat() / (2f * scale)
+        val yScale = height.toFloat() / (2f * scale)
+        var count = 0
+        for (row in 0 until height) {
+            val ny = 1f - 2f * row / (height - 1)
+            for (col in 0 until width) {
+                val nx = 2f * col / (width - 1) - 1f
+                val x = nx * xScale
+                val y = ny * yScale
+                val xx = x * x
+                val yy = y * y
+                val a = xx + yy - 1f
+                if (a * a * a <= xx * y * y * y) count++
             }
-            col += def.gap
-            repeat(def.right) {
-                blockSlots += row to col
-                col++
+        }
+        return count
+    }
+
+    private fun heartCellsAtScale(
+        width: Int,
+        height: Int,
+        targetCells: Int,
+        scale: Float,
+    ): List<PixelCell> {
+        val xScale = width.toFloat() / (2f * scale)
+        val yScale = height.toFloat() / (2f * scale)
+        val slots = mutableListOf<Pair<Int, Int>>()
+        for (row in 0 until height) {
+            val ny = 1f - 2f * row / (height - 1)
+            for (col in 0 until width) {
+                val nx = 2f * col / (width - 1) - 1f
+                val x = nx * xScale
+                val y = ny * yScale
+                val xx = x * x
+                val yy = y * y
+                val a = xx + yy - 1f
+                if (a * a * a <= xx * y * y * y) {
+                    slots += row to col
+                }
             }
+        }
+        return slots.take(targetCells).mapIndexed { index, (row, col) ->
+            PixelCell(row = row, col = col, periodIndex = index + 1)
+        }
+    }
+
+    // ─────────────────────────────────────────────────
+    //  52 周小木屋 — 10 列 × 8 行，共 52 格
+    // ─────────────────────────────────────────────────
+
+    private fun buildFromMatrix(matrix: Array<BooleanArray>, totalPeriods: Int): PixelShapeLayout {
+        val height = matrix.size
+        val width = matrix[0].size
+
+        val slots = mutableListOf<Pair<Int, Int>>()
+        for (row in matrix.indices) {
+            for (col in matrix[row].indices) {
+                if (matrix[row][col]) {
+                    slots += row to col
+                }
+            }
+        }
+
+        require(slots.size >= totalPeriods) {
+            "Shape has ${slots.size} blocks, need $totalPeriods"
         }
 
         val cells = mutableListOf<PixelCell>()
-
-        when (endStyle) {
-            EndStyle.SEPARATE_END_ROW -> {
-                require(blockSlots.size >= totalPeriods) {
-                    "Shape has ${blockSlots.size} blocks, need $totalPeriods"
-                }
-                blockSlots.take(totalPeriods).forEachIndexed { index, (row, col) ->
-                    cells += PixelCell(row = row, col = col, periodIndex = index + 1)
-                }
-                endRowSlot?.let { (row, col) ->
-                    cells += PixelCell(row = row, col = col, periodIndex = 0, isEndMarker = true)
-                }
-            }
-            EndStyle.MARK_LAST_BLOCK -> {
-                require(blockSlots.size == totalPeriods) {
-                    "Shape has ${blockSlots.size} blocks, expected $totalPeriods"
-                }
-                blockSlots.forEachIndexed { index, (row, col) ->
-                    val period = index + 1
-                    val isLast = index == blockSlots.lastIndex
-                    cells += PixelCell(
-                        row = row,
-                        col = col,
-                        periodIndex = period,
-                        isEndMarker = isLast,
-                    )
-                }
-            }
-            EndStyle.TRAILING_END_CELL -> {
-                require(blockSlots.size == totalPeriods + 1) {
-                    "Shape has ${blockSlots.size} blocks, expected ${totalPeriods + 1}"
-                }
-                blockSlots.take(totalPeriods).forEachIndexed { index, (row, col) ->
-                    cells += PixelCell(row = row, col = col, periodIndex = index + 1)
-                }
-                val (endRow, endCol) = blockSlots[totalPeriods]
-                cells += PixelCell(row = endRow, col = endCol, periodIndex = 0, isEndMarker = true)
-            }
+        slots.take(totalPeriods).forEachIndexed { index, (row, col) ->
+            cells += PixelCell(row = row, col = col, periodIndex = index + 1)
+        }
+        // End marker 放在矩阵最后一行的第一个 true 位置
+        val lastRow = matrix.last()
+        val endCol = lastRow.indexOf(true)
+        if (endCol >= 0) {
+            cells += PixelCell(row = height - 1, col = endCol, periodIndex = 0, isEndMarker = true)
         }
 
-        return PixelShapeLayout(
-            width = maxWidth,
-            height = cells.maxOf { it.row } + 1,
-            cells = cells,
-        )
+        return PixelShapeLayout(width = width, height = height, cells = cells)
     }
+
+    private val CABIN_52_MATRIX = arrayOf(
+        //  0  1  2  3  4  5  6  7  8  9
+        booleanArrayOf(F,F,F,F,T,T,F,F,F,F),  // row 0 — 烟囱
+        booleanArrayOf(F,F,F,T,T,T,T,F,F,F),  // row 1
+        booleanArrayOf(F,F,T,T,T,T,T,T,F,F),  // row 2
+        booleanArrayOf(F,T,T,T,T,T,T,T,T,F),  // row 3
+        booleanArrayOf(T,T,T,T,T,T,T,T,T,T),  // row 4 — 屋顶底
+        booleanArrayOf(T,T,T,T,T,T,T,T,T,T),  // row 5 — 墙壁
+        booleanArrayOf(T,T,T,T,T,T,T,T,T,T),  // row 6
+        booleanArrayOf(F,F,F,F,T,T,F,F,F,F),  // row 7 — 门
+    )
 }
+
+private const val T = true
+private const val F = false
