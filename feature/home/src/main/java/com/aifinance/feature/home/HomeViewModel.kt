@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.TransactionRepository
+import com.aifinance.core.data.repository.UserPreferencesRepository
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AccountType
 import com.aifinance.core.model.Category
@@ -32,7 +33,37 @@ class HomeViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
     accountRepository: AccountRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
 ) : ViewModel() {
+
+    val isLoggedIn: StateFlow<Boolean> = userPreferencesRepository.isLoggedIn
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    val nickname = userPreferencesRepository.nickname.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "小皮皮")
+    val gender = userPreferencesRepository.gender.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "未填写")
+    val phone = userPreferencesRepository.phone.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "185****2721")
+    val avatarUri = userPreferencesRepository.avatarUri.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    fun updateNickname(name: String) = viewModelScope.launch { userPreferencesRepository.setNickname(name) }
+    fun updateGender(g: String) = viewModelScope.launch { userPreferencesRepository.setGender(g) }
+    fun updatePhone(p: String) = viewModelScope.launch { userPreferencesRepository.setPhone(p) }
+    fun updateAvatarUri(uri: String) = viewModelScope.launch { userPreferencesRepository.setAvatarUri(uri) }
+
+    fun login() {
+        viewModelScope.launch {
+            userPreferencesRepository.setLoggedIn(true)
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            userPreferencesRepository.setLoggedIn(false)
+        }
+    }
 
     val categoriesById: StateFlow<Map<UUID, Category>> =
         categoryRepository.getAllCategories()

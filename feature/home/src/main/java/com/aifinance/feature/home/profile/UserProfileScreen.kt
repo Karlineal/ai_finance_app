@@ -1,0 +1,375 @@
+package com.aifinance.feature.home.profile
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import android.net.Uri
+import com.aifinance.feature.home.HomeViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UserProfileScreen(
+    onBack: () -> Unit,
+    onLogoutSuccess: () -> Unit,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
+    val nickname by viewModel.nickname.collectAsStateWithLifecycle()
+    val gender by viewModel.gender.collectAsStateWithLifecycle()
+    val phone by viewModel.phone.collectAsStateWithLifecycle()
+    val avatarUri by viewModel.avatarUri.collectAsStateWithLifecycle()
+
+    var showEditDialog by remember { mutableStateOf<String?>(null) }
+    var editValue by remember { mutableStateOf("") }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let { viewModel.updateAvatarUri(it.toString()) }
+        }
+    )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("关于你", fontSize = 18.sp, fontWeight = FontWeight.Medium) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(imageVector = Icons.Default.MoreHoriz, contentDescription = "更多")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFF5F7FA)
+                )
+            )
+        },
+        containerColor = Color(0xFFF5F7FA)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Avatar Section
+            Box(contentAlignment = Alignment.BottomEnd) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFFD54F)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (avatarUri.isNotEmpty()) {
+                        AsyncImage(
+                            model = Uri.parse(avatarUri),
+                            contentDescription = "Avatar",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.AccountCircle,
+                            contentDescription = "Avatar",
+                            tint = Color.White,
+                            modifier = Modifier.size(80.dp)
+                        )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .clickable {
+                            photoPickerLauncher.launch(
+                                androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CameraAlt,
+                        contentDescription = "Change avatar",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Premium / Free Banner
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(Color(0xFFB57A3C), Color(0xFF6B4518))
+                            )
+                        )
+                        .padding(horizontal = 16.dp, vertical = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.White.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("FREE", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("记账功能「永久免费」", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 16.sp)
+                    }
+
+                    Surface(
+                        color = Color(0xFFFFD54F),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.clickable { /* Handle details click */ }
+                    ) {
+                        Text(
+                            text = "查看详情",
+                            color = Color(0xFF6B4518),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Info Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    ProfileItemRow(
+                        label = "昵称", value = nickname, showEdit = true,
+                        onEditClick = { showEditDialog = "昵称"; editValue = nickname }
+                    )
+                    ProfileDivider()
+                    ProfileItemRow(
+                        label = "性别", value = gender, showEdit = true,
+                        onEditClick = { showEditDialog = "性别"; editValue = gender }
+                    )
+                    ProfileDivider()
+                    ProfileItemRow(
+                        label = "手机", value = phone, showEdit = true,
+                        onEditClick = { showEditDialog = "手机"; editValue = phone }
+                    )
+                    ProfileDivider()
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("微信", color = Color(0xFF333333), fontSize = 16.sp)
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = Color(0xFFF0F5FF),
+                            modifier = Modifier.clickable { /* Handle bind click */ }
+                        ) {
+                            Text(
+                                "去绑定",
+                                color = Color(0xFF2E5FE6),
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                    ProfileDivider()
+                    ProfileItemRow(label = "ID", value = "7YHBM6AR", showCopy = true)
+                    ProfileDivider()
+                    ProfileItemRow(label = "版本号", value = "1.8.01", showCopy = true)
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // Logout Button
+            Button(
+                onClick = {
+                    viewModel.logout()
+                    onLogoutSuccess()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color(0xFF333333)
+                )
+            ) {
+                Text("退出登录", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+        }
+
+        if (showEditDialog != null) {
+            AlertDialog(
+                onDismissRequest = { showEditDialog = null },
+                title = { Text("修改${showEditDialog}") },
+                text = {
+                    OutlinedTextField(
+                        value = editValue,
+                        onValueChange = { editValue = it },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        when (showEditDialog) {
+                            "昵称" -> viewModel.updateNickname(editValue)
+                            "性别" -> viewModel.updateGender(editValue)
+                            "手机" -> viewModel.updatePhone(editValue)
+                        }
+                        showEditDialog = null
+                    }) {
+                        Text("保存")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showEditDialog = null }) {
+                        Text("取消")
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileItemRow(
+    label: String,
+    value: String,
+    showEdit: Boolean = false,
+    showCopy: Boolean = false,
+    onEditClick: () -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = label, color = Color(0xFF333333), fontSize = 16.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = value, color = Color(0xFF666666), fontSize = 16.sp)
+            Spacer(modifier = Modifier.width(8.dp))
+            if (showEdit) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = Color(0xFFCCCCCC),
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clickable { onEditClick() }
+                )
+            } else if (showCopy) {
+                Icon(
+                    imageVector = Icons.Default.ContentCopy,
+                    contentDescription = "Copy",
+                    tint = Color(0xFFCCCCCC),
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clickable { /* TODO */ }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(0.5.dp)
+            .background(Color(0xFFEEEEEE))
+    )
+}

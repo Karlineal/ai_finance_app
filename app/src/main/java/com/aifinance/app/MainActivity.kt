@@ -37,6 +37,8 @@ import com.aifinance.core.designsystem.theme.IcokieTheme
 import com.aifinance.feature.category_management.navigation.CATEGORY_MANAGEMENT_ROUTE
 import com.aifinance.feature.budget.navigation.BUDGET_ENTRY_ROUTE
 import com.aifinance.feature.home.HomeSidebarDrawerContent
+import com.aifinance.feature.home.login.LOGIN_ROUTE
+import com.aifinance.feature.home.profile.USER_PROFILE_ROUTE
 import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.navigation.HOME_ROUTE
 import com.aifinance.feature.scheduled.navigation.SCHEDULED_TRANSACTION_ROUTE
@@ -106,6 +108,18 @@ class MainActivity : ComponentActivity() {
                         ) {
                             Row(modifier = Modifier.fillMaxSize()) {
                                 HomeSidebarDrawerContent(
+                                    onNavigateToLogin = {
+                                        navController.navigate(LOGIN_ROUTE) {
+                                            launchSingleTop = true
+                                        }
+                                        closeDrawer()
+                                    },
+                                    onNavigateToUserProfile = {
+                                        navController.navigate(USER_PROFILE_ROUTE) {
+                                            launchSingleTop = true
+                                        }
+                                        closeDrawer()
+                                    },
                                     onNavigateHome = {
                                         navController.navigate(HOME_ROUTE) {
                                             launchSingleTop = true

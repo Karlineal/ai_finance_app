@@ -50,6 +50,12 @@ import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalCreate
 import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalDetail
 import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalEdit
 import com.aifinance.feature.savings_goal.navigation.savingsGoalNavigation
+import com.aifinance.feature.home.login.loginScreen
+import com.aifinance.feature.home.login.enterCodeScreen
+import com.aifinance.feature.home.login.navigateToEnterCode
+import com.aifinance.feature.home.profile.userProfileScreen
+import com.aifinance.feature.home.login.emailAuthScreen
+import com.aifinance.feature.home.login.navigateToEmailAuth
 
 @Composable
 fun AiFinanceNavHost(
@@ -97,6 +103,31 @@ fun AiFinanceNavHost(
             onNavigateToTransactionDetail = { transactionId ->
                 navController.navigateToTransactionDetail(transactionId)
             },
+        )
+
+        loginScreen(
+            onNavigateToEnterCode = { phoneNumber ->
+                navController.navigateToEnterCode(phoneNumber)
+            },
+            onNavigateToEmailAuth = {
+                navController.navigateToEmailAuth()
+            },
+            onBack = { navController.popBackStack() },
+        )
+
+        enterCodeScreen(
+            onLoginSuccess = { navController.popBackStack(HOME_ROUTE, inclusive = false) },
+            onBack = { navController.popBackStack() },
+        )
+
+        emailAuthScreen(
+            onLoginSuccess = { navController.popBackStack(HOME_ROUTE, inclusive = false) },
+            onBack = { navController.popBackStack() },
+        )
+
+        userProfileScreen(
+            onBack = { navController.popBackStack() },
+            onLogoutSuccess = { navController.popBackStack(HOME_ROUTE, inclusive = false) }
         )
 
         composable(ASSET_MANAGEMENT_ROUTE) {

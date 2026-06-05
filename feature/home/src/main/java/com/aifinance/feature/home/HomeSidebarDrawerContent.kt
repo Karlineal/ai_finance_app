@@ -29,12 +29,14 @@ import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,8 +49,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import android.widget.Toast
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.designsystem.theme.BrandPrimary
@@ -59,6 +63,8 @@ import java.time.YearMonth
 
 @Composable
 fun HomeSidebarDrawerContent(
+    onNavigateToLogin: () -> Unit,
+    onNavigateToUserProfile: () -> Unit,
     onNavigateHome: () -> Unit,
     onNavigateStatistics: () -> Unit,
     onNavigateTransactions: () -> Unit,
@@ -75,6 +81,7 @@ fun HomeSidebarDrawerContent(
 ) {
     val recordStats by viewModel.recordStats.collectAsStateWithLifecycle()
     val transactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
     val currentMonth = remember { YearMonth.now() }
     val monthRecords = remember(transactions, currentMonth) {
         transactions.filter {
@@ -112,7 +119,13 @@ fun HomeSidebarDrawerContent(
                 .padding(horizontal = 14.dp, vertical = 18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            LoginHeader(onNavigateHome = onNavigateHome)
+            LoginHeader(
+                isLoggedIn = isLoggedIn,
+                onNavigateHome = onNavigateHome,
+                onNavigateToLogin = onNavigateToLogin,
+                onNavigateToUserProfile = onNavigateToUserProfile,
+                onLogout = { viewModel.logout() },
+            )
 
             HeatmapCard(
                 currentMonth = currentMonth,
@@ -144,10 +157,14 @@ fun HomeSidebarDrawerContent(
 
 @Composable
 private fun LoginHeader(
+    isLoggedIn: Boolean,
     onNavigateHome: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+    onNavigateToUserProfile: () -> Unit,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var isLoggedIn by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -158,7 +175,9 @@ private fun LoginHeader(
                     .fillMaxWidth()
                     .clickable {
                         if (isLoggedIn) {
-                            onNavigateHome()
+                            onNavigateToUserProfile()
+                        } else {
+                            onNavigateToLogin()
                         }
                     },
                 verticalAlignment = Alignment.CenterVertically,
@@ -191,17 +210,49 @@ private fun LoginHeader(
                 LoginChip(
                     label = if (isLoggedIn) "用户中心" else "用户登录",
                     selected = !isLoggedIn,
-                    onClick = { isLoggedIn = true },
+                    onClick = {
+                        if (!isLoggedIn) {
+                            onNavigateToLogin()
+                        } else {
+                            onNavigateToUserProfile()
+                        }
+                    },
                 )
                 if (isLoggedIn) {
                     LoginChip(
                         label = "退出",
                         selected = false,
-                        onClick = { isLoggedIn = false },
+                        onClick = { showLogoutDialog = true },
                     )
                 }
             }
         }
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("退出登录", style = MaterialTheme.typography.titleLarge) },
+            text = { Text("确定退出登录吗？", style = MaterialTheme.typography.bodyMedium) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onLogout()
+                        showLogoutDialog = false
+                    }
+                ) {
+                    Text("确认")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("取消")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
