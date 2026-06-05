@@ -95,7 +95,12 @@ fun AiFinanceNavHost(
                 navController.navigateToStatistics()
             },
             onNavigateToTransactionDetail = { transactionId ->
-                navController.navigateToTransactionDetail(transactionId)
+                android.util.Log.d("Navigation", "Navigating to detail with ID: $transactionId")
+
+                // 如果 ID 不为空才跳转
+                if (transactionId != null) {
+                    navController.navigateToTransactionDetail(transactionId)
+                }
             },
         )
 
@@ -159,7 +164,7 @@ fun AiFinanceNavHost(
         )
         transactionDetailScreen(
             onBack = { navController.popBackStack() },
-            onSaved = { navController.popBackStack() },
+
         )
         statisticsScreen(onBack = { navController.popBackStack() })
         settingsScreen(onBack = { navController.popBackStack() })

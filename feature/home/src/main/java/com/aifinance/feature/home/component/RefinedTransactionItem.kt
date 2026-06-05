@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +30,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,6 +52,7 @@ import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
+import com.aifinance.core.designsystem.component.ImagePreviewDialog
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -62,6 +69,7 @@ fun RefinedTransactionItem(
     val visual = transaction.resolveRefinedVisual(category)
     val remark = transaction.description?.takeIf { it.isNotBlank() } ?: transaction.title
     val rowInteractionSource = remember { MutableInteractionSource() }
+    var previewImagePath by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = modifier
@@ -152,6 +160,27 @@ fun RefinedTransactionItem(
 
         Spacer(modifier = Modifier.size(6.dp))
 
+        if (transaction.receiptImagePaths.isNotEmpty()) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 6.dp)
+            ) {
+                items(transaction.receiptImagePaths) { path ->
+                    coil.compose.AsyncImage(
+                        model = java.io.File(path),
+                        contentDescription = "凭证缩略图",
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { previewImagePath = path }
+                    )
+                }
+            }
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -163,6 +192,13 @@ fun RefinedTransactionItem(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
             )
         }
+    }
+
+    if (previewImagePath != null) {
+        ImagePreviewDialog(
+            imagePath = previewImagePath!!,
+            onDismiss = { previewImagePath = null }
+        )
     }
 }
 

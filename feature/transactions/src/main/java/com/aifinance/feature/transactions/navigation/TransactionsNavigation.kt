@@ -64,17 +64,25 @@ fun NavGraphBuilder.calendarTransactionsScreen(
 
 fun NavGraphBuilder.transactionDetailScreen(
     onBack: () -> Unit,
-    onSaved: () -> Unit,
 ) {
     composable(
         route = TRANSACTION_DETAIL_ROUTE,
         arguments = listOf(navArgument("transactionId") { type = NavType.StringType }),
     ) { backStackEntry ->
-        val transactionIdArg = backStackEntry.arguments?.getString("transactionId")
+        val transactionIdStr = backStackEntry.arguments?.getString("transactionId")
+
+        // 💡 修复点 1：将 String 安全转换为 UUID 类型
+        val transactionId = try {
+            transactionIdStr?.let { UUID.fromString(it) } ?: UUID.randomUUID()
+        } catch (_: Exception) {
+            UUID.randomUUID()
+        }
+
+        // 💡 修复点 2：严格对应 TransactionDetailRoute 的形参名称
         com.aifinance.feature.transactions.TransactionDetailRoute(
-            transactionIdArg = transactionIdArg,
+            transactionIdArg = transactionIdStr, 
             onBack = onBack,
-            onSaved = onSaved,
+            onSaved = onBack // Default behavior to go back on save
         )
     }
 }
