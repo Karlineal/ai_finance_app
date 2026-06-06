@@ -433,8 +433,9 @@ fun AddAssetDetailScreen(
     var isDefaultIncomeExpense by remember { mutableStateOf(false) }
     var startDateTime by remember { mutableStateOf(AppDateTime.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var isSaving by remember { mutableStateOf(false) }
 
-    val canSave = accountName.isNotBlank()
+    val canSave = accountName.isNotBlank() && !isSaving
 
     Scaffold(
         topBar = {
@@ -538,6 +539,7 @@ fun AddAssetDetailScreen(
 
             Button(
                 onClick = {
+                    isSaving = true
                     viewModel.viewModelScope.launch {
                         viewModel.addAccount(
                             preset = preset,
@@ -615,8 +617,9 @@ fun EditAssetAccountScreen(
     var note by remember { mutableStateOf(currentAccount.note ?: "") }
     var includeInTotalAssets by remember { mutableStateOf(currentAccount.includeInTotalAssets) }
     var isDefaultIncomeExpense by remember { mutableStateOf(currentAccount.isDefaultIncomeExpense) }
+    var isSaving by remember { mutableStateOf(false) }
 
-    val canSave = accountName.isNotBlank()
+    val canSave = accountName.isNotBlank() && !isSaving
 
     Scaffold(
         topBar = {
@@ -723,6 +726,7 @@ fun EditAssetAccountScreen(
 
             Button(
                 onClick = {
+                    isSaving = true
                     viewModel.viewModelScope.launch {
                         viewModel.updateAccount(
                             account = currentAccount,
