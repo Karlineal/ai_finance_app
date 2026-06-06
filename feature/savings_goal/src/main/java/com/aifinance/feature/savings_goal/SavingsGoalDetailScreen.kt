@@ -376,7 +376,7 @@ private fun CheckInDialog(
     var expanded by remember { mutableStateOf(false) }
     
     val availableAccounts = accounts.filter { it.id != goal.accountId && (it.type == AccountType.BANK || it.type == AccountType.DIGITAL_WALLET || it.type == AccountType.CASH || it.type == AccountType.INVESTMENT) }
-    var selectedAccountId by remember { mutableStateOf(availableAccounts.firstOrNull()?.id) }
+    var selectedAccountId by remember { mutableStateOf(availableAccounts.firstOrNull { it.isDefaultIncomeExpense }?.id ?: availableAccounts.firstOrNull()?.id) }
     val selectedAccount = availableAccounts.find { it.id == selectedAccountId }
 
     val currentPeriod = remember(dateText, initialPeriod) {
