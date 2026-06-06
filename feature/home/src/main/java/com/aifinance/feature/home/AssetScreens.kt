@@ -434,6 +434,7 @@ fun AddAssetDetailScreen(
     var startDateTime by remember { mutableStateOf(AppDateTime.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
 
     val canSave = accountName.isNotBlank() && !isSaving
 
@@ -550,7 +551,8 @@ fun AddAssetDetailScreen(
                             isDefaultIncomeExpense = isDefaultIncomeExpense,
                             startDateTime = startDateTime,
                         )
-                        onSaved()
+                        isSaving = false
+                        showSuccessDialog = true
                     }
                 },
                 enabled = canSave,
@@ -575,6 +577,20 @@ fun AddAssetDetailScreen(
                 startDateTime = it
                 showDatePicker = false
             }
+        )
+    }
+
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false; onSaved() },
+            title = { Text("添加成功", style = IcokieTextStyles.titleMedium) },
+            text = { Text("账户「${accountName}」已成功添加。", style = IcokieTextStyles.bodyMedium) },
+            confirmButton = {
+                TextButton(onClick = { showSuccessDialog = false; onSaved() }) {
+                    Text("确定")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
         )
     }
 }
