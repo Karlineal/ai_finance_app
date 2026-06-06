@@ -127,7 +127,7 @@ fun AiFinanceNavHost(
                 presetKey = presetKey,
                 onBack = { navController.popBackStack() },
                 onSaved = {
-                    navController.popBackStack(ASSET_MANAGEMENT_ROUTE, inclusive = false)
+                    navController.popBackStack()
                 }
             )
         }
