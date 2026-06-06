@@ -5,11 +5,14 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.aifinance.feature.savings_goal.CheckInCalendarScreen
 import com.aifinance.feature.savings_goal.SavingsGoalCreateEditScreen
 import com.aifinance.feature.savings_goal.SavingsGoalDetailScreen
 import com.aifinance.feature.savings_goal.SavingsGoalListScreen
+import java.util.UUID
 
 const val SAVINGS_GOAL_LIST_ROUTE = "savings_goal_list"
+const val CHECK_IN_CALENDAR_ROUTE = "check_in_calendar/{savingsGoalId}"
 const val SAVINGS_GOAL_CREATE_ROUTE = "savings_goal_create"
 const val SAVINGS_GOAL_DETAIL_ROUTE = "savings_goal_detail/{goalId}"
 const val SAVINGS_GOAL_EDIT_ROUTE = "savings_goal_edit/{goalId}"
@@ -28,6 +31,31 @@ fun NavController.navigateToSavingsGoalDetail(goalId: String) {
 
 fun NavController.navigateToSavingsGoalEdit(goalId: String) {
     navigate("savings_goal_edit/$goalId")
+}
+
+fun NavController.navigateToCheckInCalendar(savingsGoalId: UUID) {
+    navigate("check_in_calendar/$savingsGoalId")
+}
+
+fun NavGraphBuilder.checkInCalendarScreen(
+    onNavigateBack: () -> Unit
+) {
+    composable(
+        route = CHECK_IN_CALENDAR_ROUTE,
+        arguments = listOf(
+            navArgument("savingsGoalId") { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val savingsGoalId = backStackEntry.arguments?.getString("savingsGoalId")?.let {
+            runCatching { UUID.fromString(it) }.getOrNull()
+        }
+        if (savingsGoalId != null) {
+            CheckInCalendarScreen(
+                savingsGoalId = savingsGoalId,
+                onNavigateBack = onNavigateBack
+            )
+        }
+    }
 }
 
 fun NavGraphBuilder.savingsGoalNavigation(

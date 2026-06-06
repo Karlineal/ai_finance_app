@@ -199,7 +199,7 @@ private fun GoalDetailContent(
             ) {
                 Text("打卡存入", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
             }
-            
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),

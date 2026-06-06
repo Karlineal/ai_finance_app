@@ -215,5 +215,6 @@ fun AiFinanceNavHost(
             onNavigateToAddAccount = { navController.navigate(ADD_ASSET_ACCOUNT_ROUTE) },
             onBack = { navController.popBackStack() }
         )
+
     }
 }
