@@ -55,6 +55,10 @@ class AccountRepositoryImpl @Inject constructor(
     override suspend fun deleteAccount(account: Account) {
         accountDao.delete(account.toEntity())
     }
+
+    override suspend fun deleteAccountsByIds(ids: List<UUID>) {
+        accountDao.deleteByIds(ids)
+    }
 }
 
 private fun AccountEntity.toDomain(): Account {

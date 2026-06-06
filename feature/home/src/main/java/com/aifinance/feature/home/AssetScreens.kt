@@ -1,7 +1,12 @@
 package com.aifinance.feature.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +31,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -89,7 +97,7 @@ fun addAssetDetailRoute(presetKey: String): String = "add_asset_detail/$presetKe
 fun editAssetAccountRoute(accountId: UUID): String = "edit_asset_account/$accountId"
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 fun AssetManagementScreen(
     onBack: () -> Unit,
     onAddAccount: () -> Unit,
@@ -98,6 +106,10 @@ fun AssetManagementScreen(
 ) {
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
     val summary by viewModel.summary.collectAsStateWithLifecycle()
+    val selectedIds by viewModel.selectedAccountIds.collectAsStateWithLifecycle()
+    val isSelectionMode = selectedIds.isNotEmpty()
+
+    var showBatchDeleteDialog by remember { mutableStateOf(false) }
 
     val groupedAccounts = remember(accounts) {
         val groups = listOf(
@@ -115,21 +127,39 @@ fun AssetManagementScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("资产管理", style = IcokieTextStyles.titleLarge) },
+                title = {
+                    if (isSelectionMode) {
+                        Text("已选 ${selectedIds.size} 项", style = IcokieTextStyles.titleLarge)
+                    } else {
+                        Text("资产管理", style = IcokieTextStyles.titleLarge)
+                    }
+                },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        if (isSelectionMode) viewModel.clearSelection() else onBack()
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
                 },
                 actions = {
-                    Text(
-                        text = "+ 添加账户",
-                        color = BrandPrimary,
-                        style = IcokieTextStyles.labelMedium,
-                        modifier = Modifier
-                            .padding(end = 16.dp)
-                            .clickable(onClick = onAddAccount)
-                    )
+                    if (isSelectionMode) {
+                        IconButton(onClick = { showBatchDeleteDialog = true }) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = "删除",
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "+ 添加账户",
+                            color = BrandPrimary,
+                            style = IcokieTextStyles.labelMedium,
+                            modifier = Modifier
+                                .padding(end = 16.dp)
+                                .clickable(onClick = onAddAccount)
+                        )
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
@@ -199,10 +229,27 @@ fun AssetManagementScreen(
                     )
                 }
                 items(groupAccounts, key = { it.id }) { account ->
+                    val isSelected = selectedIds.contains(account.id)
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected)
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                            else
+                                MaterialTheme.colorScheme.surface
+                        ),
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.clickable { onAccountClick(account.id) },
+                        modifier = Modifier.combinedClickable(
+                            onClick = {
+                                if (isSelectionMode) {
+                                    viewModel.toggleSelection(account.id)
+                                } else {
+                                    onAccountClick(account.id)
+                                }
+                            },
+                            onLongClick = {
+                                viewModel.toggleSelection(account.id)
+                            },
+                        ),
                     ) {
                         Row(
                             modifier = Modifier
@@ -226,6 +273,14 @@ fun AssetManagementScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 ) {
+                                    if (isSelectionMode) {
+                                        Icon(
+                                            imageVector = if (isSelected) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                                            contentDescription = if (isSelected) "已选" else "未选",
+                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(24.dp),
+                                        )
+                                    }
                                     Box(
                                         modifier = Modifier
                                             .size(44.dp)
@@ -243,8 +298,8 @@ fun AssetManagementScreen(
                                                     style = IcokieTextStyles.labelSmall,
                                                     color = BrandPrimary,
                                                     modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                                                         .padding(horizontal = 6.dp, vertical = 2.dp),
                                                 )
                                             }
@@ -268,6 +323,37 @@ fun AssetManagementScreen(
                 }
             }
         }
+    }
+
+    if (showBatchDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showBatchDeleteDialog = false },
+            title = { Text("确认删除", style = IcokieTextStyles.titleMedium) },
+            text = {
+                Text(
+                    "确定要删除选中的 ${selectedIds.size} 个账户吗？此操作不可恢复。",
+                    style = IcokieTextStyles.bodyMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.viewModelScope.launch {
+                            viewModel.deleteSelectedAccounts()
+                            showBatchDeleteDialog = false
+                        }
+                    }
+                ) {
+                    Text("删除", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBatchDeleteDialog = false }) {
+                    Text("取消")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+        )
     }
 }
 
@@ -720,6 +806,29 @@ class AssetManagementViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = AssetSummary(),
         )
+
+    private val _selectedAccountIds = kotlinx.coroutines.flow.MutableStateFlow<Set<UUID>>(emptySet())
+    val selectedAccountIds: StateFlow<Set<UUID>> = _selectedAccountIds
+
+    fun toggleSelection(accountId: UUID) {
+        _selectedAccountIds.value = if (_selectedAccountIds.value.contains(accountId)) {
+            _selectedAccountIds.value - accountId
+        } else {
+            _selectedAccountIds.value + accountId
+        }
+    }
+
+    fun clearSelection() {
+        _selectedAccountIds.value = emptySet()
+    }
+
+    suspend fun deleteSelectedAccounts() {
+        val ids = _selectedAccountIds.value.toList()
+        if (ids.isNotEmpty()) {
+            accountRepository.deleteAccountsByIds(ids)
+            _selectedAccountIds.value = emptySet()
+        }
+    }
 
     suspend fun addAccount(
         preset: AccountPreset,

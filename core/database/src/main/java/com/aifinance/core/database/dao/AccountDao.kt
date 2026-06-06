@@ -48,4 +48,7 @@ interface AccountDao {
 
     @Delete
     suspend fun delete(account: AccountEntity)
+
+    @Query("DELETE FROM accounts WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<UUID>)
 }
