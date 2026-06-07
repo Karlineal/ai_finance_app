@@ -66,8 +66,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.setLoggedIn(false)
             userPreferencesRepository.setEmail("")
-            userPreferencesRepository.setNickname("小皮皮")
-            // 保留 gender、phone、avatarUri，这样重新登录后 profile 信息仍在
+            // 保留 nickname、gender、phone、avatarUri，这样重新登录后 profile 信息仍在
             // Firebase Auth 登出
             FirebaseAuth.getInstance().signOut()
         }
