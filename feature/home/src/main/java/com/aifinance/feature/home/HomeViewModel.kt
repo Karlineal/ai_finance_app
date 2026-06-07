@@ -47,11 +47,13 @@ class HomeViewModel @Inject constructor(
     val gender = userPreferencesRepository.gender.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "未填写")
     val phone = userPreferencesRepository.phone.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "185****2721")
     val avatarUri = userPreferencesRepository.avatarUri.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    val email = userPreferencesRepository.email.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     fun updateNickname(name: String) = viewModelScope.launch { userPreferencesRepository.setNickname(name) }
     fun updateGender(g: String) = viewModelScope.launch { userPreferencesRepository.setGender(g) }
     fun updatePhone(p: String) = viewModelScope.launch { userPreferencesRepository.setPhone(p) }
     fun updateAvatarUri(uri: String) = viewModelScope.launch { userPreferencesRepository.setAvatarUri(uri) }
+    fun updateEmail(e: String) = viewModelScope.launch { userPreferencesRepository.setEmail(e) }
 
     fun login() {
         viewModelScope.launch {

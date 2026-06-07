@@ -34,6 +34,9 @@ interface UserPreferencesRepository {
 
     val avatarUri: Flow<String>
     suspend fun setAvatarUri(uri: String)
+
+    val email: Flow<String>
+    suspend fun setEmail(email: String)
 }
 
 @Singleton
@@ -82,6 +85,11 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         dataStore.edit { it[AVATAR_URI_KEY] = uri }
     }
 
+    override val email: Flow<String> = dataStore.data.map { it[EMAIL_KEY] ?: "" }
+    override suspend fun setEmail(email: String) {
+        dataStore.edit { it[EMAIL_KEY] = email }
+    }
+
     private companion object {
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         val IS_LOGGED_IN_KEY = booleanPreferencesKey("is_logged_in")
@@ -89,5 +97,6 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         val GENDER_KEY = stringPreferencesKey("gender")
         val PHONE_KEY = stringPreferencesKey("phone")
         val AVATAR_URI_KEY = stringPreferencesKey("avatar_uri")
+        val EMAIL_KEY = stringPreferencesKey("email")
     }
 }
