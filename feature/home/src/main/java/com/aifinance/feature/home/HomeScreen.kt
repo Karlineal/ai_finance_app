@@ -1,10 +1,12 @@
 package com.aifinance.feature.home
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,8 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,17 +32,20 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Fastfood
+import androidx.compose.material.icons.filled.LocalGroceryStore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -50,8 +54,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,6 +65,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -69,27 +76,33 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.designsystem.theme.BrandPrimary
+import com.aifinance.core.designsystem.theme.BrandPrimaryLight
 import com.aifinance.core.designsystem.theme.ExpenseDefault
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.IcokieTheme
 import com.aifinance.core.designsystem.theme.IncomeDefault
 import com.aifinance.core.designsystem.theme.OnPrimary
+
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import com.aifinance.feature.home.component.CategoryPickerBottomSheet
-import com.aifinance.feature.home.component.MonthlyExpenseGradientCard
-import com.aifinance.feature.home.component.NetAssetGradientCard
-import com.aifinance.feature.home.component.SwipeableTransactionItem
+import com.aifinance.feature.home.component.GradientGlassCard
 import com.aifinance.feature.home.component.toOption
+import com.aifinance.feature.home.component.NetAssetGradientCard
+import com.aifinance.feature.home.component.MonthlyExpenseGradientCard
+import com.aifinance.feature.home.component.RefinedTransactionItem
+import com.aifinance.feature.home.component.SwipeableTransactionItem
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import kotlinx.coroutines.delay
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.WeekFields
 import java.util.Locale
 import java.util.UUID
 
@@ -99,7 +112,7 @@ fun RecordHomeContent(
     onNavigateToAssetManagement: () -> Unit = {},
     onNavigateToStatistics: () -> Unit = {},
     onNavigateToTransactionDetail: (UUID) -> Unit = {},
-    viewModel: HomeViewModel = hiltViewModel(),
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     val spacing = IcokieTheme.spacing
 
@@ -145,21 +158,21 @@ fun RecordHomeContent(
             FloatingActionButton(
                 onClick = { showAddTransaction = true },
                 containerColor = BrandPrimary,
-                shape = CircleShape,
+                shape = CircleShape
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "记一笔",
-                    tint = Color.White,
+                    tint = Color.White
                 )
             }
-        },
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(paddingValues),
+                .padding(paddingValues)
         ) {
             HorizontalPager(
                 state = pagerState,
@@ -180,7 +193,7 @@ fun RecordHomeContent(
                         top = 8.dp,
                         bottom = spacing.pagePadding,
                     ),
-                    verticalArrangement = Arrangement.spacedBy(spacing.sectionSpacing),
+                    verticalArrangement = Arrangement.spacedBy(spacing.sectionSpacing)
                 ) {
                     item {
                         BalanceCard(
@@ -205,9 +218,7 @@ fun RecordHomeContent(
                         }
                     } else {
                         val groupedByDate = pageTransactions.groupBy { it.date }
-                        groupedByDate.toSortedMap(
-                            compareByDescending<LocalDate> { it },
-                        ).forEach { (date, dayTransactions) ->
+                        groupedByDate.toSortedMap(compareByDescending<LocalDate> { it }).forEach { (date, dayTransactions) ->
                             val sortedTransactions = dayTransactions.sortedByDescending { it.time }
                             item(key = "home-day-$date") {
                                 DaySectionHeader(
@@ -306,16 +317,15 @@ fun RecordHomeContent(
         }
 
         categoryPickerTransaction?.let { transaction ->
-            val categoriesForPicker: List<com.aifinance.feature.home.component.CategoryOption> =
-                remember(categoriesById.value, transaction.type) {
-                    val defaults = CategoryCatalog.forType(transaction.type)
-                        .map { it.toOption() }
-                    val customForType = categoriesById.value.values
-                        .filter { it.type == transaction.type && !it.isDefault }
-                        .sortedBy { it.order }
-                        .map { it.toOption() }
-                    defaults + customForType
-                }
+            val categoriesForPicker: List<com.aifinance.feature.home.component.CategoryOption> = remember(categoriesById.value, transaction.type) {
+                val defaults = CategoryCatalog.forType(transaction.type)
+                    .map { it.toOption() }
+                val customForType = categoriesById.value.values
+                    .filter { it.type == transaction.type && !it.isDefault }
+                    .sortedBy { it.order }
+                    .map { it.toOption() }
+                defaults + customForType
+            }
             CategoryPickerBottomSheet(
                 selectedCategoryId = transaction.categoryId,
                 categories = categoriesForPicker,
@@ -363,7 +373,7 @@ fun RecordHomeContent(
                             }
                             pendingDeleteTransaction = null
                             transientSuccessMessage = "删除成功"
-                        },
+                        }
                     ) {
                         Text(text = "删除", color = ExpenseDefault)
                     }
@@ -387,7 +397,7 @@ private fun AIAlertCard(
     onClick: () -> Unit,
     elevation: androidx.compose.ui.unit.Dp,
     alertLevel: AlertLevel = AlertLevel.NORMAL,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val spacing = IcokieTheme.spacing
 
@@ -403,33 +413,33 @@ private fun AIAlertCard(
             .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = elevation),
         colors = CardDefaults.cardColors(
-            containerColor = backgroundColor,
+            containerColor = backgroundColor
         ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(spacing.cardPadding),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(spacing.itemSpacing),
+                horizontalArrangement = Arrangement.spacedBy(spacing.itemSpacing)
             ) {
                 Box(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
                         .background(OnPrimary.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Warning,
                         contentDescription = "AI Alert",
                         tint = OnPrimary,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
@@ -437,13 +447,13 @@ private fun AIAlertCard(
                     Text(
                         text = title,
                         style = IcokieTextStyles.titleMedium,
-                        color = OnPrimary,
+                        color = OnPrimary
                     )
                     Spacer(modifier = Modifier.height(spacing.elementSpacing))
                     Text(
                         text = subtitle,
                         style = IcokieTextStyles.labelMedium,
-                        color = OnPrimary.copy(alpha = 0.8f),
+                        color = OnPrimary.copy(alpha = 0.8f)
                     )
                 }
             }
@@ -452,7 +462,7 @@ private fun AIAlertCard(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "查看详情",
                 tint = OnPrimary,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(24.dp)
             )
         }
     }
@@ -469,7 +479,7 @@ private fun BalanceCard(
     expense: BigDecimal,
     onAssetManageClick: () -> Unit,
     onStatisticsClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     var hideAmount by remember { mutableStateOf(false) }
     val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
@@ -502,7 +512,7 @@ private fun BalanceCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(228.dp),
+                    .height(228.dp)
             ) {
                 if (page == 0) {
                     NetAssetGlassCard(
@@ -555,7 +565,7 @@ private fun BalanceCard(
                                 MaterialTheme.colorScheme.onSurface.copy(alpha = indicatorAlpha)
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f * indicatorAlpha)
-                            },
+                            }
                         ),
                 )
             }
@@ -581,10 +591,7 @@ private fun NetAssetGlassCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(text = "净资产", style = IcokieTextStyles.titleMedium, color = Color(0xFF4A3A12))
                     Icon(
                         imageVector = if (hideAmount) Icons.Default.VisibilityOff else Icons.Default.Visibility,
@@ -644,11 +651,7 @@ private fun NetAssetGlassCard(
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(text = "负债", style = IcokieTextStyles.labelSmall, color = Color(0xFF735A28))
-                    Text(
-                        text = secureMoney(liabilities),
-                        style = IcokieTextStyles.titleMedium,
-                        color = Color(0xFF493812),
-                    )
+                    Text(text = secureMoney(liabilities), style = IcokieTextStyles.titleMedium, color = Color(0xFF493812))
                 }
             }
         }
@@ -675,15 +678,8 @@ private fun MonthlyExpenseGlassCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = "${selectedMonth.monthValue}月支出",
-                        style = IcokieTextStyles.titleMedium,
-                        color = Color(0xFFF2F6FF),
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = "${selectedMonth.monthValue}月支出", style = IcokieTextStyles.titleMedium, color = Color(0xFFF2F6FF))
                     Icon(
                         imageVector = if (hideAmount) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                         contentDescription = "切换金额可见",
@@ -742,11 +738,7 @@ private fun MonthlyExpenseGlassCard(
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(text = "结余", style = IcokieTextStyles.labelSmall, color = Color(0xFFE4ECFF))
-                    Text(
-                        text = secureMoney(monthlyBalance),
-                        style = IcokieTextStyles.titleMedium,
-                        color = Color(0xFFFCFEFF),
-                    )
+                    Text(text = secureMoney(monthlyBalance), style = IcokieTextStyles.titleMedium, color = Color(0xFFFCFEFF))
                 }
             }
         }
@@ -754,7 +746,11 @@ private fun MonthlyExpenseGlassCard(
 }
 
 @Composable
-private fun HeroAmountText(amountText: String, primaryColor: Color, modifier: Modifier = Modifier) {
+private fun HeroAmountText(
+    amountText: String,
+    primaryColor: Color,
+    modifier: Modifier = Modifier,
+) {
     if (!amountText.startsWith("¥") || !amountText.contains(".")) {
         Text(
             text = amountText,
@@ -791,30 +787,34 @@ private fun HeroAmountText(amountText: String, primaryColor: Color, modifier: Mo
 }
 
 @Composable
-private fun QuickActions(onAddClick: () -> Unit, onImportClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun QuickActions(
+    onAddClick: () -> Unit,
+    onImportClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val spacing = IcokieTheme.spacing
 
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(spacing.cardSpacing),
+        horizontalArrangement = Arrangement.spacedBy(spacing.cardSpacing)
     ) {
         Button(
             onClick = onAddClick,
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
-                containerColor = BrandPrimary,
+                containerColor = BrandPrimary
             ),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = "记一笔",
-                style = IcokieTextStyles.labelMedium,
+                style = IcokieTextStyles.labelMedium
             )
         }
 
@@ -822,19 +822,19 @@ private fun QuickActions(onAddClick: () -> Unit, onImportClick: () -> Unit, modi
             onClick = onImportClick,
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface,
+                contentColor = MaterialTheme.colorScheme.onSurface
             ),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(12.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.AttachFile,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = "导入账单",
-                style = IcokieTextStyles.labelMedium,
+                style = IcokieTextStyles.labelMedium
             )
         }
     }
@@ -845,49 +845,49 @@ private fun MonthlySummaryCard(
     income: BigDecimal,
     expense: BigDecimal,
     currency: String,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val spacing = IcokieTheme.spacing
     val elevation = IcokieTheme.elevation
 
     Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(spacing.cardSpacing),
-    ) {
-        Card(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(spacing.cardSpacing)
+        ) {
+            Card(
             modifier = Modifier.weight(1f),
             elevation = CardDefaults.cardElevation(defaultElevation = elevation.cardElevation),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-            ),
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(spacing.cardPadding),
-                horizontalAlignment = Alignment.Start,
+                horizontalAlignment = Alignment.Start
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Box(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(IncomeDefault),
+                            .background(IncomeDefault)
                     )
                     Text(
                         text = "本月收入",
                         style = IcokieTextStyles.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Spacer(modifier = Modifier.height(spacing.itemSpacing))
                 Text(
                     text = "+$currency ${income.toPlainString()}",
                     style = IcokieTextStyles.titleLarge,
-                    color = IncomeDefault,
+                    color = IncomeDefault
                 )
             }
         }
@@ -896,36 +896,36 @@ private fun MonthlySummaryCard(
             modifier = Modifier.weight(1f),
             elevation = CardDefaults.cardElevation(defaultElevation = elevation.cardElevation),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface,
-            ),
+                containerColor = MaterialTheme.colorScheme.surface
+            )
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(spacing.cardPadding),
-                horizontalAlignment = Alignment.Start,
+                horizontalAlignment = Alignment.Start
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Box(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(ExpenseDefault),
+                            .background(ExpenseDefault)
                     )
                     Text(
                         text = "本月支出",
                         style = IcokieTextStyles.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Spacer(modifier = Modifier.height(spacing.itemSpacing))
                 Text(
                     text = "-$currency ${expense.toPlainString()}",
                     style = IcokieTextStyles.titleLarge,
-                    color = ExpenseDefault,
+                    color = ExpenseDefault
                 )
             }
         }
@@ -933,7 +933,11 @@ private fun MonthlySummaryCard(
 }
 
 @Composable
-private fun DaySectionHeader(date: LocalDate, dayTransactions: List<Transaction>, modifier: Modifier = Modifier) {
+private fun DaySectionHeader(
+    date: LocalDate,
+    dayTransactions: List<Transaction>,
+    modifier: Modifier = Modifier,
+) {
     val expense = dayTransactions
         .filter { it.type == TransactionType.EXPENSE && !it.isPending }
         .fold(BigDecimal.ZERO) { sum, item -> sum + item.amount }
@@ -985,7 +989,11 @@ private fun DaySectionHeader(date: LocalDate, dayTransactions: List<Transaction>
 }
 
 @Composable
-private fun TimelineTransactionRecord(transaction: Transaction, accountName: String?, modifier: Modifier = Modifier) {
+private fun TimelineTransactionRecord(
+    transaction: Transaction,
+    accountName: String?,
+    modifier: Modifier = Modifier,
+) {
     val visual = transaction.resolveCategoryVisual()
     val remark = transaction.description?.takeIf { it.isNotBlank() } ?: transaction.title
 
@@ -1067,6 +1075,26 @@ private fun TimelineTransactionRecord(transaction: Transaction, accountName: Str
                     style = IcokieTextStyles.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+
+            if (transaction.receiptImagePaths.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items(transaction.receiptImagePaths) { path ->
+                        coil.compose.AsyncImage(
+                            model = java.io.File(path),
+                            contentDescription = "凭证缩略图",
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -1185,34 +1213,36 @@ private fun java.time.Instant.toClockText(): String {
 }
 
 @Composable
-private fun EmptyRecentTransactions(modifier: Modifier = Modifier) {
+private fun EmptyRecentTransactions(
+    modifier: Modifier = Modifier
+) {
     val spacing = IcokieTheme.spacing
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = spacing.sectionSpacing),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(spacing.itemSpacing),
+            verticalArrangement = Arrangement.spacedBy(spacing.itemSpacing)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "暂无交易记录",
                 style = IcokieTextStyles.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "点击「记一笔」添加第一笔交易",
                 style = IcokieTextStyles.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -1229,33 +1259,33 @@ private fun MonthSelector(
     modifier: Modifier = Modifier,
     selectedMonth: LocalDate,
     onPreviousMonth: () -> Unit,
-    onNextMonth: () -> Unit,
+    onNextMonth: () -> Unit
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         IconButton(onClick = onPreviousMonth) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "上个月",
-                tint = MaterialTheme.colorScheme.onSurface,
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
 
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "${selectedMonth.monthValue}月",
                 style = IcokieTextStyles.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "${selectedMonth.year}年",
                 style = IcokieTextStyles.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -1263,7 +1293,7 @@ private fun MonthSelector(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                 contentDescription = "下个月",
-                tint = MaterialTheme.colorScheme.onSurface,
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     }

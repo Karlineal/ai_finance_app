@@ -1,5 +1,7 @@
 package com.aifinance.feature.transactions
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
@@ -11,10 +13,12 @@ import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -105,6 +109,32 @@ class TransactionsViewModel @Inject constructor(
                     description = remark,
                 ),
             )
+        }
+    }
+
+    fun addTransactionReceipts(context: Context, transaction: Transaction, uris: List<Uri>) {
+        if (uris.isEmpty()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val newPaths = uris.mapNotNull { uri ->
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                    val file = File(context.filesDir, "receipt_${UUID.randomUUID()}.jpg")
+                    inputStream?.use { input ->
+                        file.outputStream().use { output -> input.copyTo(output) }
+                    }
+                    if (file.exists()) file.absolutePath else null
+                }
+                if (newPaths.isEmpty()) return@launch
+
+                val existingPaths = transaction.receiptImagePaths
+                val updatedPaths = (existingPaths + newPaths).joinToString(",")
+
+                transactionRepository.updateTransaction(
+                    transaction.copy(receiptImagePath = updatedPaths),
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

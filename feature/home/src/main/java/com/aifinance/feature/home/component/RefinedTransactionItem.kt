@@ -1,17 +1,27 @@
 package com.aifinance.feature.home.component
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
@@ -20,7 +30,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +52,7 @@ import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
+import com.aifinance.core.designsystem.component.ImagePreviewDialog
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -55,6 +69,7 @@ fun RefinedTransactionItem(
     val visual = transaction.resolveRefinedVisual(category)
     val remark = transaction.description?.takeIf { it.isNotBlank() } ?: transaction.title
     val rowInteractionSource = remember { MutableInteractionSource() }
+    var previewImagePath by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = modifier
@@ -65,7 +80,7 @@ fun RefinedTransactionItem(
                 interactionSource = rowInteractionSource,
                 indication = null,
                 onClick = onClick,
-                onLongClick = onLongPress,
+                onLongClick = onLongPress
             )
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
@@ -145,6 +160,27 @@ fun RefinedTransactionItem(
 
         Spacer(modifier = Modifier.size(6.dp))
 
+        if (transaction.receiptImagePaths.isNotEmpty()) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 6.dp)
+            ) {
+                items(transaction.receiptImagePaths) { path ->
+                    coil.compose.AsyncImage(
+                        model = java.io.File(path),
+                        contentDescription = "凭证缩略图",
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { previewImagePath = path }
+                    )
+                }
+            }
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -157,10 +193,21 @@ fun RefinedTransactionItem(
             )
         }
     }
+
+    if (previewImagePath != null) {
+        ImagePreviewDialog(
+            imagePath = previewImagePath!!,
+            onDismiss = { previewImagePath = null }
+        )
+    }
 }
 
 @Composable
-private fun InfoItem(icon: ImageVector, text: String, tint: Color) {
+private fun InfoItem(
+    icon: ImageVector,
+    text: String,
+    tint: Color,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -221,11 +268,11 @@ private fun Transaction.resolveRefinedVisual(customCategory: Category? = null): 
     val typeColors = when (type) {
         TransactionType.EXPENSE -> TypeColors(
             background = ExpenseCardBackground,
-            amount = MaterialTheme.colorScheme.error,
+            amount = MaterialTheme.colorScheme.error
         )
         TransactionType.INCOME -> TypeColors(
             background = IncomeCardBackground,
-            amount = MaterialTheme.colorScheme.tertiary,
+            amount = MaterialTheme.colorScheme.tertiary
         )
         TransactionType.TRANSFER -> {
             val amountColor = if (title.startsWith("转出")) {
@@ -235,7 +282,7 @@ private fun Transaction.resolveRefinedVisual(customCategory: Category? = null): 
             }
             TypeColors(
                 background = TransferCardBackground,
-                amount = amountColor,
+                amount = amountColor
             )
         }
     }
