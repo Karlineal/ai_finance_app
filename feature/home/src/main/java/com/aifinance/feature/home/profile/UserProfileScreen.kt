@@ -327,10 +327,24 @@ fun UserProfileScreen(
                 confirmButton = {
                     TextButton(onClick = {
                         when (showEditDialog) {
-                            "昵称" -> viewModel.updateNickname(editValue)
-                            "邮箱" -> viewModel.updateEmail(editValue)
+                            "昵称" -> {
+                                if (editValue.isNotBlank()) {
+                                    viewModel.updateNickname(editValue)
+                                }
+                            }
+                            "邮箱" -> {
+                                if (editValue.isNotBlank()) {
+                                    viewModel.updateEmail(editValue)
+                                }
+                            }
+                            "性别" -> {
+                                if (editValue.isNotBlank()) {
+                                    viewModel.updateGender(editValue)
+                                }
+                            }
                         }
                         showEditDialog = null
+                        editValue = ""
                     }) {
                         Text("保存")
                     }
