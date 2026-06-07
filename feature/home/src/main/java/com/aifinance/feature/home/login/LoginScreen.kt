@@ -97,8 +97,7 @@ fun LoginScreen(
                 Icon(
                     painter = painterResource(id = com.aifinance.feature.home.R.drawable.app_icon),
                     contentDescription = "App Icon",
-                    modifier = Modifier.size(60.dp),
-                    contentScale = ContentScale.Fit
+                    modifier = Modifier.size(60.dp)
                 )
             }
 
