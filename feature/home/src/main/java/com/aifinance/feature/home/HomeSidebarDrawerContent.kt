@@ -1,7 +1,7 @@
 package com.aifinance.feature.home
 
+import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,20 +37,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.aifinance.core.model.TransactionType
 import com.aifinance.feature.home.component.DayActivity
 import com.aifinance.feature.home.component.RecordHeatMap
@@ -57,6 +57,8 @@ import java.time.YearMonth
 
 @Composable
 fun HomeSidebarDrawerContent(
+    onNavigateToLogin: () -> Unit,
+    onNavigateToUserProfile: () -> Unit,
     onNavigateHome: () -> Unit,
     onNavigateStatistics: () -> Unit,
     onNavigateTransactions: () -> Unit,
@@ -73,6 +75,10 @@ fun HomeSidebarDrawerContent(
 ) {
     val recordStats by viewModel.recordStats.collectAsStateWithLifecycle()
     val transactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
+    val avatarUri by viewModel.avatarUri.collectAsStateWithLifecycle()
+    val nickname by viewModel.nickname.collectAsStateWithLifecycle()
+    val email by viewModel.email.collectAsStateWithLifecycle()
     val currentMonth = remember { YearMonth.now() }
     val monthRecords = remember(transactions, currentMonth) {
         transactions.filter {
@@ -110,7 +116,14 @@ fun HomeSidebarDrawerContent(
                 .padding(horizontal = 14.dp, vertical = 18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            LoginHeader(onNavigateHome = onNavigateHome)
+            LoginHeader(
+                isLoggedIn = isLoggedIn,
+                nickname = nickname,
+                email = email,
+                avatarUri = avatarUri,
+                onNavigateToLogin = onNavigateToLogin,
+                onNavigateToUserProfile = onNavigateToUserProfile,
+            )
 
             HeatmapCard(
                 currentMonth = currentMonth,
@@ -141,67 +154,68 @@ fun HomeSidebarDrawerContent(
 }
 
 @Composable
-private fun LoginHeader(onNavigateHome: () -> Unit, modifier: Modifier = Modifier) {
-    var isLoggedIn by remember { mutableStateOf(false) }
+private fun LoginHeader(
+    isLoggedIn: Boolean,
+    nickname: String,
+    email: String,
+    avatarUri: String,
+    onNavigateToLogin: () -> Unit,
+    onNavigateToUserProfile: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable {
+                if (isLoggedIn) {
+                    onNavigateToUserProfile()
+                } else {
+                    onNavigateToLogin()
+                }
+            },
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        if (isLoggedIn) {
-                            onNavigateHome()
-                        }
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                PremiumAvatar(isLoggedIn = isLoggedIn)
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            PremiumAvatar(isLoggedIn = isLoggedIn, avatarUri = avatarUri)
+
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = if (isLoggedIn && nickname.isNotEmpty()) nickname else "点击登录",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                if (isLoggedIn && email.isNotEmpty()) {
                     Text(
-                        text = if (isLoggedIn) "用户已登录" else "未登录",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = if (isLoggedIn) "账号已绑定微信与手机号" else "登录后可同步微信账单与云端数据",
+                        text = email,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(14.dp),
-                )
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                LoginChip(
-                    label = if (isLoggedIn) "用户中心" else "用户登录",
-                    selected = !isLoggedIn,
-                    onClick = { isLoggedIn = true },
-                )
-                if (isLoggedIn) {
-                    LoginChip(
-                        label = "退出",
-                        selected = false,
-                        onClick = { isLoggedIn = false },
-                    )
-                }
-            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(14.dp),
+            )
         }
     }
 }
 
 @Composable
-private fun PremiumAvatar(isLoggedIn: Boolean, modifier: Modifier = Modifier) {
+private fun PremiumAvatar(
+    isLoggedIn: Boolean,
+    avatarUri: String,
+    modifier: Modifier = Modifier,
+) {
     val ringGradient = if (isLoggedIn) {
         Brush.linearGradient(listOf(Color(0xFF2E5FE6), Color(0xFF6A8EFF), Color(0xFF9BC0FF)))
     } else {
@@ -228,38 +242,29 @@ private fun PremiumAvatar(isLoggedIn: Boolean, modifier: Modifier = Modifier) {
                 .background(coreGradient),
             contentAlignment = Alignment.Center,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(Color.White.copy(alpha = 0.26f), CircleShape),
-            )
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = null,
-                tint = Color(0xFF94A3B8),
-                modifier = Modifier.size(32.dp),
-            )
+            if (isLoggedIn && avatarUri.isNotEmpty()) {
+                AsyncImage(
+                    model = Uri.parse(avatarUri),
+                    contentDescription = "Avatar",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.White.copy(alpha = 0.26f), CircleShape),
+                )
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = null,
+                    tint = Color(0xFF94A3B8),
+                    modifier = Modifier.size(32.dp),
+                )
+            }
         }
-    }
-}
-
-@Composable
-private fun LoginChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val bg = if (selected) {
-        if (isDark) Color(0xFF1E3A5F) else Color(0xFFDDEBFF)
-    } else {
-        if (isDark) Color(0xFF1E293B) else Color.White
-    }
-    val textColor = if (selected) Color(0xFF2E5FE6) else MaterialTheme.colorScheme.onSurface
-    Box(
-        modifier = Modifier
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
-            .background(bg, RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-    ) {
-        Text(text = label, color = textColor, style = MaterialTheme.typography.labelMedium)
     }
 }
 
@@ -302,17 +307,8 @@ private fun HeatmapCard(
 @Composable
 private fun HeatmapStatItem(value: String, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Text(text = value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        Text(text = label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -361,17 +357,8 @@ private fun FunctionGridCard(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = null,
-                                tint = item.iconTint,
-                                modifier = Modifier.size(24.dp),
-                            )
-                            Text(
-                                text = item.label,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
+                            Icon(imageVector = item.icon, contentDescription = null, tint = item.iconTint, modifier = Modifier.size(24.dp))
+                            Text(text = item.label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                     repeat(3 - rowItems.size) {
@@ -400,11 +387,7 @@ private fun SettingEntryCard(onNavigateSettings: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Icon(imageVector = Icons.Default.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(text = "设置", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
             Icon(

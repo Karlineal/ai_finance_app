@@ -50,6 +50,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
 
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+
     // No additional dependencies needed - using WebView for Markdown rendering
 
     implementation(libs.hilt.android)

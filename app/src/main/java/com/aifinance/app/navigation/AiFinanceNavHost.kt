@@ -47,6 +47,9 @@ import com.aifinance.feature.transactions.navigation.calendarTransactionsScreen
 import com.aifinance.feature.transactions.navigation.navigateToTransactionDetail
 import com.aifinance.feature.transactions.navigation.transactionDetailScreen
 import com.aifinance.feature.transactions.navigation.transactionsScreen
+import com.aifinance.feature.home.profile.userProfileScreen
+import com.aifinance.feature.home.login.emailAuthScreen
+import com.aifinance.feature.home.login.navigateToEmailAuth
 
 @Composable
 fun AiFinanceNavHost(navController: NavHostController, onOpenDrawer: () -> Unit, modifier: Modifier = Modifier) {
@@ -90,6 +93,16 @@ fun AiFinanceNavHost(navController: NavHostController, onOpenDrawer: () -> Unit,
             onNavigateToTransactionDetail = { transactionId ->
                 navController.navigateToTransactionDetail(transactionId)
             },
+        )
+
+        emailAuthScreen(
+            onLoginSuccess = { navController.popBackStack(HOME_ROUTE, inclusive = false) },
+            onBack = { navController.popBackStack() },
+        )
+
+        userProfileScreen(
+            onBack = { navController.popBackStack() },
+            onLogoutSuccess = { navController.popBackStack(HOME_ROUTE, inclusive = false) },
         )
 
         composable(ASSET_MANAGEMENT_ROUTE) {

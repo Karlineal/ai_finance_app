@@ -37,6 +37,8 @@ import com.aifinance.feature.budget.navigation.BUDGET_ENTRY_ROUTE
 import com.aifinance.feature.category_management.navigation.CATEGORY_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.HomeSidebarDrawerContent
+import com.aifinance.feature.home.login.EMAIL_AUTH_ROUTE
+import com.aifinance.feature.home.profile.USER_PROFILE_ROUTE
 import com.aifinance.feature.home.navigation.HOME_ROUTE
 import com.aifinance.feature.importer.navigation.BILL_IMPORT_ROUTE
 import com.aifinance.feature.savings_goal.navigation.navigateToSavingsGoalList
@@ -105,6 +107,18 @@ class MainActivity : ComponentActivity() {
                         ) {
                             Row(modifier = Modifier.fillMaxSize()) {
                                 HomeSidebarDrawerContent(
+                                    onNavigateToLogin = {
+                                        navController.navigate(EMAIL_AUTH_ROUTE) {
+                                            launchSingleTop = true
+                                        }
+                                        closeDrawer()
+                                    },
+                                    onNavigateToUserProfile = {
+                                        navController.navigate(USER_PROFILE_ROUTE) {
+                                            launchSingleTop = true
+                                        }
+                                        closeDrawer()
+                                    },
                                     onNavigateHome = {
                                         navController.navigate(HOME_ROUTE) {
                                             launchSingleTop = true
@@ -148,7 +162,7 @@ class MainActivity : ComponentActivity() {
                                         closeDrawer()
                                     },
                                     onNavigateToAllRecords = { date ->
-                                        navController.navigate("all_records/$date") {
+                                        navController.navigate("all_records/${date}") {
                                             launchSingleTop = true
                                         }
                                         closeDrawer()

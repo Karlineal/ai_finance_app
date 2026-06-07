@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.TransactionRepository
+import com.aifinance.core.data.repository.UserPreferencesRepository
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AccountType
 import com.aifinance.core.model.Category
@@ -15,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,6 +25,7 @@ import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.temporal.WeekFields
 import java.util.Locale
+import com.google.firebase.auth.FirebaseAuth
 import java.util.UUID
 import javax.inject.Inject
 
@@ -31,7 +34,43 @@ class HomeViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
     accountRepository: AccountRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
 ) : ViewModel() {
+
+    val isLoggedIn: StateFlow<Boolean> = userPreferencesRepository.isLoggedIn
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false,
+        )
+
+    val nickname = userPreferencesRepository.nickname.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "小皮皮")
+    val gender = userPreferencesRepository.gender.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "未填写")
+    val phone = userPreferencesRepository.phone.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "185****2721")
+    val avatarUri = userPreferencesRepository.avatarUri.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    val email = userPreferencesRepository.email.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    fun updateNickname(name: String) = viewModelScope.launch { userPreferencesRepository.setNickname(name) }
+    fun updateGender(g: String) = viewModelScope.launch { userPreferencesRepository.setGender(g) }
+    fun updatePhone(p: String) = viewModelScope.launch { userPreferencesRepository.setPhone(p) }
+    fun updateAvatarUri(uri: String) = viewModelScope.launch { userPreferencesRepository.setAvatarUri(uri) }
+    fun updateEmail(e: String) = viewModelScope.launch { userPreferencesRepository.setEmail(e) }
+
+    fun login() {
+        viewModelScope.launch {
+            userPreferencesRepository.setLoggedIn(true)
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            userPreferencesRepository.setLoggedIn(false)
+            userPreferencesRepository.setEmail("")
+            // 保留 nickname、gender、phone、avatarUri，这样重新登录后 profile 信息仍在
+            // Firebase Auth 登出
+            FirebaseAuth.getInstance().signOut()
+        }
+    }
 
     val categoriesById: StateFlow<Map<UUID, Category>> =
         categoryRepository.getAllCategories()
@@ -47,14 +86,15 @@ class HomeViewModel @Inject constructor(
                 initialValue = emptyMap(),
             )
 
-    fun getCategoriesForType(type: TransactionType): Flow<List<Category>> = categoryRepository.getAllCategories()
-        .map { customCategories ->
-            val defaults = CategoryCatalog.forType(type).map { it.asCategory() }
-            val customForType = customCategories
-                .filter { it.type == type && !it.isDefault }
-                .sortedBy { it.order }
-            defaults + customForType
-        }
+    fun getCategoriesForType(type: TransactionType): Flow<List<Category>> =
+        categoryRepository.getAllCategories()
+            .map { customCategories ->
+                val defaults = CategoryCatalog.forType(type).map { it.asCategory() }
+                val customForType = customCategories
+                    .filter { it.type == type && !it.isDefault }
+                    .sortedBy { it.order }
+                defaults + customForType
+            }
 
     val recentTransactions: StateFlow<List<Transaction>> =
         transactionRepository.getAllTransactions()
@@ -200,7 +240,11 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun updateTransactionCategory(transaction: Transaction, categoryId: UUID, categoryName: String? = null) {
+    fun updateTransactionCategory(
+        transaction: Transaction,
+        categoryId: UUID,
+        categoryName: String? = null,
+    ) {
         viewModelScope.launch {
             transactionRepository.updateTransaction(
                 transaction.copy(
@@ -211,7 +255,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun updateTransactionDetails(transaction: Transaction, editedFields: HomeTransactionEditedFields) {
+    fun updateTransactionDetails(
+        transaction: Transaction,
+        editedFields: HomeTransactionEditedFields,
+    ) {
         viewModelScope.launch {
             transactionRepository.updateTransaction(
                 transaction.copy(
@@ -321,7 +368,7 @@ private fun calculateWeeklyInsight(transactions: List<Transaction>): WeeklyInsig
             val week = it.date.get(weekFields.weekOfWeekBasedYear())
             val year = it.date.get(weekFields.weekBasedYear())
             week == currentWeek && year == currentYear &&
-                it.type == TransactionType.EXPENSE && !it.isPending
+                    it.type == TransactionType.EXPENSE && !it.isPending
         }
         .fold(BigDecimal.ZERO) { acc, t -> acc + t.amount }
 
@@ -330,7 +377,7 @@ private fun calculateWeeklyInsight(transactions: List<Transaction>): WeeklyInsig
             val week = it.date.get(weekFields.weekOfWeekBasedYear())
             val year = it.date.get(weekFields.weekBasedYear())
             week == lastWeekNumber && year == lastWeekYear &&
-                it.type == TransactionType.EXPENSE && !it.isPending
+                    it.type == TransactionType.EXPENSE && !it.isPending
         }
         .fold(BigDecimal.ZERO) { acc, t -> acc + t.amount }
 
