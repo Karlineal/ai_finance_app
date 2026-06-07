@@ -51,7 +51,7 @@ ai-finance-android/
 | **UI** | Jetpack Compose + Material Design 3 |
 | **架构** | MVVM + Repository Pattern + Clean Architecture |
 | **依赖注入** | Hilt |
-| **数据库** | Room v2.6.1 (SQLite), 当前版本 v8 |
+| **数据库** | Room v2.6.1 (SQLite), 当前版本 v9 |
 | **网络** | Retrofit 2.9.0 + OkHttp 4.12.0 + Kotlinx Serialization |
 | **导航** | Compose Navigation |
 | **异步** | Kotlin Coroutines + Flow |
@@ -62,6 +62,20 @@ ai-finance-android/
 ---
 
 ## 最近更新
+
+### 2025-06
+
+- **攒钱计划日历视图修复**：
+  - 修正热力图日期范围，已完成计划显示完整打卡记录
+  - 修正 52 周/365 天计划进度计算（按周期而非天数）
+  - 改进打卡期数计算，根据日期自动计算实际期数
+  - 优化图例文案："少/多" → "未打卡/已打卡"
+  - 已完成/失败的计划也能查看历史打卡记录
+- **死代码清理**：删除未使用的 CheckInCalendarViewModel 等4个文件
+- **代码质量提升**：
+  - 自动格式化 187 个文件（spotlessApply）
+  - 优化 ktlint 配置，禁用过于严格的规则
+  - 更新 .editorconfig 统一代码风格
 
 ### 2025-05
 
@@ -141,6 +155,10 @@ ai-finance-android/
 - **自动储蓄计划**：支持按日/周/月定时自动从默认账户扣款存入攒钱计划
 - **专属账户**：每个攒钱计划自动创建专属"小荷包"账户，独立管理资金
 - **进度跟踪**：环形进度条展示完成比例，实时显示已存金额与剩余天数
+- **打卡日历视图**：
+  - 热力图展示打卡记录，直观显示坚持情况
+  - 52 周计划按周显示，365 天计划按天显示
+  - 已完成/失败的计划也能查看历史打卡记录
 - **快捷存入**：一键快速存入预设金额，自动创建转入/转出转账记录
 - **转账关联**：存入/取出自动创建配对转账记录，删除时级联同步
 - **状态管理**：进行中 → 已完成 / 已放弃
@@ -302,6 +320,19 @@ data class Account(
 )
 ```
 
+### SavingsRecord（攒钱记录）
+```kotlin
+data class SavingsRecord(
+    val id: UUID,
+    val savingsGoalId: UUID,      // 关联攒钱计划
+    val amount: BigDecimal,       // 存入金额
+    val periodIndex: Int,         // 期数索引（52周=1-52，365天=1-365）
+    val date: LocalDate,          // 打卡日期
+    val note: String?,            // 备注
+    // ...
+)
+```
+
 ---
 
 ## 🧩 模块依赖关系
@@ -326,6 +357,10 @@ app
 │   └── ...
 ├── feature:importer
 │   └── ...
+├── feature:savings_goal
+│   ├── core:ui
+│   ├── core:data
+│   └── core:model
 └── core:designsystem
     └── core:model
 ```
