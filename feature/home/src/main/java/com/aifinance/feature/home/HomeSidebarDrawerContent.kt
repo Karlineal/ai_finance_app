@@ -1,7 +1,7 @@
 package com.aifinance.feature.home
 
+import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,31 +29,27 @@ import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.UploadFile
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aifinance.core.designsystem.theme.BrandPrimary
+import coil.compose.AsyncImage
 import com.aifinance.core.model.TransactionType
 import com.aifinance.feature.home.component.DayActivity
 import com.aifinance.feature.home.component.RecordHeatMap
@@ -79,6 +76,7 @@ fun HomeSidebarDrawerContent(
     val recordStats by viewModel.recordStats.collectAsStateWithLifecycle()
     val transactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
+    val avatarUri by viewModel.avatarUri.collectAsStateWithLifecycle()
     val currentMonth = remember { YearMonth.now() }
     val monthRecords = remember(transactions, currentMonth) {
         transactions.filter {
@@ -118,10 +116,9 @@ fun HomeSidebarDrawerContent(
         ) {
             LoginHeader(
                 isLoggedIn = isLoggedIn,
-                onNavigateHome = onNavigateHome,
+                avatarUri = avatarUri,
                 onNavigateToLogin = onNavigateToLogin,
                 onNavigateToUserProfile = onNavigateToUserProfile,
-                onLogout = { viewModel.logout() },
             )
 
             HeatmapCard(
@@ -152,111 +149,65 @@ fun HomeSidebarDrawerContent(
     }
 }
 
-@Suppress("UNUSED_PARAMETER")
 @Composable
 private fun LoginHeader(
     isLoggedIn: Boolean,
-    onNavigateHome: () -> Unit,
+    avatarUri: String,
     onNavigateToLogin: () -> Unit,
     onNavigateToUserProfile: () -> Unit,
-    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var showLogoutDialog by remember { mutableStateOf(false) }
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable {
+                if (isLoggedIn) {
+                    onNavigateToUserProfile()
+                } else {
+                    onNavigateToLogin()
+                }
+            },
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        if (isLoggedIn) {
-                            onNavigateToUserProfile()
-                        } else {
-                            onNavigateToLogin()
-                        }
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                PremiumAvatar(isLoggedIn = isLoggedIn)
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            PremiumAvatar(isLoggedIn = isLoggedIn, avatarUri = avatarUri)
+
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = if (isLoggedIn) "用户已登录" else "点击登录",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                if (isLoggedIn) {
                     Text(
-                        text = if (isLoggedIn) "用户已登录" else "未登录",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = if (isLoggedIn) "账号已绑定微信与手机号" else "登录后可同步微信账单与云端数据",
+                        text = "账号已绑定",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(14.dp),
-                )
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                LoginChip(
-                    label = if (isLoggedIn) "用户中心" else "用户登录",
-                    selected = !isLoggedIn,
-                    onClick = {
-                        if (!isLoggedIn) {
-                            onNavigateToLogin()
-                        } else {
-                            onNavigateToUserProfile()
-                        }
-                    },
-                )
-                if (isLoggedIn) {
-                    LoginChip(
-                        label = "退出",
-                        selected = false,
-                        onClick = { showLogoutDialog = true },
-                    )
-                }
-            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(14.dp),
+            )
         }
-    }
-
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text("退出登录", style = MaterialTheme.typography.titleLarge) },
-            text = { Text("确定退出登录吗？", style = MaterialTheme.typography.bodyMedium) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onLogout()
-                        showLogoutDialog = false
-                    },
-                ) {
-                    Text("确认")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("取消")
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-            textContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
 @Composable
 private fun PremiumAvatar(
     isLoggedIn: Boolean,
+    avatarUri: String,
     modifier: Modifier = Modifier,
 ) {
     val ringGradient = if (isLoggedIn) {
@@ -285,42 +236,29 @@ private fun PremiumAvatar(
                 .background(coreGradient),
             contentAlignment = Alignment.Center,
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(Color.White.copy(alpha = 0.26f), CircleShape),
-            )
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = null,
-                tint = Color(0xFF94A3B8),
-                modifier = Modifier.size(32.dp),
-            )
+            if (isLoggedIn && avatarUri.isNotEmpty()) {
+                AsyncImage(
+                    model = Uri.parse(avatarUri),
+                    contentDescription = "Avatar",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.White.copy(alpha = 0.26f), CircleShape),
+                )
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = null,
+                    tint = Color(0xFF94A3B8),
+                    modifier = Modifier.size(32.dp),
+                )
+            }
         }
-    }
-}
-
-@Composable
-private fun LoginChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
-    val bg = if (selected) {
-        if (isDark) Color(0xFF1E3A5F) else Color(0xFFDDEBFF)
-    } else {
-        if (isDark) Color(0xFF1E293B) else Color.White
-    }
-    val textColor = if (selected) Color(0xFF2E5FE6) else MaterialTheme.colorScheme.onSurface
-    Box(
-        modifier = Modifier
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
-            .background(bg, RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-    ) {
-        Text(text = label, color = textColor, style = MaterialTheme.typography.labelMedium)
     }
 }
 
