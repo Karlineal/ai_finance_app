@@ -66,9 +66,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.setLoggedIn(false)
             userPreferencesRepository.setEmail("")
-            userPreferencesRepository.setNickname("")
-            userPreferencesRepository.setGender("")
-            userPreferencesRepository.setPhone("")
+            userPreferencesRepository.setNickname("小皮皮")
+            userPreferencesRepository.setGender("未填写")
+            userPreferencesRepository.setPhone("185****2721")
             userPreferencesRepository.setAvatarUri("")
             // Firebase Auth 登出
             FirebaseAuth.getInstance().signOut()

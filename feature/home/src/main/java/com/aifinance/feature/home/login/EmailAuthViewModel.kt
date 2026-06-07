@@ -39,9 +39,13 @@ class EmailAuthViewModel @Inject constructor(
                     auth.createUserWithEmailAndPassword(email, password).await()
                 }
                 val user = auth.currentUser
-                val userEmail = user?.email ?: ""
+                val userEmail = user?.email ?: email
+                // 保存用户信息到本地
                 userPreferencesRepository.setEmail(userEmail)
                 userPreferencesRepository.setLoggedIn(true)
+                // 使用邮箱前缀作为默认昵称
+                val defaultNickname = userEmail.substringBefore("@")
+                userPreferencesRepository.setNickname(defaultNickname)
                 _uiState.value = EmailAuthState.Success
             } catch (e: Exception) {
                 _uiState.value = EmailAuthState.Error(e.message ?: "操作失败")
