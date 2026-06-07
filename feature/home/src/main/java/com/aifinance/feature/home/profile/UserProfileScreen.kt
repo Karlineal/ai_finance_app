@@ -99,11 +99,11 @@ fun UserProfileScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFF5F7FA)
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
-        containerColor = Color(0xFFF5F7FA)
+        containerColor = MaterialTheme.colorScheme.surface
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -121,7 +121,7 @@ fun UserProfileScreen(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFFD54F)),
+                        .background(MaterialTheme.colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
                     if (avatarUri.isNotEmpty()) {
@@ -135,7 +135,7 @@ fun UserProfileScreen(
                         Icon(
                             imageVector = Icons.Default.AccountCircle,
                             contentDescription = "Avatar",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(80.dp)
                         )
                     }
@@ -145,7 +145,7 @@ fun UserProfileScreen(
                     modifier = Modifier
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.surface)
                         .clickable {
                             photoPickerLauncher.launch(
                                 androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
@@ -168,14 +168,14 @@ fun UserProfileScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
                             Brush.linearGradient(
-                                colors = listOf(Color(0xFFB57A3C), Color(0xFF6B4518))
+                                colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
                             )
                         )
                         .padding(horizontal = 16.dp, vertical = 20.dp),
@@ -187,23 +187,23 @@ fun UserProfileScreen(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color.White.copy(alpha = 0.2f)),
+                                .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("FREE", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("FREE", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("记账功能「永久免费」", color = Color.White, fontWeight = FontWeight.Medium, fontSize = 16.sp)
+                        Text("记账功能「永久免费」", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Medium, fontSize = 16.sp)
                     }
 
                     Surface(
-                        color = Color(0xFFFFD54F),
+                        color = MaterialTheme.colorScheme.tertiary,
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.clickable { /* Handle details click */ }
                     ) {
                         Text(
                             text = "查看详情",
-                            color = Color(0xFF6B4518),
+                            color = MaterialTheme.colorScheme.onTertiary,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -218,7 +218,7 @@ fun UserProfileScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     ProfileItemRow(
@@ -243,15 +243,15 @@ fun UserProfileScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("微信", color = Color(0xFF333333), fontSize = 16.sp)
+                        Text("微信", color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
                         Surface(
                             shape = RoundedCornerShape(16.dp),
-                            color = Color(0xFFF0F5FF),
+                            color = MaterialTheme.colorScheme.primaryContainer,
                             modifier = Modifier.clickable { /* Handle bind click */ }
                         ) {
                             Text(
                                 "去绑定",
-                                color = Color(0xFF2E5FE6),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontSize = 12.sp,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                             )
@@ -278,8 +278,8 @@ fun UserProfileScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = Color(0xFF333333)
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.error
                 )
             ) {
                 Text("退出登录", fontSize = 16.sp, fontWeight = FontWeight.Medium)
@@ -337,15 +337,15 @@ private fun ProfileItemRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = label, color = Color(0xFF333333), fontSize = 16.sp)
+        Text(text = label, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = value, color = Color(0xFF666666), fontSize = 16.sp)
+            Text(text = value, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
             Spacer(modifier = Modifier.width(8.dp))
             if (showEdit) {
                 Icon(
                     imageVector = Icons.Default.Edit,
                     contentDescription = "Edit",
-                    tint = Color(0xFFCCCCCC),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .size(16.dp)
                         .clickable { onEditClick() }
@@ -354,7 +354,7 @@ private fun ProfileItemRow(
                 Icon(
                     imageVector = Icons.Default.ContentCopy,
                     contentDescription = "Copy",
-                    tint = Color(0xFFCCCCCC),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .size(16.dp)
                         .clickable { /* TODO */ }
@@ -370,6 +370,6 @@ private fun ProfileDivider() {
         modifier = Modifier
             .fillMaxWidth()
             .height(0.5.dp)
-            .background(Color(0xFFEEEEEE))
+            .background(MaterialTheme.colorScheme.outlineVariant)
     )
 }
