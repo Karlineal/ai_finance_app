@@ -228,8 +228,10 @@ fun UserProfileScreen(
                     )
                     ProfileDivider()
                     ProfileItemRow(
-                        label = "邮箱", value = email.ifEmpty { "未绑定" }, showEdit = true,
-                        onEditClick = { showEditDialog = "邮箱"; editValue = email }
+                        label = "邮箱",
+                        value = if (email.isNotEmpty()) email else "未绑定",
+                        valueColor = if (email.isNotEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else Color.Gray,
+                        showEdit = false
                     )
                     ProfileDivider()
                     ProfileItemRow(label = "ID", value = "7YHBM6AR", showCopy = true)
@@ -353,6 +355,7 @@ fun UserProfileScreen(
 private fun ProfileItemRow(
     label: String,
     value: String,
+    valueColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     showEdit: Boolean = false,
     showCopy: Boolean = false,
     onEditClick: () -> Unit = {}
@@ -366,7 +369,7 @@ private fun ProfileItemRow(
     ) {
         Text(text = label, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = value, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 16.sp)
+            Text(text = value, color = valueColor, fontSize = 16.sp)
             Spacer(modifier = Modifier.width(8.dp))
             if (showEdit) {
                 Icon(

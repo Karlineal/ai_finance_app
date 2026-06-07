@@ -25,6 +25,7 @@ import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.temporal.WeekFields
 import java.util.Locale
+import com.google.firebase.auth.FirebaseAuth
 import java.util.UUID
 import javax.inject.Inject
 
@@ -64,6 +65,13 @@ class HomeViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             userPreferencesRepository.setLoggedIn(false)
+            userPreferencesRepository.setEmail("")
+            userPreferencesRepository.setNickname("")
+            userPreferencesRepository.setGender("")
+            userPreferencesRepository.setPhone("")
+            userPreferencesRepository.setAvatarUri("")
+            // Firebase Auth 登出
+            FirebaseAuth.getInstance().signOut()
         }
     }
 

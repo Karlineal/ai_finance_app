@@ -38,6 +38,9 @@ class EmailAuthViewModel @Inject constructor(
                 } else {
                     auth.createUserWithEmailAndPassword(email, password).await()
                 }
+                val user = auth.currentUser
+                val userEmail = user?.email ?: ""
+                userPreferencesRepository.setEmail(userEmail)
                 userPreferencesRepository.setLoggedIn(true)
                 _uiState.value = EmailAuthState.Success
             } catch (e: Exception) {
