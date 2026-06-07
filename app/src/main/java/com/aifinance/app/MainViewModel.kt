@@ -5,10 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AppThemeMode
 import com.aifinance.core.data.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(

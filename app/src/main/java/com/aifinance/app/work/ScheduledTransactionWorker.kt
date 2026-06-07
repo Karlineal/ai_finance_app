@@ -17,14 +17,14 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.firstOrNull
+import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.util.UUID
-import kotlinx.coroutines.flow.firstOrNull
-import java.math.BigDecimal
 
 class ScheduledTransactionWorker(
     context: Context,
@@ -78,18 +78,31 @@ class ScheduledTransactionWorker(
                     return Result.success()
                 }
 
-                val periodIndex = com.aifinance.core.data.repository.SavingsGoalCalculator.getCurrentPeriodIndex(goal.startDate, goal.savingsMethod, goal.frequency)
-                
+                val periodIndex = com.aifinance.core.data.repository.SavingsGoalCalculator.getCurrentPeriodIndex(
+                    goal.startDate,
+                    goal.savingsMethod,
+                    goal.frequency,
+                )
+
                 val amountToSave = when (goal.savingsMethod) {
-                    com.aifinance.core.model.SavingsMethod.DAILY_365 -> 
-                        com.aifinance.core.data.repository.SavingsGoalCalculator.calculateDay365Amount(periodIndex, goal.baseAmount ?: BigDecimal.ONE)
-                    com.aifinance.core.model.SavingsMethod.WEEKLY_52 -> 
-                        com.aifinance.core.data.repository.SavingsGoalCalculator.calculateWeek52Amount(periodIndex, goal.baseAmount ?: BigDecimal(10))
-                    com.aifinance.core.model.SavingsMethod.MONTHLY_12 -> 
-                        com.aifinance.core.data.repository.SavingsGoalCalculator.calculateMonth12Amount(periodIndex, goal.baseAmount ?: BigDecimal(100))
-                    com.aifinance.core.model.SavingsMethod.FIXED_AMOUNT -> 
+                    com.aifinance.core.model.SavingsMethod.DAILY_365 ->
+                        com.aifinance.core.data.repository.SavingsGoalCalculator.calculateDay365Amount(
+                            periodIndex,
+                            goal.baseAmount ?: BigDecimal.ONE,
+                        )
+                    com.aifinance.core.model.SavingsMethod.WEEKLY_52 ->
+                        com.aifinance.core.data.repository.SavingsGoalCalculator.calculateWeek52Amount(
+                            periodIndex,
+                            goal.baseAmount ?: BigDecimal(10),
+                        )
+                    com.aifinance.core.model.SavingsMethod.MONTHLY_12 ->
+                        com.aifinance.core.data.repository.SavingsGoalCalculator.calculateMonth12Amount(
+                            periodIndex,
+                            goal.baseAmount ?: BigDecimal(100),
+                        )
+                    com.aifinance.core.model.SavingsMethod.FIXED_AMOUNT ->
                         goal.fixedAmount ?: BigDecimal.ZERO
-                    com.aifinance.core.model.SavingsMethod.FLEXIBLE -> 
+                    com.aifinance.core.model.SavingsMethod.FLEXIBLE ->
                         BigDecimal.ZERO
                 }
 
@@ -101,10 +114,10 @@ class ScheduledTransactionWorker(
                         date = today,
                         note = "自动打卡",
                         periodIndex = periodIndex,
-                        createdAt = now
+                        createdAt = now,
                     )
                     entryPoint.savingsGoalRepository().addRecord(record)
-                    
+
                     val txOut = Transaction(
                         id = UUID.randomUUID(),
                         accountId = rule.accountId,
@@ -117,9 +130,9 @@ class ScheduledTransactionWorker(
                         date = today,
                         time = now,
                         sourceType = TransactionSourceType.SCHEDULED,
-                        userConfirmed = true
+                        userConfirmed = true,
                     )
-                    
+
                     val txIn = Transaction(
                         id = UUID.randomUUID(),
                         accountId = goal.accountId,
@@ -132,9 +145,9 @@ class ScheduledTransactionWorker(
                         date = today,
                         time = now,
                         sourceType = TransactionSourceType.SCHEDULED,
-                        userConfirmed = true
+                        userConfirmed = true,
                     )
-                    
+
                     transactionRepository.insertTransaction(txOut)
                     transactionRepository.insertTransaction(txIn)
                     Log.i("ScheduledWorker", "自动攒钱已执行: ${goal.name}, 金额=$amountToSave, 日期=$today")

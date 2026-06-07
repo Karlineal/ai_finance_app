@@ -56,10 +56,7 @@ fun ChannelSelectorCard(
 }
 
 @Composable
-private fun ImportChannelToggleRow(
-    selectedChannel: ImportChannel,
-    onChannelSelected: (ImportChannel) -> Unit,
-) {
+private fun ImportChannelToggleRow(selectedChannel: ImportChannel, onChannelSelected: (ImportChannel) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         ImportChannelItem(
             label = "微信",

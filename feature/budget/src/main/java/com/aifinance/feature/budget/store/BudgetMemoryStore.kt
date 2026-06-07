@@ -23,4 +23,3 @@ object BudgetMemoryStore {
         _activePlan.value = null
     }
 }
-

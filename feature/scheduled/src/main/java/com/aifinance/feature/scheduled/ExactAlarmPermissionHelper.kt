@@ -10,7 +10,7 @@ import androidx.core.content.ContextCompat.startActivity
 
 /**
  * 精确闹钟权限检测和引导工具
- * 
+ *
  * Android 12+ (API 31+) 引入了 SCHEDULE_EXACT_ALARM 权限，这是一个特殊权限：
  * - 不能像普通权限那样在运行时请求弹窗
  * - 用户必须在系统设置中手动开启
@@ -20,7 +20,7 @@ object ExactAlarmPermissionHelper {
 
     /**
      * 检查当前应用是否有精确闹钟权限
-     * 
+     *
      * @return true 表示可以设置精确闹钟，false 需要引导用户去设置开启
      */
     fun canScheduleExactAlarms(context: Context): Boolean {
@@ -42,7 +42,7 @@ object ExactAlarmPermissionHelper {
 
     /**
      * 跳转到系统设置页面，让用户开启精确闹钟权限
-     * 
+     *
      * 设置路径：设置 > 应用 > iCookie > 闹钟和提醒 > 允许设置闹钟和提醒
      */
     fun openAlarmSettings(context: Context) {

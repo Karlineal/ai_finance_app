@@ -73,7 +73,7 @@ object BankStatementParser {
                             parseDataRow(
                                 getValue = { index -> row.getCell(index)?.asDisplayText().orEmpty() },
                                 dateCell = { index -> row.getCell(index) },
-                                header = headerInfo
+                                header = headerInfo,
                             )?.let { allRows += it }
                         }
                     }
@@ -107,7 +107,7 @@ object BankStatementParser {
             parseDataRow(
                 getValue = { index -> values.getOrNull(index).orEmpty() },
                 dateCell = { null },
-                header = headerInfo
+                header = headerInfo,
             )
         }
         if (parsed.isNotEmpty()) return parsed
@@ -145,7 +145,7 @@ object BankStatementParser {
         val title = buildTitle(
             title = titleText,
             note = noteText,
-            type = typeAndAmount.first
+            type = typeAndAmount.first,
         )
         val note = noteText.takeIf { it.isNotBlank() }
 
@@ -154,7 +154,7 @@ object BankStatementParser {
             amount = typeAndAmount.second,
             type = typeAndAmount.first,
             title = title,
-            note = note
+            note = note,
         )
     }
 
@@ -265,7 +265,9 @@ object BankStatementParser {
             if (DateUtil.isValidExcelDate(epoch)) {
                 val instant = DateUtil.getJavaDate(epoch).toInstant()
                 LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-            } else null
+            } else {
+                null
+            }
         } catch (_: Exception) {
             null
         }
@@ -418,7 +420,7 @@ object BankStatementParser {
                 amount = amount.abs(),
                 type = type,
                 title = finalTitle,
-                note = noteRaw.takeIf { it.isNotBlank() }
+                note = noteRaw.takeIf { it.isNotBlank() },
             )
         }
         return parsed
@@ -441,7 +443,7 @@ object BankStatementParser {
                 amount = amount.abs(),
                 type = type,
                 title = buildTitle(titleRaw, noteRaw, type),
-                note = noteRaw.takeIf { it.isNotBlank() }
+                note = noteRaw.takeIf { it.isNotBlank() },
             )
         }
     }

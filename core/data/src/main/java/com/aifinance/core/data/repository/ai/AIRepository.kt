@@ -21,7 +21,6 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,7 +30,7 @@ class AIRepository @Inject constructor(
     private val deepSeekApi: DeepSeekApi,
     private val paddleOCRApi: PaddleOCRApi,
     private val okHttpClient: OkHttpClient,
-    private val json: Json
+    private val json: Json,
 ) {
 
     companion object {
@@ -53,14 +52,14 @@ class AIRepository @Inject constructor(
             conversationHistory.add(createUserMessage(userMessage))
 
             val request = DeepSeekRequest(
-                messages = conversationHistory.toList()
+                messages = conversationHistory.toList(),
             )
 
             android.util.Log.d("AIRepository", "Sending message to DeepSeek: $userMessage")
 
             val response = deepSeekApi.chatCompletion(
                 authorization = "Bearer ${BuildConfig.DEEPSEEK_API_KEY}",
-                request = request
+                request = request,
             )
 
             android.util.Log.d("AIRepository", "DeepSeek response received")
@@ -76,7 +75,7 @@ class AIRepository @Inject constructor(
                 conversationHistory.clear()
                 conversationHistory.add(systemMessage)
                 conversationHistory.addAll(
-                    conversationHistory.takeLast(19)
+                    conversationHistory.takeLast(19),
                 )
             }
 
@@ -90,49 +89,50 @@ class AIRepository @Inject constructor(
     /**
      * 发送消息到DeepSeek并获取回复（带动态系统上下文）
      */
-    suspend fun sendMessageWithContext(userMessage: String, systemContext: String): Result<String> = withContext(Dispatchers.IO) {
-        try {
-            val messages = mutableListOf<DeepSeekMessage>()
-            messages.add(createSystemMessage(systemContext))
+    suspend fun sendMessageWithContext(userMessage: String, systemContext: String): Result<String> =
+        withContext(Dispatchers.IO) {
+            try {
+                val messages = mutableListOf<DeepSeekMessage>()
+                messages.add(createSystemMessage(systemContext))
 
-            conversationHistory.drop(1).forEach { msg ->
-                if (msg.role != "system") {
-                    messages.add(msg)
+                conversationHistory.drop(1).forEach { msg ->
+                    if (msg.role != "system") {
+                        messages.add(msg)
+                    }
                 }
+
+                messages.add(createUserMessage(userMessage))
+
+                val request = DeepSeekRequest(messages = messages)
+
+                android.util.Log.d("AIRepository", "Sending message with context to DeepSeek: $userMessage")
+
+                val response = deepSeekApi.chatCompletion(
+                    authorization = "Bearer ${BuildConfig.DEEPSEEK_API_KEY}",
+                    request = request,
+                )
+
+                android.util.Log.d("AIRepository", "DeepSeek response received")
+
+                val assistantContent = response.choices.firstOrNull()?.message?.content
+                    ?: return@withContext Result.failure(Exception("Empty response from AI"))
+
+                conversationHistory.add(createUserMessage(userMessage))
+                conversationHistory.add(createAssistantMessage(assistantContent))
+
+                if (conversationHistory.size > 20) {
+                    val systemMessage = conversationHistory.first()
+                    conversationHistory.clear()
+                    conversationHistory.add(systemMessage)
+                    conversationHistory.addAll(conversationHistory.takeLast(19))
+                }
+
+                Result.success(assistantContent)
+            } catch (e: Exception) {
+                android.util.Log.e("AIRepository", "Send message with context failed", e)
+                Result.failure(e)
             }
-
-            messages.add(createUserMessage(userMessage))
-
-            val request = DeepSeekRequest(messages = messages)
-
-            android.util.Log.d("AIRepository", "Sending message with context to DeepSeek: $userMessage")
-
-            val response = deepSeekApi.chatCompletion(
-                authorization = "Bearer ${BuildConfig.DEEPSEEK_API_KEY}",
-                request = request
-            )
-
-            android.util.Log.d("AIRepository", "DeepSeek response received")
-
-            val assistantContent = response.choices.firstOrNull()?.message?.content
-                ?: return@withContext Result.failure(Exception("Empty response from AI"))
-
-            conversationHistory.add(createUserMessage(userMessage))
-            conversationHistory.add(createAssistantMessage(assistantContent))
-
-            if (conversationHistory.size > 20) {
-                val systemMessage = conversationHistory.first()
-                conversationHistory.clear()
-                conversationHistory.add(systemMessage)
-                conversationHistory.addAll(conversationHistory.takeLast(19))
-            }
-
-            Result.success(assistantContent)
-        } catch (e: Exception) {
-            android.util.Log.e("AIRepository", "Send message with context failed", e)
-            Result.failure(e)
         }
-    }
 
     /**
      * 清空对话历史
@@ -155,7 +155,10 @@ class AIRepository @Inject constructor(
                 return@withContext Result.failure(Exception("文件为空"))
             }
 
-            android.util.Log.d("AIRepository", "Uploading file: ${file.absolutePath}, size: ${file.length()} bytes, ext: ${file.extension}")
+            android.util.Log.d(
+                "AIRepository",
+                "Uploading file: ${file.absolutePath}, size: ${file.length()} bytes, ext: ${file.extension}",
+            )
 
             val mediaType = when (file.extension.lowercase()) {
                 "jpg", "jpeg" -> "image/jpeg"
@@ -167,14 +170,14 @@ class AIRepository @Inject constructor(
             android.util.Log.d("AIRepository", "MediaType: $mediaType")
 
             val fileBody = file.asRequestBody(mediaType)
-            
+
             val requestBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("model", "PaddleOCR-VL-1.5")
                 .addFormDataPart(
                     "file",
                     file.name,
-                    fileBody
+                    fileBody,
                 )
                 .build()
 
@@ -185,13 +188,13 @@ class AIRepository @Inject constructor(
                 .build()
 
             android.util.Log.d("AIRepository", "Sending request to: ${PaddleOCRApi.BASE_URL}api/v2/ocr/jobs")
-            
+
             val response = okHttpClient.newCall(request).execute()
             val responseBody = response.body?.string()
-            
+
             android.util.Log.d("AIRepository", "Upload response code: ${response.code}")
             android.util.Log.d("AIRepository", "Upload response body: $responseBody")
-            
+
             if (!response.isSuccessful) {
                 return@withContext Result.failure(Exception("上传失败: HTTP ${response.code}, body: $responseBody"))
             }
@@ -206,7 +209,7 @@ class AIRepository @Inject constructor(
                 android.util.Log.e("AIRepository", "JSON parse error", e)
                 return@withContext Result.failure(Exception("解析响应失败: ${e.message}, body: $responseBody"))
             }
-            
+
             val jobId = jobResponse.data.jobId
             android.util.Log.d("AIRepository", "Job created: $jobId")
             pollJobStatus(jobId)
@@ -223,7 +226,7 @@ class AIRepository @Inject constructor(
         repeat(MAX_RETRY_COUNT) { attempt ->
             try {
                 android.util.Log.d("AIRepository", "Polling job $jobId, attempt ${attempt + 1}")
-                
+
                 val request = Request.Builder()
                     .url("${PaddleOCRApi.BASE_URL}api/v2/ocr/jobs/$jobId")
                     .header("Authorization", "bearer ${BuildConfig.PADDLEOCR_TOKEN}")
@@ -232,9 +235,9 @@ class AIRepository @Inject constructor(
 
                 val response = okHttpClient.newCall(request).execute()
                 val responseBody = response.body?.string()
-                
+
                 android.util.Log.d("AIRepository", "Poll response code: ${response.code}")
-                
+
                 if (!response.isSuccessful) {
                     return@withContext Result.failure(Exception("状态检查失败: HTTP ${response.code}"))
                 }

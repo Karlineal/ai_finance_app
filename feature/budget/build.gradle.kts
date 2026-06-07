@@ -55,4 +55,3 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.mockk.android)
 }
-

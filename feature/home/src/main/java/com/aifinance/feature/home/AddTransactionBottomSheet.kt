@@ -1,6 +1,7 @@
 package com.aifinance.feature.home
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -35,13 +35,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -55,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -63,22 +64,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
-import com.aifinance.core.data.repository.ai.AIRepository
 import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.ExpenseDefault
-import com.aifinance.core.designsystem.theme.ExpenseLight
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.IncomeDefault
-import com.aifinance.core.designsystem.theme.IncomeLight
-
-
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AppDateTime
-import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.TransactionType
 import com.aifinance.feature.home.state.AIRecognitionResult
 import com.aifinance.feature.home.state.AIRecognitionState
@@ -91,7 +84,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
-import android.widget.Toast
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,10 +91,10 @@ fun AddTransactionBottomSheet(
     onDismiss: () -> Unit,
     onSuccess: () -> Unit,
     onNavigateToAssetManagement: () -> Unit,
-    viewModel: AddTransactionViewModel = hiltViewModel()
+    viewModel: AddTransactionViewModel = hiltViewModel(),
 ) {
     val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
+        skipPartiallyExpanded = true,
     )
     val scope = rememberCoroutineScope()
 
@@ -111,7 +103,7 @@ fun AddTransactionBottomSheet(
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        modifier = Modifier.fillMaxHeight(0.92f)
+        modifier = Modifier.fillMaxHeight(0.92f),
     ) {
         AddTransactionSheetContent(
             onClose = {
@@ -127,7 +119,7 @@ fun AddTransactionBottomSheet(
                 }
             },
             onNavigateToAssetManagement = onNavigateToAssetManagement,
-            viewModel = viewModel
+            viewModel = viewModel,
         )
     }
 }
@@ -137,7 +129,7 @@ private fun AddTransactionSheetContent(
     onClose: () -> Unit,
     onSuccess: () -> Unit,
     onNavigateToAssetManagement: () -> Unit,
-    viewModel: AddTransactionViewModel
+    viewModel: AddTransactionViewModel,
 ) {
     val context = LocalContext.current
     var selectedTab by remember { mutableStateOf(TransactionTab.MANUAL) }
@@ -183,20 +175,20 @@ private fun AddTransactionSheetContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
+            .navigationBarsPadding(),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onClose) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "关闭",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -205,17 +197,17 @@ private fun AddTransactionSheetContent(
                     .clip(RoundedCornerShape(20.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 TabButton(
                     text = "手动记账",
                     selected = selectedTab == TransactionTab.MANUAL,
-                    onClick = { selectedTab = TransactionTab.MANUAL }
+                    onClick = { selectedTab = TransactionTab.MANUAL },
                 )
                 TabButton(
                     text = "AI记录",
                     selected = selectedTab == TransactionTab.AI,
-                    onClick = { selectedTab = TransactionTab.AI }
+                    onClick = { selectedTab = TransactionTab.AI },
                 )
             }
 
@@ -229,28 +221,28 @@ private fun AddTransactionSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 TypeButton(
                     text = "支出",
                     selected = selectedType == TransactionType.EXPENSE,
                     onClick = { selectedType = TransactionType.EXPENSE },
                     selectedColor = ExpenseDefault,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 TypeButton(
                     text = "收入",
                     selected = selectedType == TransactionType.INCOME,
                     onClick = { selectedType = TransactionType.INCOME },
                     selectedColor = IncomeDefault,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 TypeButton(
                     text = "转账",
                     selected = selectedType == TransactionType.TRANSFER,
                     onClick = { selectedType = TransactionType.TRANSFER },
                     selectedColor = BrandPrimary,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
 
@@ -259,7 +251,7 @@ private fun AddTransactionSheetContent(
                     text = "选择分类",
                     style = IcokieTextStyles.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp),
                 )
 
                 LazyRow(
@@ -267,7 +259,7 @@ private fun AddTransactionSheetContent(
                         .fillMaxWidth()
                         .padding(vertical = 12.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     items(categories) { category ->
                         CategoryIconWithLabel(
@@ -275,7 +267,7 @@ private fun AddTransactionSheetContent(
                             label = category.name,
                             backgroundColor = Color(category.color),
                             selected = selectedCategory == category.name,
-                            onClick = { selectedCategory = category.name }
+                            onClick = { selectedCategory = category.name },
                         )
                     }
                 }
@@ -298,7 +290,7 @@ private fun AddTransactionSheetContent(
                         onClick = {
                             accountPickerMode = AccountPickerMode.TRANSFER_OUT
                             showAccountPicker = true
-                        }
+                        },
                     )
                     Text(
                         text = "⇄",
@@ -309,7 +301,7 @@ private fun AddTransactionSheetContent(
                             val currentIn = selectedTransferInAccountId
                             selectedAccountId = currentIn
                             selectedTransferInAccountId = currentOut
-                        }
+                        },
                     )
                     TransferAccountCard(
                         modifier = Modifier.weight(1f),
@@ -318,7 +310,7 @@ private fun AddTransactionSheetContent(
                         onClick = {
                             accountPickerMode = AccountPickerMode.TRANSFER_IN
                             showAccountPicker = true
-                        }
+                        },
                     )
                 }
 
@@ -335,7 +327,7 @@ private fun AddTransactionSheetContent(
                                 selectedDateTime = AppDateTime.now()
                             }
                             showDateTimePicker = true
-                        }
+                        },
                     )
                 }
             } else {
@@ -343,7 +335,7 @@ private fun AddTransactionSheetContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     val selectedAccount = accounts.firstOrNull { it.id == selectedAccountId }
 
@@ -353,7 +345,7 @@ private fun AddTransactionSheetContent(
                         onClick = {
                             accountPickerMode = AccountPickerMode.SINGLE
                             showAccountPicker = true
-                        }
+                        },
                     )
                     InfoChip(
                         icon = "\uD83D\uDCC5",
@@ -363,7 +355,7 @@ private fun AddTransactionSheetContent(
                                 selectedDateTime = AppDateTime.now()
                             }
                             showDateTimePicker = true
-                        }
+                        },
                     )
                 }
             }
@@ -374,7 +366,7 @@ private fun AddTransactionSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
-                verticalAlignment = Alignment.Bottom
+                verticalAlignment = Alignment.Bottom,
             ) {
                 Text(
                     text = "\u00A5",
@@ -385,8 +377,8 @@ private fun AddTransactionSheetContent(
                             TransactionType.EXPENSE -> ExpenseDefault
                             TransactionType.INCOME -> IncomeDefault
                             TransactionType.TRANSFER -> BrandPrimary
-                        }
-                    )
+                        },
+                    ),
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 BasicTextField(
@@ -400,11 +392,11 @@ private fun AddTransactionSheetContent(
                             TransactionType.INCOME -> IncomeDefault
                             TransactionType.TRANSFER -> BrandPrimary
                         },
-                        textAlign = TextAlign.Start
+                        textAlign = TextAlign.Start,
                     ),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Decimal,
-                        imeAction = ImeAction.Done
+                        imeAction = ImeAction.Done,
                     ),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -415,12 +407,12 @@ private fun AddTransactionSheetContent(
                                 style = TextStyle(
                                     fontSize = 48.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
                             )
                         }
                         innerTextField()
-                    }
+                    },
                 )
             }
 
@@ -428,45 +420,44 @@ private fun AddTransactionSheetContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(modifier = Modifier.weight(1f)) {
                     if (note.isEmpty()) {
                         Text(
                             text = "点击填写备注信息",
                             style = IcokieTextStyles.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     BasicTextField(
                         value = note,
                         onValueChange = { note = it },
                         textStyle = IcokieTextStyles.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     IconButton(onClick = { }) {
                         Icon(
                             imageVector = Icons.Default.Image,
                             contentDescription = "添加图片",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     IconButton(onClick = { }) {
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
                             contentDescription = "拍照",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
-
 
             NumberKeyboard(
                 onNumberClick = { digit ->
@@ -508,7 +499,7 @@ private fun AddTransactionSheetContent(
                             Toast.makeText(
                                 context,
                                 if (selectedType == TransactionType.TRANSFER) "请选择扣款账户" else "请选择账户",
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT,
                             ).show()
                         }
 
@@ -569,7 +560,7 @@ private fun AddTransactionSheetContent(
                             Toast.makeText(
                                 context,
                                 if (selectedType == TransactionType.TRANSFER) "请选择扣款账户" else "请选择账户",
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT,
                             ).show()
                         }
 
@@ -612,7 +603,7 @@ private fun AddTransactionSheetContent(
                     TransactionType.EXPENSE -> ExpenseDefault
                     TransactionType.INCOME -> IncomeDefault
                     TransactionType.TRANSFER -> BrandPrimary
-                }
+                },
             )
         } else {
             val aiRecordViewModel: AIRecordViewModel = hiltViewModel()
@@ -632,10 +623,10 @@ private fun AddTransactionSheetContent(
                         category = category,
                         note = note,
                         dateTime = dateTime,
-                        accountId = accountId
+                        accountId = accountId,
                     )
                     onSuccess()
-                }
+                },
             )
         }
 
@@ -663,7 +654,7 @@ private fun AddTransactionSheetContent(
                 onNavigateToAssetManagement = {
                     showAccountPicker = false
                     onNavigateToAssetManagement()
-                }
+                },
             )
         }
 
@@ -679,7 +670,7 @@ private fun AddTransactionSheetContent(
                     isSaving = false
                     showTransferSuccessDialog = false
                     onSuccess()
-                }
+                },
             )
         }
 
@@ -695,30 +686,26 @@ private fun AddTransactionSheetContent(
                         hasEditedDateTime = true
                     }
                     showDateTimePicker = false
-                }
+                },
             )
         }
     }
 }
 
 @Composable
-private fun TabButton(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
+private fun TabButton(text: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(if (selected) MaterialTheme.colorScheme.surface else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             style = if (selected) IcokieTextStyles.labelMedium else IcokieTextStyles.labelSmall,
-            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -729,45 +716,42 @@ private fun TypeButton(
     selected: Boolean,
     onClick: () -> Unit,
     selectedColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
             .background(
-                if (selected) selectedColor.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant
+                if (selected) selectedColor.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant,
             )
             .clickable(onClick = onClick)
             .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             style = IcokieTextStyles.labelMedium,
-            color = if (selected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (selected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
 
 @Composable
-private fun TextButtonWithIcon(
-    text: String,
-    onClick: () -> Unit
-) {
+private fun TextButtonWithIcon(text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier.clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
             text = text,
             style = IcokieTextStyles.labelMedium,
-            color = BrandPrimary
+            color = BrandPrimary,
         )
         Text(
             text = "\u2191",
             style = IcokieTextStyles.labelMedium,
-            color = BrandPrimary
+            color = BrandPrimary,
         )
     }
 }
@@ -778,11 +762,11 @@ private fun CategoryIconWithLabel(
     label: String,
     backgroundColor: Color,
     selected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Box(
             modifier = Modifier
@@ -790,28 +774,24 @@ private fun CategoryIconWithLabel(
                 .clip(CircleShape)
                 .background(if (selected) BrandPrimary else backgroundColor)
                 .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = icon,
-                fontSize = 24.sp
+                fontSize = 24.sp,
             )
         }
 
         Text(
             text = label,
             style = IcokieTextStyles.labelSmall,
-            color = if (selected) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+            color = if (selected) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
 
 @Composable
-private fun InfoChip(
-    icon: String,
-    text: String,
-    onClick: () -> Unit
-) {
+private fun InfoChip(icon: String, text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
@@ -819,39 +799,38 @@ private fun InfoChip(
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(text = icon, fontSize = 14.sp)
         Text(
             text = text,
             style = IcokieTextStyles.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
 
 @Composable
-private fun TransferAccountCard(
-    title: String,
-    account: Account?,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val backgroundColor = account?.let { Color(it.color).copy(alpha = 0.14f) } ?: MaterialTheme.colorScheme.surfaceVariant
+private fun TransferAccountCard(title: String, account: Account?, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val backgroundColor = account?.let {
+        Color(
+            it.color,
+        ).copy(alpha = 0.14f)
+    } ?: MaterialTheme.colorScheme.surfaceVariant
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 14.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         if (account == null) {
             Text(
                 text = title,
                 style = IcokieTextStyles.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
+                maxLines = 1,
             )
         } else {
             Row(
@@ -864,13 +843,13 @@ private fun TransferAccountCard(
                         text = account.name,
                         style = IcokieTextStyles.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1
+                        maxLines = 1,
                     )
                     Text(
                         text = "余额 ${account.currentBalance}",
                         style = IcokieTextStyles.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
+                        maxLines = 1,
                     )
                 }
             }
@@ -898,7 +877,7 @@ private fun AccountPickerBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -910,7 +889,7 @@ private fun AccountPickerBottomSheet(
                     text = "+ 添加账户",
                     style = IcokieTextStyles.labelMedium,
                     color = BrandPrimary,
-                    modifier = Modifier.clickable(onClick = onNavigateToAssetManagement)
+                    modifier = Modifier.clickable(onClick = onNavigateToAssetManagement),
                 )
             }
 
@@ -923,7 +902,7 @@ private fun AccountPickerBottomSheet(
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .clickable(onClick = onNavigateToAssetManagement)
-                        .padding(16.dp)
+                        .padding(16.dp),
                 ) {
                     Text(
                         text = "暂无账户，点击添加账户",
@@ -939,7 +918,15 @@ private fun AccountPickerBottomSheet(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(if (selected) BrandPrimary.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surfaceVariant)
+                                .background(
+                                    if (selected) {
+                                        BrandPrimary.copy(
+                                            alpha = 0.08f,
+                                        )
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    },
+                                )
                                 .clickable { onSelect(account) }
                                 .padding(14.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -986,23 +973,23 @@ private fun NumberKeyboard(
     onConfirmClick: () -> Unit,
     onSaveAndNewClick: () -> Unit,
     confirmText: String,
-    confirmColor: Color
+    confirmColor: Color,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(8.dp)
+            .padding(8.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             for (i in 1..3) {
                 NumberKey(
                     text = i.toString(),
                     onClick = { onNumberClick(i.toString()) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
             Box(
@@ -1012,12 +999,12 @@ private fun NumberKeyboard(
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surface)
                     .clickable(onClick = onDeleteClick),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = "\u232B",
                     style = TextStyle(fontSize = 20.sp),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
@@ -1026,19 +1013,19 @@ private fun NumberKeyboard(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             for (i in 4..6) {
                 NumberKey(
                     text = i.toString(),
                     onClick = { onNumberClick(i.toString()) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
             NumberKey(
                 text = "+",
                 onClick = { },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
 
@@ -1046,19 +1033,19 @@ private fun NumberKeyboard(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             for (i in 7..9) {
                 NumberKey(
                     text = i.toString(),
                     onClick = { onNumberClick(i.toString()) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
             NumberKey(
                 text = "-",
                 onClick = { },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
 
@@ -1066,7 +1053,7 @@ private fun NumberKeyboard(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Box(
                 modifier = Modifier
@@ -1075,25 +1062,25 @@ private fun NumberKeyboard(
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surface)
                     .clickable(onClick = onSaveAndNewClick),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = "再记",
                     style = IcokieTextStyles.labelMedium,
-                    color = BrandPrimary
+                    color = BrandPrimary,
                 )
             }
 
             NumberKey(
                 text = "0",
                 onClick = { onNumberClick("0") },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
 
             NumberKey(
                 text = ".",
                 onClick = onDotClick,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
 
             Button(
@@ -1102,14 +1089,14 @@ private fun NumberKeyboard(
                     .weight(1f)
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = confirmColor
+                    containerColor = confirmColor,
                 ),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
             ) {
                 Text(
                     text = confirmText,
                     style = IcokieTextStyles.labelMedium,
-                    color = Color.White
+                    color = Color.White,
                 )
             }
         }
@@ -1117,36 +1104,28 @@ private fun NumberKeyboard(
 }
 
 @Composable
-private fun NumberKey(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+private fun NumberKey(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .height(56.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surface)
             .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             style = TextStyle(
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+                color = MaterialTheme.colorScheme.onSurface,
+            ),
         )
     }
 }
 
 @Composable
-private fun TransferSuccessDialog(
-    dateTime: LocalDateTime,
-    onDismiss: () -> Unit,
-    onGoSee: () -> Unit,
-) {
+private fun TransferSuccessDialog(dateTime: LocalDateTime, onDismiss: () -> Unit, onGoSee: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(24.dp),
@@ -1156,12 +1135,12 @@ private fun TransferSuccessDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
                     text = "记录成功！",
                     style = IcokieTextStyles.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -1171,17 +1150,17 @@ private fun TransferSuccessDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(
                             text = "时间：${formatDateTime(dateTime)}",
                             style = IcokieTextStyles.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                             text = "分类：转账",
                             style = IcokieTextStyles.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -1191,15 +1170,19 @@ private fun TransferSuccessDialog(
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
                     ) {
-                        Text("知道了", style = IcokieTextStyles.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "知道了",
+                            style = IcokieTextStyles.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                     Button(
                         onClick = onGoSee,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
                     ) {
                         Text("去看看", style = IcokieTextStyles.labelMedium, color = Color.White)
                     }
@@ -1222,16 +1205,16 @@ private fun AIRecordContent(
         category: String?,
         note: String,
         dateTime: LocalDateTime,
-        accountId: UUID
-    ) -> Unit
+        accountId: UUID,
+    ) -> Unit,
 ) {
     val context = LocalContext.current
     val aiState by aiRecordViewModel.uiState.collectAsStateWithLifecycle()
-    
+
     var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
+        contract = ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         uri?.let {
             val file = FileUtils.uriToFile(context, it)
@@ -1244,7 +1227,7 @@ private fun AIRecordContent(
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
+        contract = ActivityResultContracts.TakePicture(),
     ) { success ->
         if (success) {
             cameraImageUri?.let { uri ->
@@ -1263,7 +1246,7 @@ private fun AIRecordContent(
             .fillMaxWidth()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         when (val state = aiState) {
             is AIRecognitionState.Idle -> {
@@ -1275,9 +1258,9 @@ private fun AIRecordContent(
                     },
                     onGalleryClick = {
                         photoPickerLauncher.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
                         )
-                    }
+                    },
                 )
             }
             is AIRecognitionState.Processing -> {
@@ -1296,7 +1279,7 @@ private fun AIRecordContent(
                     },
                     onCancel = {
                         aiRecordViewModel.reset()
-                    }
+                    },
                 )
             }
             is AIRecognitionState.Error -> {
@@ -1304,7 +1287,7 @@ private fun AIRecordContent(
                     message = state.message,
                     canRetry = state.canRetry,
                     onRetry = { aiRecordViewModel.retry() },
-                    onDismiss = { aiRecordViewModel.reset() }
+                    onDismiss = { aiRecordViewModel.reset() },
                 )
             }
         }
@@ -1312,36 +1295,33 @@ private fun AIRecordContent(
 }
 
 @Composable
-private fun AIRecordIdleView(
-    onCameraClick: () -> Unit,
-    onGalleryClick: () -> Unit
-) {
+private fun AIRecordIdleView(onCameraClick: () -> Unit, onGalleryClick: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = "🤖 AI智能识别",
             style = IcokieTextStyles.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = "拍照或选择图片，AI自动识别账单信息",
             style = IcokieTextStyles.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Button(
             onClick = onCameraClick,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         ) {
             Icon(
                 imageVector = Icons.Default.CameraAlt,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text("拍照识别")
@@ -1351,13 +1331,13 @@ private fun AIRecordIdleView(
             onClick = onGalleryClick,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         ) {
             Icon(
                 imageVector = Icons.Default.Image,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text("从相册选择", color = MaterialTheme.colorScheme.onSurface)
@@ -1370,29 +1350,29 @@ private fun AIRecordProcessingView(step: ProcessingStep) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(48.dp),
-            color = BrandPrimary
+            color = BrandPrimary,
         )
-        
+
         val stepText = when (step) {
             ProcessingStep.UPLOADING -> "正在上传图片..."
             ProcessingStep.RECOGNIZING -> "正在识别文字..."
             ProcessingStep.PARSING -> "正在解析账单..."
         }
-        
+
         Text(
             text = stepText,
             style = IcokieTextStyles.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
-        
+
         Text(
             text = "请稍候，AI正在处理您的账单",
             style = IcokieTextStyles.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -1411,9 +1391,9 @@ private fun AIRecordSuccessView(
         category: String?,
         note: String,
         dateTime: LocalDateTime,
-        accountId: UUID
+        accountId: UUID,
     ) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     val lowConfidenceColor = ExpenseDefault
     val normalColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1424,33 +1404,33 @@ private fun AIRecordSuccessView(
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             text = "✅ 识别成功",
             style = IcokieTextStyles.titleLarge,
-            color = IncomeDefault
+            color = IncomeDefault,
         )
 
         if (result.confidence.isLowConfidence()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = ExpenseDefault.copy(alpha = 0.08f)),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(8.dp),
             ) {
                 Row(
                     modifier = Modifier.padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
                         text = "⚠️",
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
                     )
                     Text(
                         text = "部分字段置信度较低，请核对后保存",
                         style = IcokieTextStyles.bodyMedium,
-                        color = ExpenseDefault
+                        color = ExpenseDefault,
                     )
                 }
             }
@@ -1459,24 +1439,32 @@ private fun AIRecordSuccessView(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 val amountConfidence = result.confidence.amount
                 Text(
                     text = "金额: ¥${result.amount}",
                     style = IcokieTextStyles.bodyLarge,
-                    color = if (isLowConfidence("amount", amountConfidence)) lowConfidenceColor else MaterialTheme.colorScheme.onSurface
+                    color = if (isLowConfidence(
+                            "amount",
+                            amountConfidence,
+                        )
+                    ) {
+                        lowConfidenceColor
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
                 )
 
                 val typeConfidence = result.confidence.type
                 Text(
                     text = "类型: ${if (result.type == TransactionType.INCOME) "收入" else "支出"}",
                     style = IcokieTextStyles.bodyMedium,
-                    color = if (isLowConfidence("type", typeConfidence)) lowConfidenceColor else normalColor
+                    color = if (isLowConfidence("type", typeConfidence)) lowConfidenceColor else normalColor,
                 )
 
                 if (result.category.isNotEmpty()) {
@@ -1484,7 +1472,15 @@ private fun AIRecordSuccessView(
                     Text(
                         text = "分类: ${result.category}",
                         style = IcokieTextStyles.bodyMedium,
-                        color = if (isLowConfidence("category", categoryConfidence)) lowConfidenceColor else normalColor
+                        color = if (isLowConfidence(
+                                "category",
+                                categoryConfidence,
+                            )
+                        ) {
+                            lowConfidenceColor
+                        } else {
+                            normalColor
+                        },
                     )
                 }
 
@@ -1493,7 +1489,15 @@ private fun AIRecordSuccessView(
                     Text(
                         text = "商家: ${result.merchant}",
                         style = IcokieTextStyles.bodyMedium,
-                        color = if (isLowConfidence("merchant", merchantConfidence)) lowConfidenceColor else normalColor
+                        color = if (isLowConfidence(
+                                "merchant",
+                                merchantConfidence,
+                            )
+                        ) {
+                            lowConfidenceColor
+                        } else {
+                            normalColor
+                        },
                     )
                 }
 
@@ -1501,12 +1505,12 @@ private fun AIRecordSuccessView(
                 Text(
                     text = "日期: ${result.date}",
                     style = IcokieTextStyles.bodyMedium,
-                    color = if (isLowConfidence("date", dateConfidence)) lowConfidenceColor else normalColor
+                    color = if (isLowConfidence("date", dateConfidence)) lowConfidenceColor else normalColor,
                 )
 
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.surface
+                    color = MaterialTheme.colorScheme.surface,
                 )
 
                 if (!result.paymentTime.isNullOrEmpty()) {
@@ -1514,7 +1518,15 @@ private fun AIRecordSuccessView(
                     Text(
                         text = "支付时间: ${result.paymentTime}",
                         style = IcokieTextStyles.bodyMedium,
-                        color = if (isLowConfidence("paymentTime", paymentTimeConfidence)) lowConfidenceColor else normalColor
+                        color = if (isLowConfidence(
+                                "paymentTime",
+                                paymentTimeConfidence,
+                            )
+                        ) {
+                            lowConfidenceColor
+                        } else {
+                            normalColor
+                        },
                     )
                 }
 
@@ -1523,7 +1535,15 @@ private fun AIRecordSuccessView(
                     Text(
                         text = "支付方式: ${result.paymentMethod}",
                         style = IcokieTextStyles.bodyMedium,
-                        color = if (isLowConfidence("paymentMethod", paymentMethodConfidence)) lowConfidenceColor else normalColor
+                        color = if (isLowConfidence(
+                                "paymentMethod",
+                                paymentMethodConfidence,
+                            )
+                        ) {
+                            lowConfidenceColor
+                        } else {
+                            normalColor
+                        },
                     )
                 }
 
@@ -1532,7 +1552,15 @@ private fun AIRecordSuccessView(
                     Text(
                         text = "支付账户: ${result.paymentAccount}",
                         style = IcokieTextStyles.bodyMedium,
-                        color = if (isLowConfidence("paymentAccount", paymentAccountConfidence)) lowConfidenceColor else normalColor
+                        color = if (isLowConfidence(
+                                "paymentAccount",
+                                paymentAccountConfidence,
+                            )
+                        ) {
+                            lowConfidenceColor
+                        } else {
+                            normalColor
+                        },
                     )
                 }
 
@@ -1541,14 +1569,22 @@ private fun AIRecordSuccessView(
                     Text(
                         text = "描述: ${result.description}",
                         style = IcokieTextStyles.bodyMedium,
-                        color = if (isLowConfidence("description", descriptionConfidence)) lowConfidenceColor else normalColor
+                        color = if (isLowConfidence(
+                                "description",
+                                descriptionConfidence,
+                            )
+                        ) {
+                            lowConfidenceColor
+                        } else {
+                            normalColor
+                        },
                     )
                 }
             }
         }
-        
+
         val selectedAccount = accounts.find { it.id == selectedAccountId }
-        
+
         if (selectedAccount != null) {
             Button(
                 onClick = {
@@ -1571,12 +1607,12 @@ private fun AIRecordSuccessView(
                         result.category.ifEmpty { null },
                         result.merchant,
                         dateTime,
-                        selectedAccount.id
+                        selectedAccount.id,
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
             ) {
                 Text("保存到 ${selectedAccount.name}")
             }
@@ -1585,16 +1621,16 @@ private fun AIRecordSuccessView(
                 onClick = onSelectAccount,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
             ) {
                 Text("选择账户")
             }
         }
-        
+
         OutlinedButton(
             onClick = onCancel,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         ) {
             Text("取消", color = MaterialTheme.colorScheme.onSurface)
         }
@@ -1602,45 +1638,40 @@ private fun AIRecordSuccessView(
 }
 
 @Composable
-private fun AIRecordErrorView(
-    message: String,
-    canRetry: Boolean,
-    onRetry: () -> Unit,
-    onDismiss: () -> Unit
-) {
+private fun AIRecordErrorView(message: String, canRetry: Boolean, onRetry: () -> Unit, onDismiss: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
             text = "❌ 识别失败",
             style = IcokieTextStyles.titleLarge,
-            color = ExpenseDefault
+            color = ExpenseDefault,
         )
-        
+
         Text(
             text = message,
             style = IcokieTextStyles.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
-        
+
         if (canRetry) {
             Button(
                 onClick = onRetry,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
             ) {
                 Text("重试")
             }
         }
-        
+
         OutlinedButton(
             onClick = onDismiss,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         ) {
             Text("取消", color = MaterialTheme.colorScheme.onSurface)
         }
@@ -1664,11 +1695,12 @@ private fun isPositiveAmount(amount: String): Boolean {
 data class CategoryItem(
     val name: String,
     val icon: String,
-    val color: Color
+    val color: Color,
 )
 
 enum class TransactionTab {
-    MANUAL, AI
+    MANUAL,
+    AI,
 }
 
 private enum class AccountPickerMode {

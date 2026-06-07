@@ -6,6 +6,7 @@ minSdk = "26"
 kotlin = "1.9.22"
 androidGradlePlugin = "8.13.2"
 ksp = "1.9.22-1.0.17"
+spotless = "6.25.0"
 
 composeBom = "2024.06.00"
 composeCompiler = "1.5.8"
@@ -29,6 +30,7 @@ okhttp = "4.12.0"
 material3 = "1.2.0"
 coil = "2.5.0"
 lottie = "6.3.0"
+kizitonwoseCalendar = "2.5.2"
 
 junit = "4.13.2"
 poi = "5.2.5"
@@ -77,6 +79,8 @@ okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor",
 
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
+kizitonwose-calendar-compose = { group = "com.kizitonwose.calendar", name = "compose", version.ref = "kizitonwoseCalendar" }
+kizitonwose-calendar-view = { group = "com.kizitonwose.calendar", name = "view", version.ref = "kizitonwoseCalendar" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -103,6 +107,7 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 
 [bundles]
 compose = [

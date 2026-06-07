@@ -11,13 +11,13 @@ data class DeepSeekRequest(
     val messages: List<DeepSeekMessage>,
     val temperature: Double = 0.7,
     val max_tokens: Int = 2000,
-    val stream: Boolean = false
+    val stream: Boolean = false,
 )
 
 @Serializable
 data class DeepSeekMessage(
     val role: String, // "system", "user", "assistant"
-    val content: String
+    val content: String,
 )
 
 /**
@@ -27,21 +27,21 @@ data class DeepSeekMessage(
 data class DeepSeekResponse(
     val id: String,
     val choices: List<DeepSeekChoice>,
-    val usage: DeepSeekUsage? = null
+    val usage: DeepSeekUsage? = null,
 )
 
 @Serializable
 data class DeepSeekChoice(
     val index: Int,
     val message: DeepSeekMessage,
-    val finish_reason: String? = null
+    val finish_reason: String? = null,
 )
 
 @Serializable
 data class DeepSeekUsage(
     val prompt_tokens: Int,
     val completion_tokens: Int,
-    val total_tokens: Int
+    val total_tokens: Int,
 )
 
 /**
@@ -59,27 +59,27 @@ const val AI_SYSTEM_PROMPT = """你是一个智能财务助手，帮助用户管
 fun createSystemMessage(): DeepSeekMessage {
     return DeepSeekMessage(
         role = "system",
-        content = AI_SYSTEM_PROMPT
+        content = AI_SYSTEM_PROMPT,
     )
 }
 
 fun createSystemMessage(content: String): DeepSeekMessage {
     return DeepSeekMessage(
         role = "system",
-        content = content
+        content = content,
     )
 }
 
 fun createUserMessage(content: String): DeepSeekMessage {
     return DeepSeekMessage(
         role = "user",
-        content = content
+        content = content,
     )
 }
 
 fun createAssistantMessage(content: String): DeepSeekMessage {
     return DeepSeekMessage(
         role = "assistant",
-        content = content
+        content = content,
     )
 }

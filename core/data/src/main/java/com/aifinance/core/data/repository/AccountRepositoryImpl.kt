@@ -13,7 +13,7 @@ import javax.inject.Singleton
 
 @Singleton
 class AccountRepositoryImpl @Inject constructor(
-    private val accountDao: AccountDao
+    private val accountDao: AccountDao,
 ) : AccountRepository {
 
     override fun getActiveAccounts(): Flow<List<Account>> {
@@ -40,7 +40,7 @@ class AccountRepositoryImpl @Inject constructor(
         }
         // Ensure currentBalance is synced with initialBalance for new accounts
         val accountWithSyncedBalance = account.copy(
-            currentBalance = account.initialBalance
+            currentBalance = account.initialBalance,
         )
         accountDao.insert(accountWithSyncedBalance.toEntity())
     }
@@ -54,6 +54,10 @@ class AccountRepositoryImpl @Inject constructor(
 
     override suspend fun deleteAccount(account: Account) {
         accountDao.delete(account.toEntity())
+    }
+
+    override suspend fun deleteAccountsByIds(ids: List<UUID>) {
+        accountDao.deleteByIds(ids)
     }
 }
 

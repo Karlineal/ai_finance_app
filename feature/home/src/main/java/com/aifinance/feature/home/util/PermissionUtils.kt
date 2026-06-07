@@ -25,7 +25,7 @@ object PermissionUtils {
     fun hasCameraPermission(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
-            Manifest.permission.CAMERA
+            Manifest.permission.CAMERA,
         ) == PackageManager.PERMISSION_GRANTED
     }
 
@@ -34,9 +34,7 @@ object PermissionUtils {
      *
      * @param launcher ActivityResultLauncher 用于启动权限请求
      */
-    fun requestCameraPermission(
-        launcher: ActivityResultLauncher<String>
-    ) {
+    fun requestCameraPermission(launcher: ActivityResultLauncher<String>) {
         launcher.launch(Manifest.permission.CAMERA)
     }
 
@@ -74,12 +72,12 @@ object PermissionUtils {
         return if (sdkVersion >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
                 context,
-                Manifest.permission.READ_MEDIA_IMAGES
+                Manifest.permission.READ_MEDIA_IMAGES,
             ) == PackageManager.PERMISSION_GRANTED
         } else {
             ContextCompat.checkSelfPermission(
                 context,
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                Manifest.permission.READ_EXTERNAL_STORAGE,
             ) == PackageManager.PERMISSION_GRANTED
         }
     }
@@ -98,12 +96,12 @@ object PermissionUtils {
         return if (sdkVersion >= Build.VERSION_CODES.TIRAMISU) {
             arrayOf(
                 Manifest.permission.CAMERA,
-                Manifest.permission.READ_MEDIA_IMAGES
+                Manifest.permission.READ_MEDIA_IMAGES,
             )
         } else {
             arrayOf(
                 Manifest.permission.CAMERA,
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                Manifest.permission.READ_EXTERNAL_STORAGE,
             )
         }
     }

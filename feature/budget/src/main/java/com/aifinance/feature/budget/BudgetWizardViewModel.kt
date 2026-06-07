@@ -1,30 +1,29 @@
 package com.aifinance.feature.budget
 
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.ViewModel
-import com.aifinance.core.model.BudgetCategoryAllocation
+import androidx.lifecycle.viewModelScope
+import com.aifinance.core.data.repository.BudgetRepository
 import com.aifinance.core.model.BudgetSource
-import com.aifinance.core.model.allocateByWeights
+import com.aifinance.core.model.BudgetWizardState
+import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.CategoryWeightInput
 import com.aifinance.core.model.FixedExpenseItem
 import com.aifinance.core.model.FixedExpenseRecurrence
 import com.aifinance.core.model.MonthlyBudgetPlan
 import com.aifinance.core.model.UserRole
-import com.aifinance.core.model.BudgetWizardState
-import com.aifinance.core.model.BudgetCategoryAllocation as CoreBudgetCategoryAllocation
-import com.aifinance.core.model.CategoryCatalog
-import com.aifinance.core.data.repository.BudgetRepository
+import com.aifinance.core.model.allocateByWeights
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Instant
 import java.time.YearMonth
 import java.util.UUID
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import com.aifinance.core.model.BudgetCategoryAllocation as CoreBudgetCategoryAllocation
 
 data class FixedExpenseDraft(
     val id: UUID = UUID.randomUUID(),
@@ -329,7 +328,14 @@ class BudgetWizardViewModel @Inject constructor(
         val disposable = state.totalIncome.subtract(fixedMonthly).coerceAtLeast(BigDecimal.ZERO)
 
         val rawBudget = disposable.multiply(BigDecimal.valueOf(state.budgetRatio.toDouble()))
-        val totalBudget = if (disposable <= BigDecimal.ZERO) BigDecimal.ZERO else rawBudget.setScale(2, RoundingMode.HALF_UP)
+        val totalBudget = if (disposable <= BigDecimal.ZERO) {
+            BigDecimal.ZERO
+        } else {
+            rawBudget.setScale(
+                2,
+                RoundingMode.HALF_UP,
+            )
+        }
         val savings = disposable.subtract(totalBudget).coerceAtLeast(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP)
 
         _uiState.update { s ->
@@ -343,7 +349,10 @@ class BudgetWizardViewModel @Inject constructor(
             if (next.stepIndex >= 5 && !next.categoryEdited) {
                 recomputeCategoryAllocationsFromRoleIfPossible(next)
             } else {
-                next.copy(errorMessage = null, unallocatedPool = next.totalBudget - next.categoryAllocations.sumOf { it.amount })
+                next.copy(
+                    errorMessage = null,
+                    unallocatedPool = next.totalBudget - next.categoryAllocations.sumOf { it.amount },
+                )
             }
         }
     }
@@ -366,7 +375,9 @@ class BudgetWizardViewModel @Inject constructor(
         val sum = allocations.fold(BigDecimal.ZERO) { acc, c -> acc + c.amount }
         return state.copy(
             categoryAllocations = allocations,
-            unallocatedPool = totalBudget.subtract(sum).coerceAtLeast(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP),
+            unallocatedPool = totalBudget.subtract(
+                sum,
+            ).coerceAtLeast(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP),
             errorMessage = null,
         )
     }
@@ -458,4 +469,3 @@ class BudgetWizardViewModel @Inject constructor(
         }
     }
 }
-

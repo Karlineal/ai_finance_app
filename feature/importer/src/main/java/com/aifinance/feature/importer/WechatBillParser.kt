@@ -163,10 +163,23 @@ object WechatBillParser {
         if (rawAmount.trim().startsWith("+")) return TransactionType.INCOME
         if (rawAmount.trim().startsWith("-")) return TransactionType.EXPENSE
 
-        if (listOf("消费", "付款", "取现", "提现", "转出", "充值", "缴费", "购买").any { directionText.contains(it) || text.contains(it) }) {
+        if (listOf(
+                "消费",
+                "付款",
+                "取现",
+                "提现",
+                "转出",
+                "充值",
+                "缴费",
+                "购买",
+            ).any { directionText.contains(it) || text.contains(it) }
+        ) {
             return TransactionType.EXPENSE
         }
-        if (listOf("存入", "存款", "工资", "转入", "收款", "退款", "报销", "红包", "到账", "返还").any { directionText.contains(it) || text.contains(it) }) {
+        if (listOf("存入", "存款", "工资", "转入", "收款", "退款", "报销", "红包", "到账", "返还").any {
+                directionText.contains(it) || text.contains(it)
+            }
+        ) {
             return TransactionType.INCOME
         }
         if (amount.signum() > 0) return TransactionType.INCOME

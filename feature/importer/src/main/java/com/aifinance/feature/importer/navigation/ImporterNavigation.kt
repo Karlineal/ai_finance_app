@@ -12,9 +12,7 @@ fun NavController.navigateToBillImport(navOptions: NavOptions? = null) {
     navigate(BILL_IMPORT_ROUTE, navOptions)
 }
 
-fun NavGraphBuilder.billImportScreen(
-    onBack: () -> Unit,
-) {
+fun NavGraphBuilder.billImportScreen(onBack: () -> Unit) {
     composable(BILL_IMPORT_ROUTE) {
         ImporterScreen(onBack = onBack)
     }

@@ -16,7 +16,7 @@ const val TRANSACTION_DETAIL_ROUTE = "transaction_detail/{transactionId}"
 const val ALL_RECORDS_ROUTE = "all_records/{dateString}"
 
 fun transactionDetailRoute(transactionId: UUID): String = "transaction_detail/$transactionId"
-fun allRecordsRoute(date: LocalDate): String = "all_records/${date}"
+fun allRecordsRoute(date: LocalDate): String = "all_records/$date"
 
 fun NavController.navigateToTransactions(navOptions: NavOptions? = null) {
     navigate(TRANSACTIONS_ROUTE, navOptions)
@@ -30,9 +30,7 @@ fun NavController.navigateToAllRecords(date: LocalDate, navOptions: NavOptions? 
     navigate(allRecordsRoute(date), navOptions)
 }
 
-fun NavGraphBuilder.transactionsScreen(
-    onNavigateToTransactionDetail: (UUID) -> Unit = {},
-) {
+fun NavGraphBuilder.transactionsScreen(onNavigateToTransactionDetail: (UUID) -> Unit = {}) {
     composable(TRANSACTIONS_ROUTE) {
         TransactionsScreen(
             onNavigateToTransactionDetail = onNavigateToTransactionDetail,
@@ -62,10 +60,7 @@ fun NavGraphBuilder.calendarTransactionsScreen(
     }
 }
 
-fun NavGraphBuilder.transactionDetailScreen(
-    onBack: () -> Unit,
-    onSaved: () -> Unit,
-) {
+fun NavGraphBuilder.transactionDetailScreen(onBack: () -> Unit, onSaved: () -> Unit) {
     composable(
         route = TRANSACTION_DETAIL_ROUTE,
         arguments = listOf(navArgument("transactionId") { type = NavType.StringType }),

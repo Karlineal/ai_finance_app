@@ -12,14 +12,11 @@ fun NavController.navigateToAddTransaction(navOptions: NavOptions? = null) {
     navigate(ADD_TRANSACTION_ROUTE, navOptions)
 }
 
-fun NavGraphBuilder.addTransactionScreen(
-    onBack: () -> Unit,
-    onSuccess: () -> Unit
-) {
+fun NavGraphBuilder.addTransactionScreen(onBack: () -> Unit, onSuccess: () -> Unit) {
     composable(ADD_TRANSACTION_ROUTE) {
         AddTransactionScreen(
             onBack = onBack,
-            onSuccess = onSuccess
+            onSuccess = onSuccess,
         )
     }
 }
