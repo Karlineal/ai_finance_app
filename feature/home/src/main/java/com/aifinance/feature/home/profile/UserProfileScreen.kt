@@ -62,6 +62,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import android.net.Uri
+import java.io.File
 import com.aifinance.feature.home.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,7 +83,14 @@ fun UserProfileScreen(
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
-            uri?.let { viewModel.updateAvatarUri(it.toString()) }
+            uri?.let {
+                val avatarFile = File(context.filesDir, "avatars/avatar_${System.currentTimeMillis()}.jpg")
+                avatarFile.parentFile?.mkdirs()
+                context.contentResolver.openInputStream(it)?.use { input ->
+                    avatarFile.outputStream().use { output -> input.copyTo(output) }
+                }
+                viewModel.updateAvatarUri(Uri.fromFile(avatarFile).toString())
+            }
         }
     )
     Scaffold(
