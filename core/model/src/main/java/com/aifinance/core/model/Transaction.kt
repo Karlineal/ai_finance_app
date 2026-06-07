@@ -31,7 +31,10 @@ data class Transaction(
     val paymentMethod: String? = null,
     val paymentAccount: String? = null,
     val linkedTransactionId: UUID? = null,
-)
+) {
+    val receiptImagePaths: List<String>
+        get() = if (receiptImagePath.isNullOrBlank()) emptyList() else receiptImagePath.split(",")
+}
 
 enum class TransactionType {
     INCOME,

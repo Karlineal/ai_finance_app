@@ -15,13 +15,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.Button
@@ -49,15 +50,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
+import android.net.Uri
+import androidx.compose.material.icons.filled.Add
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.Transaction
+import com.aifinance.core.designsystem.component.ImagePreviewDialog
 import com.aifinance.core.model.TransactionType
 import java.math.BigDecimal
 import java.time.Instant
@@ -101,10 +106,14 @@ fun TransactionDetailRoute(
         }
 
         else -> {
+            val context = LocalContext.current
             TransactionDetailEditorScreen(
                 transaction = transaction,
                 accounts = accounts,
                 onBack = onBack,
+                onImagesSelected = { uris: List<Uri> ->
+                    viewModel.addTransactionReceipts(context, transaction, uris)
+                },
                 onSave = { editorValue ->
                     viewModel.updateTransactionEditor(
                         transaction = transaction,
@@ -127,11 +136,12 @@ private fun TransactionDetailEditorScreen(
     transaction: Transaction,
     accounts: List<Account>,
     onBack: () -> Unit,
+    onImagesSelected: (List<Uri>) -> Unit,
     onSave: (TransactionEditorValue) -> Unit,
 ) {
-    var amountText by remember(
-        transaction.id,
-    ) { mutableStateOf(transaction.amount.stripTrailingZeros().toPlainString()) }
+    var amountText by remember(transaction.id) {
+        mutableStateOf(transaction.amount.stripTrailingZeros().toPlainString())
+    }
     var selectedType by remember(transaction.id) { mutableStateOf(transaction.type) }
     var selectedAccountId by remember(transaction.id) { mutableStateOf(transaction.accountId) }
     var selectedDateTime by remember(transaction.id) {
@@ -139,6 +149,12 @@ private fun TransactionDetailEditorScreen(
     }
     var remark by remember(transaction.id) { mutableStateOf(transaction.description.orEmpty()) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var previewImagePath by remember { mutableStateOf<String?>(null) }
+
+    val photoPickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.GetMultipleContents(),
+        onResult = { uris -> onImagesSelected(uris) },
+    )
 
     val context = LocalContext.current
     val selectedAccount = accounts.firstOrNull { it.id == selectedAccountId }
@@ -314,21 +330,41 @@ private fun TransactionDetailEditorScreen(
                             minLines = 2,
                             modifier = Modifier.fillMaxWidth(),
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        androidx.compose.foundation.lazy.LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            items(transaction.receiptImagePaths) { path ->
+                                coil.compose.AsyncImage(
+                                    model = java.io.File(path),
+                                    contentDescription = "凭证图片",
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable { previewImagePath = path },
+                                )
+                            }
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable { photoPickerLauncher.launch("image/*") },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "添加图片",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                            }
+                        }
                     }
-                }
-            }
-
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                ) {
-                    SelectionRow(
-                        icon = Icons.Default.AttachFile,
-                        title = "图片",
-                        value = "添加凭证（即将支持）",
-                        onClick = {},
-                    )
                 }
             }
 
@@ -395,6 +431,13 @@ private fun TransactionDetailEditorScreen(
             DatePicker(state = datePickerState)
         }
     }
+
+    if (previewImagePath != null) {
+        ImagePreviewDialog(
+            imagePath = previewImagePath!!,
+            onDismiss = { previewImagePath = null },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -429,9 +472,7 @@ private fun RefinedTypeChip(text: String, selected: Boolean, onClick: () -> Unit
         modifier = modifier
             .background(
                 if (selected) {
-                    MaterialTheme.colorScheme.primary.copy(
-                        alpha = 0.12f,
-                    )
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                 } else {
                     MaterialTheme.colorScheme.surfaceVariant
                 },
@@ -506,9 +547,7 @@ private fun AccountSelectorGrid(accounts: List<Account>, selectedAccountId: UUID
                             .weight(1f)
                             .background(
                                 if (selected) {
-                                    MaterialTheme.colorScheme.primary.copy(
-                                        alpha = 0.12f,
-                                    )
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                                 } else {
                                     MaterialTheme.colorScheme.surfaceVariant
                                 },

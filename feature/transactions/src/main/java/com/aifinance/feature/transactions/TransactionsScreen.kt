@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -53,6 +54,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -142,7 +145,7 @@ fun TransactionsScreen(
                         monthTransactions.groupBy { it.date }
                             .toSortedMap(compareByDescending<LocalDate> { it })
                             .forEach { (date, dayTransactions) ->
-                                item(key = "day-$date") {
+                                item(key = "day-${date}") {
                                     DayHeader(
                                         date = date,
                                         dayTransactions = dayTransactions,
@@ -182,6 +185,7 @@ fun TransactionsScreen(
             },
         )
     }
+
 }
 
 @Composable
@@ -276,27 +280,23 @@ private fun TimelineTransactionItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(18.dp))
-                        .clickable(onClick = onCategoryClick)
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(
-                        text = category.name,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    Text(text = category.icon)
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "改分类",
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(14.dp),
-                    )
-                }
+                    Row(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(18.dp))
+                            .clickable(onClick = onCategoryClick)
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(text = category.name, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.titleSmall)
+                        Text(text = category.icon)
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "改分类",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(14.dp),
+                        )
+                    }
 
                 Text(
                     text = account?.name ?: "未选账户",
@@ -313,6 +313,26 @@ private fun TimelineTransactionItem(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
+            }
+
+            if (transaction.receiptImagePaths.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    items(transaction.receiptImagePaths) { path ->
+                        coil.compose.AsyncImage(
+                            model = java.io.File(path),
+                            contentDescription = "凭证缩略图",
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                    }
+                }
             }
         }
     }
@@ -335,13 +355,7 @@ private fun CategoryPickerSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            if (selected) {
-                                MaterialTheme.colorScheme.primary.copy(
-                                    alpha = 0.12f,
-                                )
-                            } else {
-                                MaterialTheme.colorScheme.surface
-                            },
+                            if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surface,
                             RoundedCornerShape(14.dp),
                         )
                         .clickable { onSelect(category.id) }
@@ -349,10 +363,7 @@ private fun CategoryPickerSheet(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(text = category.icon)
                         Text(text = category.name, style = MaterialTheme.typography.bodyLarge)
                     }
@@ -372,13 +383,7 @@ private fun TransactionDetailSheet(
     transaction: Transaction,
     accounts: List<Account>,
     onDismiss: () -> Unit,
-    onSave: (
-        amount: BigDecimal,
-        accountId: UUID,
-        date: LocalDate,
-        type: TransactionType,
-        includeInExpense: Boolean,
-    ) -> Unit,
+    onSave: (amount: BigDecimal, accountId: UUID, date: LocalDate, type: TransactionType, includeInExpense: Boolean) -> Unit,
 ) {
     var amountText by remember(transaction.id) { mutableStateOf(formatAmount(transaction.amount)) }
     var selectedAccountId by remember(transaction.id) { mutableStateOf(transaction.accountId) }
@@ -560,12 +565,7 @@ private fun AmountPad(amount: String, onAmountChanged: (String) -> Unit) {
                             .clickable {
                                 when (key) {
                                     "清空" -> onAmountChanged("")
-                                    "." -> if (!amount.contains(
-                                            ".",
-                                        )
-                                    ) {
-                                        onAmountChanged(if (amount.isEmpty()) "0." else "$amount.")
-                                    }
+                                    "." -> if (!amount.contains(".")) onAmountChanged(if (amount.isEmpty()) "0." else "$amount.")
                                     else -> onAmountChanged("$amount$key")
                                 }
                             },
@@ -580,7 +580,11 @@ private fun AmountPad(amount: String, onAmountChanged: (String) -> Unit) {
 }
 
 @Composable
-private fun AccountRowSelector(accounts: List<Account>, selectedAccountId: UUID, onSelect: (UUID) -> Unit) {
+private fun AccountRowSelector(
+    accounts: List<Account>,
+    selectedAccountId: UUID,
+    onSelect: (UUID) -> Unit,
+) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         accounts.take(3).forEach { account ->
             val selected = account.id == selectedAccountId
@@ -588,11 +592,8 @@ private fun AccountRowSelector(accounts: List<Account>, selectedAccountId: UUID,
                 modifier = Modifier
                     .weight(1f)
                     .background(
-                        if (selected) {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                        } else {
-                            MaterialTheme.colorScheme.surface
-                        },
+                        if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                        else MaterialTheme.colorScheme.surface,
                         RoundedCornerShape(10.dp),
                     )
                     .clickable { onSelect(account.id) }
@@ -605,15 +606,17 @@ private fun AccountRowSelector(accounts: List<Account>, selectedAccountId: UUID,
 }
 
 @Composable
-private fun TypeChip(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun TypeChip(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Box(
         modifier = modifier
             .background(
-                if (selected) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-                } else {
-                    MaterialTheme.colorScheme.surface
-                },
+                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                else MaterialTheme.colorScheme.surface,
                 RoundedCornerShape(12.dp),
             )
             .clickable(onClick = onClick)
