@@ -60,6 +60,10 @@ fun AiAssistantScreen(viewModel: AssistantViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
+    LaunchedEffect(Unit) {
+        viewModel.consumeStatisticsContext()
+    }
+
     LaunchedEffect(uiState.messages.size) {
         if (uiState.messages.isNotEmpty()) {
             listState.animateScrollToItem(uiState.messages.size - 1)

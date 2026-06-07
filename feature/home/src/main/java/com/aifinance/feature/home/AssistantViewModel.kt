@@ -10,8 +10,10 @@ import com.aifinance.core.data.repository.ai.AIRepository
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
+import com.aifinance.core.model.StatisticsAnalysisContext
 import com.aifinance.core.model.TransactionSourceType
 import com.aifinance.core.model.TransactionType
+import com.aifinance.core.data.repository.StatisticsAnalysisBridge
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +33,7 @@ class AssistantViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val accountRepository: AccountRepository,
     private val categoryRepository: CategoryRepository,
+    private val statisticsAnalysisBridge: StatisticsAnalysisBridge,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AssistantUiState())
@@ -138,6 +141,73 @@ class AssistantViewModel @Inject constructor(
             messages = emptyList(),
             inputText = "",
         )
+    }
+
+    fun consumeStatisticsContext() {
+        val context = statisticsAnalysisBridge.consumePendingContext() ?: return
+        statisticsAnalysisBridge.consumeOpenAiTabRequest()
+        val prompt = buildAnalysisPrompt(context)
+
+        val userMessage = AssistantMessage(role = AssistantRole.USER, content = prompt)
+        _uiState.value = _uiState.value.copy(
+            messages = _uiState.value.messages + userMessage,
+            isLoading = true,
+        )
+
+        viewModelScope.launch {
+            val systemContext = buildSystemContext()
+            aiRepository.sendMessageWithContext(prompt, systemContext)
+                .onSuccess { response ->
+                    val processedResponse = processAIResponse(response)
+                    val assistantMessage = AssistantMessage(
+                        role = AssistantRole.ASSISTANT,
+                        content = processedResponse,
+                    )
+                    _uiState.value = _uiState.value.copy(
+                        messages = _uiState.value.messages + assistantMessage,
+                        isLoading = false,
+                    )
+                }
+                .onFailure { error ->
+                    val errorMessage = AssistantMessage(
+                        role = AssistantRole.ASSISTANT,
+                        content = "抱歉，发生了错误：${error.message}",
+                    )
+                    _uiState.value = _uiState.value.copy(
+                        messages = _uiState.value.messages + errorMessage,
+                        isLoading = false,
+                    )
+                }
+        }
+    }
+
+    private fun buildAnalysisPrompt(context: StatisticsAnalysisContext): String {
+        val categoryDetails = context.topCategories.joinToString("\n") { cat ->
+            "  - ${cat.name}: ¥${cat.amount} (${cat.count}笔)"
+        }
+        val suggestions = context.suggestions.joinToString("\n") { s -> "  - $s" }
+
+        return """
+请分析我的${context.periodLabel}财务数据，并给出建议。
+
+【${context.periodLabel}概览】
+收入：¥${context.income}
+支出：¥${context.expense}
+结余：¥${context.balance}
+交易笔数：${context.transactionCount}笔
+
+【主要支出分类】
+$categoryDetails
+
+【已识别的问题与建议】
+$suggestions
+
+请基于以上数据，给出更深入的分析和改善建议。包括：
+1. 与同类消费水平的对比分析
+2. 消费结构是否合理
+3. 具体的省钱建议
+4. 下个月的预算建议
+        """.trimIndent()
     }
 
     private suspend fun buildSystemContext(): String {
