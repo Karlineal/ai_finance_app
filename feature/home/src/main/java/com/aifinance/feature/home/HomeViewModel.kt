@@ -40,7 +40,7 @@ class HomeViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = false
+            initialValue = false,
         )
 
     val nickname = userPreferencesRepository.nickname.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "小皮皮")
@@ -94,7 +94,7 @@ class HomeViewModel @Inject constructor(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = emptyList()
+                initialValue = emptyList(),
             )
 
     val monthlyStats: StateFlow<MonthlyStats> =
@@ -121,7 +121,7 @@ class HomeViewModel @Inject constructor(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = MonthlyStats(BigDecimal.ZERO, BigDecimal.ZERO)
+                initialValue = MonthlyStats(BigDecimal.ZERO, BigDecimal.ZERO),
             )
 
     val totalBalance: StateFlow<TotalBalance> =
@@ -151,7 +151,7 @@ class HomeViewModel @Inject constructor(
                     currency = "CNY",
                     assets = BigDecimal.ZERO,
                     liabilities = BigDecimal.ZERO,
-                )
+                ),
             )
 
     val accountsById: StateFlow<Map<UUID, Account>> =
@@ -201,13 +201,13 @@ class HomeViewModel @Inject constructor(
 
                 PercentageChange(
                     percentage = percentage,
-                    isPositive = percentage >= BigDecimal.ZERO
+                    isPositive = percentage >= BigDecimal.ZERO,
                 )
             }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = PercentageChange(BigDecimal.ZERO, true)
+                initialValue = PercentageChange(BigDecimal.ZERO, true),
             )
 
     val weeklyInsight: StateFlow<WeeklyInsight?> =
@@ -218,7 +218,7 @@ class HomeViewModel @Inject constructor(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = null
+                initialValue = null,
             )
 
     fun deleteTransaction(transaction: Transaction) {
@@ -243,7 +243,7 @@ class HomeViewModel @Inject constructor(
                 transaction.copy(
                     categoryId = categoryId,
                     title = categoryName?.takeIf { it.isNotBlank() } ?: transaction.title,
-                )
+                ),
             )
         }
     }
@@ -262,7 +262,7 @@ class HomeViewModel @Inject constructor(
                     title = editedFields.title?.takeIf { it.isNotBlank() } ?: transaction.title,
                     description = editedFields.description ?: transaction.description,
                     isPending = !editedFields.includeInExpense,
-                )
+                ),
             )
         }
     }
@@ -277,13 +277,13 @@ class HomeViewModel @Inject constructor(
                 HomeRecordStats(
                     totalDaysRecorded = dates.size,
                     currentStreak = calculateStreak(dates),
-                    recordedDates = dates
+                    recordedDates = dates,
                 )
             }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = HomeRecordStats()
+                initialValue = HomeRecordStats(),
             )
 
     private fun calculateStreak(recordedDates: Set<LocalDate>): Int {
@@ -320,7 +320,7 @@ data class HomeTransactionEditedFields(
 
 data class MonthlyStats(
     val income: BigDecimal,
-    val expense: BigDecimal
+    val expense: BigDecimal,
 )
 
 data class TotalBalance(
@@ -332,17 +332,19 @@ data class TotalBalance(
 
 data class PercentageChange(
     val percentage: BigDecimal,
-    val isPositive: Boolean
+    val isPositive: Boolean,
 )
 
 data class WeeklyInsight(
     val title: String,
     val subtitle: String,
-    val alertLevel: AlertLevel
+    val alertLevel: AlertLevel,
 )
 
 enum class AlertLevel {
-    NORMAL, WARNING, CRITICAL
+    NORMAL,
+    WARNING,
+    CRITICAL,
 }
 
 private fun calculateWeeklyInsight(transactions: List<Transaction>): WeeklyInsight? {
@@ -377,7 +379,7 @@ private fun calculateWeeklyInsight(transactions: List<Transaction>): WeeklyInsig
         lastWeekFoodExpense <= BigDecimal.ZERO -> WeeklyInsight(
             title = "本周有新的支出记录",
             subtitle = "记得记录每一笔消费",
-            alertLevel = AlertLevel.NORMAL
+            alertLevel = AlertLevel.NORMAL,
         )
         else -> {
             val increasePercentage = currentWeekFoodExpense
@@ -388,15 +390,15 @@ private fun calculateWeeklyInsight(transactions: List<Transaction>): WeeklyInsig
 
             if (increasePercentage >= BigDecimal(20)) {
                 WeeklyInsight(
-                    title = "本周支出 +${increasePercentage}%",
+                    title = "本周支出 +$increasePercentage%",
                     subtitle = "建议控制非必要支出",
-                    alertLevel = AlertLevel.WARNING
+                    alertLevel = AlertLevel.WARNING,
                 )
             } else {
                 WeeklyInsight(
                     title = "本周支出正常",
                     subtitle = "继续保持良好的消费习惯",
-                    alertLevel = AlertLevel.NORMAL
+                    alertLevel = AlertLevel.NORMAL,
                 )
             }
         }
@@ -406,5 +408,5 @@ private fun calculateWeeklyInsight(transactions: List<Transaction>): WeeklyInsig
 data class HomeRecordStats(
     val totalDaysRecorded: Int = 0,
     val currentStreak: Int = 0,
-    val recordedDates: Set<LocalDate> = emptySet()
+    val recordedDates: Set<LocalDate> = emptySet(),
 )

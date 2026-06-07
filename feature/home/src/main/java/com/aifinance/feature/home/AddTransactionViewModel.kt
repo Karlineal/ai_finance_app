@@ -34,7 +34,7 @@ data class AddTransactionUiState(
     val note: String = "",
     val selectedDate: LocalDate = AppDateTime.today(),
     val isLoading: Boolean = false,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
 )
 
 @HiltViewModel
@@ -57,7 +57,7 @@ class AddTransactionViewModel @Inject constructor(
 
     val categories: StateFlow<List<Category>> = combine(
         _uiState,
-        categoryRepository.getAllCategories()
+        categoryRepository.getAllCategories(),
     ) { state, customCategories ->
         val defaults = CategoryCatalog.categoriesForType(state.selectedType)
         val customForType = customCategories.filter { it.type == state.selectedType && !it.isDefault }
@@ -65,7 +65,7 @@ class AddTransactionViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = CategoryCatalog.categoriesForType(TransactionType.EXPENSE)
+        initialValue = CategoryCatalog.categoriesForType(TransactionType.EXPENSE),
     )
 
     fun updateAmount(amount: String) {
@@ -164,7 +164,7 @@ class AddTransactionViewModel @Inject constructor(
                         description = note.ifEmpty { null },
                         date = dateTime.toLocalDate(),
                         time = AppDateTime.toInstant(dateTime),
-                        sourceType = TransactionSourceType.MANUAL
+                        sourceType = TransactionSourceType.MANUAL,
                     )
 
                     transactionRepository.insertTransaction(transaction)

@@ -38,12 +38,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
-
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -75,7 +73,7 @@ fun AppDateTimePickerDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(16.dp),
             ) {
                 Box(
                     modifier = Modifier
@@ -83,7 +81,7 @@ fun AppDateTimePickerDialog(
                         .width(48.dp)
                         .height(6.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)),
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -92,7 +90,7 @@ fun AppDateTimePickerDialog(
                     text = title,
                     style = IcokieTextStyles.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -107,9 +105,9 @@ fun AppDateTimePickerDialog(
                                 .withYear(year)
                                 .withMonth(month)
                                 .withDayOfMonth(
-                                    minOf(selectedDate.dayOfMonth, YearMonth.of(year, month).lengthOfMonth())
+                                    minOf(selectedDate.dayOfMonth, YearMonth.of(year, month).lengthOfMonth()),
                                 )
-                        }
+                        },
                     )
                 } else {
                     MonthCalendar(
@@ -118,7 +116,7 @@ fun AppDateTimePickerDialog(
                         onToggleYearMonthWheel = { showMonthWheel = true },
                         onPreviousMonth = { displayMonth = displayMonth.minusMonths(1) },
                         onNextMonth = { displayMonth = displayMonth.plusMonths(1) },
-                        onDateSelected = { selectedDate = it }
+                        onDateSelected = { selectedDate = it },
                     )
                 }
 
@@ -157,7 +155,7 @@ fun AppDateTimePickerDialog(
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
                             .clickable { showMonthWheel = false }
-                            .padding(8.dp)
+                            .padding(8.dp),
                     )
                 }
             }
@@ -248,7 +246,7 @@ private fun MonthCalendar(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable(onClick = onToggleYearMonthWheel)
+                modifier = Modifier.clickable(onClick = onToggleYearMonthWheel),
             ) {
                 Text(
                     text = "${month.year}年${month.monthValue}月",
@@ -256,7 +254,11 @@ private fun MonthCalendar(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = ">", style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    text = ">",
+                    style = IcokieTextStyles.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -324,10 +326,7 @@ private fun MonthCalendar(
 }
 
 @Composable
-private fun MonthNavButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    onClick: () -> Unit,
-) {
+private fun MonthNavButton(icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(28.dp)
@@ -340,17 +339,13 @@ private fun MonthNavButton(
             imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(16.dp),
         )
     }
 }
 
 @Composable
-private fun MonthWheelPicker(
-    year: Int,
-    month: Int,
-    onYearMonthChange: (Int, Int) -> Unit,
-) {
+private fun MonthWheelPicker(year: Int, month: Int, onYearMonthChange: (Int, Int) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -375,7 +370,7 @@ private fun MonthWheelPicker(
                 picker.setOnValueChangedListener { _, _, newVal ->
                     onYearMonthChange(newVal, month)
                 }
-            }
+            },
         )
 
         Text(text = "年", style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -399,7 +394,7 @@ private fun MonthWheelPicker(
                 picker.setOnValueChangedListener { _, _, newVal ->
                     onYearMonthChange(year, newVal)
                 }
-            }
+            },
         )
 
         Text(text = "月", style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)

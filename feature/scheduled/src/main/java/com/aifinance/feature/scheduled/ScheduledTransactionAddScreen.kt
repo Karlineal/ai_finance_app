@@ -10,12 +10,12 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -25,14 +25,16 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -40,7 +42,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -55,11 +56,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -68,6 +67,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.designsystem.theme.BorderSubtle
 import com.aifinance.core.designsystem.theme.BrandPrimary
@@ -75,24 +76,17 @@ import com.aifinance.core.designsystem.theme.ExpenseDefault
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.IncomeDefault
 import com.aifinance.core.designsystem.theme.OnPrimary
-
 import com.aifinance.core.model.ScheduledEndMode
-import com.aifinance.core.model.ScheduledRecurrence
 import com.aifinance.core.model.TransactionType
 import com.aifinance.feature.home.AppDateTimePickerDialog
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun ScheduledTransactionAddScreen(
-    onBack: () -> Unit,
-    viewModel: ScheduledTransactionViewModel = hiltViewModel(),
-) {
+fun ScheduledTransactionAddScreen(onBack: () -> Unit, viewModel: ScheduledTransactionViewModel = hiltViewModel()) {
     LaunchedEffect(Unit) {
         viewModel.resetFormForAdd()
     }
@@ -272,11 +266,11 @@ fun ScheduledTransactionAddScreen(
                                 )
                             }
 
-                                Text(
-                                    "每次金额",
-                                    style = IcokieTextStyles.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
+                            Text(
+                                "每次金额",
+                                style = IcokieTextStyles.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.Bottom,
@@ -373,17 +367,35 @@ fun ScheduledTransactionAddScreen(
                                 EndModePill(
                                     text = "不结束",
                                     selected = form.endMode == ScheduledEndMode.NEVER,
-                                    onClick = { viewModel.updateForm { s -> s.copy(endMode = ScheduledEndMode.NEVER) } },
+                                    onClick = {
+                                        viewModel.updateForm { s ->
+                                            s.copy(
+                                                endMode = ScheduledEndMode.NEVER,
+                                            )
+                                        }
+                                    },
                                 )
                                 EndModePill(
                                     text = "按次数",
                                     selected = form.endMode == ScheduledEndMode.AFTER_COUNT,
-                                    onClick = { viewModel.updateForm { s -> s.copy(endMode = ScheduledEndMode.AFTER_COUNT) } },
+                                    onClick = {
+                                        viewModel.updateForm { s ->
+                                            s.copy(
+                                                endMode = ScheduledEndMode.AFTER_COUNT,
+                                            )
+                                        }
+                                    },
                                 )
                                 EndModePill(
                                     text = "按日期",
                                     selected = form.endMode == ScheduledEndMode.END_DATE,
-                                    onClick = { viewModel.updateForm { s -> s.copy(endMode = ScheduledEndMode.END_DATE) } },
+                                    onClick = {
+                                        viewModel.updateForm { s ->
+                                            s.copy(
+                                                endMode = ScheduledEndMode.END_DATE,
+                                            )
+                                        }
+                                    },
                                 )
                             }
                             when (form.endMode) {
@@ -391,7 +403,11 @@ fun ScheduledTransactionAddScreen(
                                     OutlinedTextField(
                                         value = form.maxOccurrences,
                                         onValueChange = {
-                                            viewModel.updateForm { s -> s.copy(maxOccurrences = it.filter { c -> c.isDigit() }) }
+                                            viewModel.updateForm { s ->
+                                                s.copy(
+                                                    maxOccurrences = it.filter { c -> c.isDigit() },
+                                                )
+                                            }
                                         },
                                         label = { Text("执行次数后停止") },
                                         modifier = Modifier.fillMaxWidth(),
@@ -625,7 +641,7 @@ fun ScheduledTransactionAddScreen(
                     onClick = {
                         showPermissionWarning = false
                         ExactAlarmPermissionHelper.openAlarmSettings(context)
-                    }
+                    },
                 ) {
                     Text("去设置开启")
                 }
@@ -634,7 +650,7 @@ fun ScheduledTransactionAddScreen(
                 TextButton(onClick = { showPermissionWarning = false }) {
                     Text("暂不开启")
                 }
-            }
+            },
         )
     }
 }

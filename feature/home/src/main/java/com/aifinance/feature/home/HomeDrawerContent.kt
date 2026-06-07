@@ -52,7 +52,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 private val DrawerBackground = Color(0xFFF4F5F7)
 private val DrawerCard = Color.White
@@ -199,7 +198,9 @@ fun HomeDrawerContent(
                     }
                     Spacer(modifier = Modifier.height(14.dp))
                     val recordDays = monthMap.count { it.value != DayActivity.None }
-                    val totalRecords = transactions.count { it.date.year == currentMonth.year && it.date.monthValue == currentMonth.monthValue }
+                    val totalRecords = transactions.count {
+                        it.date.year == currentMonth.year && it.date.monthValue == currentMonth.monthValue
+                    }
                     val streak = calculateStreak(monthMap)
                     Row(modifier = Modifier.fillMaxWidth()) {
                         DrawerMetricItem("${recordDays}天", "坚持记录", Modifier.weight(1f))
@@ -287,10 +288,7 @@ private enum class DayActivity {
     WithIncome,
 }
 
-private fun buildMonthActivityMap(
-    transactions: List<Transaction>,
-    monthStart: LocalDate,
-): Map<Int, DayActivity> {
+private fun buildMonthActivityMap(transactions: List<Transaction>, monthStart: LocalDate): Map<Int, DayActivity> {
     val monthTransactions = transactions.filter {
         it.date.year == monthStart.year && it.date.monthValue == monthStart.monthValue && !it.isPending
     }
@@ -329,12 +327,7 @@ private fun calculateStreak(dayMap: Map<Int, DayActivity>): Int {
 }
 
 @Composable
-private fun LoginChip(
-    icon: ImageVector,
-    text: String,
-    active: Boolean,
-    onClick: () -> Unit,
-) {
+private fun LoginChip(icon: ImageVector, text: String, active: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .background(
@@ -363,11 +356,7 @@ private fun DrawerMetricItem(value: String, label: String, modifier: Modifier = 
 }
 
 @Composable
-private fun DrawerFeature(
-    label: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-) {
+private fun DrawerFeature(label: String, icon: ImageVector, onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .size(width = 86.dp, height = 74.dp)

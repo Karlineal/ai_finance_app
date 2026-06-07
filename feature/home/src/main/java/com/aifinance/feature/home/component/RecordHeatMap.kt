@@ -22,7 +22,7 @@ fun RecordHeatMap(
     currentMonth: YearMonth,
     monthActivity: Map<Int, DayActivity>,
     onDateClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val today = LocalDate.now()
     val daysInMonth = currentMonth.lengthOfMonth()
@@ -41,14 +41,14 @@ fun RecordHeatMap(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.heightIn(max = 240.dp),
-            userScrollEnabled = false
+            userScrollEnabled = false,
         ) {
             items(daysInMonth) { index ->
                 val day = index + 1
                 val activity = monthActivity[day] ?: DayActivity.None
                 val isToday = day == today.dayOfMonth &&
-                        currentMonth.monthValue == today.monthValue &&
-                        currentMonth.year == today.year
+                    currentMonth.monthValue == today.monthValue &&
+                    currentMonth.year == today.year
 
                 HeatMapSquare(
                     activity = activity,
@@ -56,7 +56,7 @@ fun RecordHeatMap(
                     dayNumber = day,
                     daysInMonth = daysInMonth,
                     onClick = { onDateClick(day) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }

@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -73,8 +72,6 @@ import com.aifinance.core.designsystem.theme.ExpenseDefault
 import com.aifinance.core.designsystem.theme.ExpenseLight
 import com.aifinance.core.designsystem.theme.IncomeDefault
 import com.aifinance.core.designsystem.theme.IncomeLight
-
-
 import com.aifinance.core.model.Category
 import com.aifinance.core.model.TransactionType
 import java.text.SimpleDateFormat
@@ -88,7 +85,7 @@ import java.util.Locale
 fun AddTransactionScreen(
     onBack: () -> Unit,
     onSuccess: () -> Unit,
-    viewModel: AddTransactionViewModel = hiltViewModel()
+    viewModel: AddTransactionViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -99,14 +96,14 @@ fun AddTransactionScreen(
                     Text(
                         text = "记一笔",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = "返回",
                         )
                     }
                 },
@@ -114,39 +111,39 @@ fun AddTransactionScreen(
                     // Optional: Add a save button in the top bar for quick access
                     TextButton(
                         onClick = { viewModel.saveTransaction(onSuccess) },
-                        enabled = !uiState.isLoading && uiState.amount.isNotBlank()
+                        enabled = !uiState.isLoading && uiState.amount.isNotBlank(),
                     ) {
                         Text(
                             text = "保存",
-                            color = if (uiState.amount.isNotBlank()) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (uiState.amount.isNotBlank()) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
             )
         },
-        containerColor = MaterialTheme.colorScheme.surfaceVariant
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Amount Section - The HERO
             AmountSection(
                 amount = uiState.amount,
                 onAmountChange = viewModel::onAmountChanged,
-                error = uiState.amountError
+                error = uiState.amountError,
             )
 
             // Type Toggle - 支出/收入
             TypeToggleSection(
                 selectedType = uiState.type,
-                onTypeSelected = viewModel::onTypeChanged
+                onTypeSelected = viewModel::onTypeChanged,
             )
 
             // Category Chips - Horizontal scrollable
@@ -155,7 +152,7 @@ fun AddTransactionScreen(
                 categories = categories,
                 selectedCategoryId = uiState.categoryId,
                 onCategorySelected = viewModel::onCategorySelected,
-                error = uiState.categoryError
+                error = uiState.categoryError,
             )
 
             // Optional Fields - Collapsible
@@ -165,7 +162,7 @@ fun AddTransactionScreen(
                 date = uiState.date,
                 onDateChange = viewModel::onDateChanged,
                 note = uiState.note,
-                onNoteChange = viewModel::onNoteChanged
+                onNoteChange = viewModel::onNoteChanged,
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -174,7 +171,7 @@ fun AddTransactionScreen(
             SaveButton(
                 isLoading = uiState.isLoading,
                 enabled = uiState.amount.isNotBlank(),
-                onClick = { viewModel.saveTransaction(onSuccess) }
+                onClick = { viewModel.saveTransaction(onSuccess) },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -183,36 +180,32 @@ fun AddTransactionScreen(
 }
 
 @Composable
-private fun AmountSection(
-    amount: String,
-    onAmountChange: (String) -> Unit,
-    error: String?
-) {
+private fun AmountSection(amount: String, onAmountChange: (String) -> Unit, error: String?) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 32.dp, horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
             ) {
                 Text(
                     text = "¥",
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -243,16 +236,16 @@ private fun AmountSection(
                         fontSize = 48.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
                     ),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Decimal,
-                        imeAction = ImeAction.Next
+                        imeAction = ImeAction.Next,
                     ),
                     singleLine = true,
                     decorationBox = { innerTextField ->
                         Box(
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             if (amount.isEmpty()) {
                                 Text(
@@ -260,13 +253,13 @@ private fun AmountSection(
                                     style = TextStyle(
                                         fontSize = 48.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                    )
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                    ),
                                 )
                             }
                             innerTextField()
                         }
-                    }
+                    },
                 )
             }
 
@@ -275,7 +268,7 @@ private fun AmountSection(
                 Text(
                     text = error,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
         }
@@ -283,25 +276,22 @@ private fun AmountSection(
 }
 
 @Composable
-private fun TypeToggleSection(
-    selectedType: TransactionType,
-    onTypeSelected: (TransactionType) -> Unit
-) {
+private fun TypeToggleSection(selectedType: TransactionType, onTypeSelected: (TransactionType) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // Expense Button
             TypeToggleButton(
@@ -310,7 +300,7 @@ private fun TypeToggleSection(
                 selectedColor = ExpenseDefault,
                 selectedBackgroundColor = ExpenseLight.copy(alpha = 0.3f),
                 onClick = { onTypeSelected(TransactionType.EXPENSE) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
 
             // Income Button
@@ -320,7 +310,7 @@ private fun TypeToggleSection(
                 selectedColor = IncomeDefault,
                 selectedBackgroundColor = IncomeLight.copy(alpha = 0.3f),
                 onClick = { onTypeSelected(TransactionType.INCOME) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -333,7 +323,7 @@ private fun TypeToggleButton(
     selectedColor: Color,
     selectedBackgroundColor: Color,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val backgroundColor = if (isSelected) selectedBackgroundColor else MaterialTheme.colorScheme.surfaceVariant
     val contentColor = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant
@@ -344,13 +334,13 @@ private fun TypeToggleButton(
             .background(backgroundColor)
             .clickable(onClick = onClick)
             .padding(vertical = 14.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = contentColor
+            color = contentColor,
         )
     }
 }
@@ -360,7 +350,7 @@ private fun CategoryChipsSection(
     categories: List<Category>,
     selectedCategoryId: java.util.UUID?,
     onCategorySelected: (java.util.UUID) -> Unit,
-    error: String?
+    error: String?,
 ) {
     Card(
         modifier = Modifier
@@ -368,32 +358,32 @@ private fun CategoryChipsSection(
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             Text(
                 text = "选择分类",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(horizontal = 4.dp)
+                contentPadding = PaddingValues(horizontal = 4.dp),
             ) {
                 items(categories) { category ->
                     CategoryChip(
                         category = category,
                         isSelected = category.id == selectedCategoryId,
-                        onClick = { onCategorySelected(category.id) }
+                        onClick = { onCategorySelected(category.id) },
                     )
                 }
             }
@@ -403,7 +393,7 @@ private fun CategoryChipsSection(
                 Text(
                     text = error,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
         }
@@ -411,11 +401,7 @@ private fun CategoryChipsSection(
 }
 
 @Composable
-private fun CategoryChip(
-    category: Category,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
+private fun CategoryChip(category: Category, isSelected: Boolean, onClick: () -> Unit) {
     val backgroundColor = if (isSelected) {
         Color(category.color).copy(alpha = 0.15f)
     } else {
@@ -433,18 +419,18 @@ private fun CategoryChip(
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         Text(
             text = category.icon,
-            fontSize = 24.sp
+            fontSize = 24.sp,
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = category.name,
             style = MaterialTheme.typography.bodySmall,
             color = contentColor,
-            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
+            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
         )
     }
 }
@@ -456,7 +442,7 @@ private fun OptionalFieldsSection(
     date: LocalDate,
     onDateChange: (LocalDate) -> Unit,
     note: String,
-    onNoteChange: (String) -> Unit
+    onNoteChange: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -467,12 +453,12 @@ private fun OptionalFieldsSection(
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             // Header - Click to expand/collapse
             Row(
@@ -481,17 +467,17 @@ private fun OptionalFieldsSection(
                     .clickable { expanded = !expanded }
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = "更多选项（标题、日期、备注）",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = if (expanded) "收起" else "展开",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -499,14 +485,14 @@ private fun OptionalFieldsSection(
             AnimatedVisibility(
                 visible = expanded,
                 enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
+                exit = shrinkVertically() + fadeOut(),
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     // Title Field
                     OutlinedTextField(
@@ -519,9 +505,9 @@ private fun OptionalFieldsSection(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = BrandPrimary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
                     )
 
                     // Date Field
@@ -537,22 +523,22 @@ private fun OptionalFieldsSection(
                             .clip(RoundedCornerShape(12.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { showDatePicker = true }
-                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
                                 text = "日期",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
                                 text = dateString,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                         }
                     }
@@ -569,9 +555,9 @@ private fun OptionalFieldsSection(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = BrandPrimary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
                     )
                 }
             }
@@ -590,17 +576,13 @@ private fun OptionalFieldsSection(
                 showDatePicker = false
             },
             onDismiss = { showDatePicker = false },
-            initialDate = date
+            initialDate = date,
         )
     }
 }
 
 @Composable
-private fun SaveButton(
-    isLoading: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
+private fun SaveButton(isLoading: Boolean, enabled: Boolean, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -610,22 +592,22 @@ private fun SaveButton(
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = BrandPrimary,
-            disabledContainerColor = BrandPrimary.copy(alpha = 0.4f)
+            disabledContainerColor = BrandPrimary.copy(alpha = 0.4f),
         ),
-        enabled = enabled && !isLoading
+        enabled = enabled && !isLoading,
     ) {
         if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
                 color = Color.White,
-                strokeWidth = 2.dp
+                strokeWidth = 2.dp,
             )
         } else {
             Text(
                 text = "确认保存",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                color = Color.White,
             )
         }
     }
@@ -633,11 +615,7 @@ private fun SaveButton(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DatePickerModal(
-    onDateSelected: (Long?) -> Unit,
-    onDismiss: () -> Unit,
-    initialDate: LocalDate
-) {
+private fun DatePickerModal(onDateSelected: (Long?) -> Unit, onDismiss: () -> Unit, initialDate: LocalDate) {
     val initialDateMillis = initialDate
         .atStartOfDay(ZoneId.systemDefault())
         .toInstant()
@@ -656,7 +634,7 @@ private fun DatePickerModal(
             TextButton(onClick = onDismiss) {
                 Text(text = "取消")
             }
-        }
+        },
     ) {
         DatePicker(state = datePickerState)
     }

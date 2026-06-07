@@ -20,10 +20,10 @@ import java.util.UUID
             entity = AccountEntity::class,
             parentColumns = ["id"],
             childColumns = ["accountId"],
-            onDelete = ForeignKey.CASCADE // 账户删除时级联删除对应的攒钱计划
-        )
+            onDelete = ForeignKey.CASCADE, // 账户删除时级联删除对应的攒钱计划
+        ),
     ],
-    indices = [Index(value = ["accountId"])]
+    indices = [Index(value = ["accountId"])],
 )
 data class SavingsGoalEntity(
     @PrimaryKey
@@ -41,7 +41,7 @@ data class SavingsGoalEntity(
     val frequency: String?,
     val baseAmount: BigDecimal?,
     val createdAt: Instant,
-    val updatedAt: Instant
+    val updatedAt: Instant,
 )
 
 /**
@@ -62,7 +62,7 @@ fun SavingsGoalEntity.toDomain() = SavingsGoal(
     frequency = frequency?.let { SavingsFrequency.valueOf(it) },
     baseAmount = baseAmount,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
 )
 
 /**
@@ -83,5 +83,5 @@ fun SavingsGoal.toEntity() = SavingsGoalEntity(
     frequency = frequency?.name,
     baseAmount = baseAmount,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
 )

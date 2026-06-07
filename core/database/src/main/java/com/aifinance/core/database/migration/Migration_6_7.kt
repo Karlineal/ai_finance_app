@@ -22,7 +22,7 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
                 createdAt TEXT NOT NULL,
                 FOREIGN KEY (savingsGoalId) REFERENCES savings_goals(id) ON DELETE CASCADE
             )
-            """.trimIndent()
+            """.trimIndent(),
         )
         db.execSQL("CREATE INDEX IF NOT EXISTS index_savings_records_savingsGoalId ON savings_records(savingsGoalId)")
     }

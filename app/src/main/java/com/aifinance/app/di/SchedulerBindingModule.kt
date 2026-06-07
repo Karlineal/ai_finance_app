@@ -14,7 +14,5 @@ abstract class SchedulerBindingModule {
 
     @Binds
     @Singleton
-    abstract fun bindScheduledRuleScheduler(
-        impl: ScheduledRuleWorkScheduler,
-    ): ScheduledRuleScheduler
+    abstract fun bindScheduledRuleScheduler(impl: ScheduledRuleWorkScheduler): ScheduledRuleScheduler
 }

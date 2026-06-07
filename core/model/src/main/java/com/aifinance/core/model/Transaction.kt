@@ -20,7 +20,7 @@ data class Transaction(
     val receiptImagePath: String? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
-    
+
     val sourceType: TransactionSourceType = TransactionSourceType.MANUAL,
     val importBatchId: UUID? = null,
     val rawText: String? = null,

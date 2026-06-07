@@ -1,10 +1,13 @@
 package com.aifinance.feature.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,7 +27,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -53,7 +57,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,11 +65,9 @@ import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
-
-
 import com.aifinance.core.model.Account
-import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.AccountType
+import com.aifinance.core.model.AppDateTime
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -89,7 +90,7 @@ fun addAssetDetailRoute(presetKey: String): String = "add_asset_detail/$presetKe
 fun editAssetAccountRoute(accountId: UUID): String = "edit_asset_account/$accountId"
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 fun AssetManagementScreen(
     onBack: () -> Unit,
     onAddAccount: () -> Unit,
@@ -98,10 +99,18 @@ fun AssetManagementScreen(
 ) {
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
     val summary by viewModel.summary.collectAsStateWithLifecycle()
+    val selectedIds by viewModel.selectedAccountIds.collectAsStateWithLifecycle()
+    val isSelectionMode = selectedIds.isNotEmpty()
+
+    var showBatchDeleteDialog by remember { mutableStateOf(false) }
 
     val groupedAccounts = remember(accounts) {
         val groups = listOf(
-            listOf(AccountType.CASH, AccountType.BANK, AccountType.DIGITAL_WALLET) to ("💰 资金账户（资产）" to Color(0xFF2563EB)),
+            listOf(
+                AccountType.CASH,
+                AccountType.BANK,
+                AccountType.DIGITAL_WALLET,
+            ) to ("💰 资金账户（资产）" to Color(0xFF2563EB)),
             listOf(AccountType.INVESTMENT) to ("📈 理财账户（资产）" to Color(0xFFF59E0B)),
             listOf(AccountType.CREDIT_CARD) to ("💳 信用账户（负债）" to Color(0xFFEF4444)),
             listOf(AccountType.OTHER) to ("📁 其他" to Color(0xFF9CA3AF)),
@@ -115,23 +124,41 @@ fun AssetManagementScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("资产管理", style = IcokieTextStyles.titleLarge) },
+                title = {
+                    if (isSelectionMode) {
+                        Text("已选 ${selectedIds.size} 项", style = IcokieTextStyles.titleLarge)
+                    } else {
+                        Text("资产管理", style = IcokieTextStyles.titleLarge)
+                    }
+                },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {
+                        if (isSelectionMode) viewModel.clearSelection() else onBack()
+                    }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
                 },
                 actions = {
-                    Text(
-                        text = "+ 添加账户",
-                        color = BrandPrimary,
-                        style = IcokieTextStyles.labelMedium,
-                        modifier = Modifier
-                            .padding(end = 16.dp)
-                            .clickable(onClick = onAddAccount)
-                    )
+                    if (isSelectionMode) {
+                        IconButton(onClick = { showBatchDeleteDialog = true }) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = "删除",
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "+ 添加账户",
+                            color = BrandPrimary,
+                            style = IcokieTextStyles.labelMedium,
+                            modifier = Modifier
+                                .padding(end = 16.dp)
+                                .clickable(onClick = onAddAccount),
+                        )
+                    }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -141,7 +168,7 @@ fun AssetManagementScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
                 Card(
@@ -154,8 +181,16 @@ fun AssetManagementScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text("净资产", style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("资产管理", style = IcokieTextStyles.labelMedium, color = MaterialTheme.colorScheme.onSurface)
+                            Text(
+                                "净资产",
+                                style = IcokieTextStyles.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                "资产管理",
+                                style = IcokieTextStyles.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
@@ -166,7 +201,11 @@ fun AssetManagementScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
-                                Text("资产", style = IcokieTextStyles.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    "资产",
+                                    style = IcokieTextStyles.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                                 Text(
                                     "¥${summary.assets.setScale(2, RoundingMode.HALF_UP).toPlainString()}",
                                     style = IcokieTextStyles.titleMedium,
@@ -174,7 +213,11 @@ fun AssetManagementScreen(
                                 )
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text("负债", style = IcokieTextStyles.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    "负债",
+                                    style = IcokieTextStyles.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                                 Text(
                                     "¥${summary.liabilities.setScale(2, RoundingMode.HALF_UP).toPlainString()}",
                                     style = IcokieTextStyles.titleMedium,
@@ -199,10 +242,28 @@ fun AssetManagementScreen(
                     )
                 }
                 items(groupAccounts, key = { it.id }) { account ->
+                    val isSelected = selectedIds.contains(account.id)
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) {
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                            } else {
+                                MaterialTheme.colorScheme.surface
+                            },
+                        ),
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.clickable { onAccountClick(account.id) },
+                        modifier = Modifier.combinedClickable(
+                            onClick = {
+                                if (isSelectionMode) {
+                                    viewModel.toggleSelection(account.id)
+                                } else {
+                                    onAccountClick(account.id)
+                                }
+                            },
+                            onLongClick = {
+                                viewModel.toggleSelection(account.id)
+                            },
+                        ),
                     ) {
                         Row(
                             modifier = Modifier
@@ -226,6 +287,14 @@ fun AssetManagementScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 ) {
+                                    if (isSelectionMode) {
+                                        Icon(
+                                            imageVector = if (isSelected) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                                            contentDescription = if (isSelected) "已选" else "未选",
+                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(24.dp),
+                                        )
+                                    }
                                     Box(
                                         modifier = Modifier
                                             .size(44.dp)
@@ -236,29 +305,43 @@ fun AssetManagementScreen(
                                         Text(account.icon)
                                     }
                                     Column {
-                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        ) {
                                             if (account.isDefaultIncomeExpense) {
                                                 Text(
                                                     text = "默认",
                                                     style = IcokieTextStyles.labelSmall,
                                                     color = BrandPrimary,
                                                     modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(
+                                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                                        )
                                                         .padding(horizontal = 6.dp, vertical = 2.dp),
                                                 )
                                             }
-                                            Text(account.name, style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                                            Text(
+                                                account.name,
+                                                style = IcokieTextStyles.titleMedium,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                            )
                                         }
                                         Text(
-                                            text = account.note.takeUnless { it.isNullOrBlank() } ?: accountTypeDisplayName(account.type),
+                                            text = account.note.takeUnless { it.isNullOrBlank() } ?: accountTypeDisplayName(
+                                                account.type,
+                                            ),
                                             style = IcokieTextStyles.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         )
                                     }
                                 }
                                 Text(
-                                    text = "¥${account.currentBalance.setScale(2, RoundingMode.HALF_UP).toPlainString()}",
+                                    text = "¥${account.currentBalance.setScale(
+                                        2,
+                                        RoundingMode.HALF_UP,
+                                    ).toPlainString()}",
                                     style = IcokieTextStyles.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
@@ -269,14 +352,42 @@ fun AssetManagementScreen(
             }
         }
     }
+
+    if (showBatchDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showBatchDeleteDialog = false },
+            title = { Text("确认删除", style = IcokieTextStyles.titleMedium) },
+            text = {
+                Text(
+                    "确定要删除选中的 ${selectedIds.size} 个账户吗？此操作不可恢复。",
+                    style = IcokieTextStyles.bodyMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.viewModelScope.launch {
+                            viewModel.deleteSelectedAccounts()
+                            showBatchDeleteDialog = false
+                        }
+                    },
+                ) {
+                    Text("删除", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBatchDeleteDialog = false }) {
+                    Text("取消")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+        )
+    }
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun AddAssetAccountScreen(
-    onBack: () -> Unit,
-    onPresetClick: (String) -> Unit,
-) {
+fun AddAssetAccountScreen(onBack: () -> Unit, onPresetClick: (String) -> Unit) {
     val sections = remember { accountPresetSections() }
 
     Scaffold(
@@ -288,7 +399,7 @@ fun AddAssetAccountScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -298,17 +409,21 @@ fun AddAssetAccountScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             sections.forEach { section ->
                 item {
-                    Text(section.title, style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(
+                        section.title,
+                        style = IcokieTextStyles.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         items(section.presets) { preset ->
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.clickable { onPresetClick(preset.key) }
+                                modifier = Modifier.clickable { onPresetClick(preset.key) },
                             ) {
                                 Box(
                                     modifier = Modifier
@@ -320,7 +435,11 @@ fun AddAssetAccountScreen(
                                     Text(text = preset.icon, style = IcokieTextStyles.titleLarge)
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
-                                Text(text = preset.name, style = IcokieTextStyles.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    text = preset.name,
+                                    style = IcokieTextStyles.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                         }
                     }
@@ -347,8 +466,10 @@ fun AddAssetDetailScreen(
     var isDefaultIncomeExpense by remember { mutableStateOf(false) }
     var startDateTime by remember { mutableStateOf(AppDateTime.now()) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var isSaving by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
 
-    val canSave = accountName.isNotBlank()
+    val canSave = accountName.isNotBlank() && !isSaving
 
     Scaffold(
         topBar = {
@@ -369,9 +490,12 @@ fun AddAssetDetailScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -389,20 +513,23 @@ fun AddAssetDetailScreen(
                 }
             }
 
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     SettingRow(
                         title = "起始时间（必填）",
                         subtitle = "该时间之前的记录将不计入余额统计",
                         trailing = formatDateTime(startDateTime),
-                        onClick = { showDatePicker = true }
+                        onClick = { showDatePicker = true },
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                     SettingRow(
                         title = "账户名称",
                         subtitle = null,
                         trailing = accountName,
-                        onClick = {}
+                        onClick = {},
                     )
                     OutlinedTextField(
                         value = accountName,
@@ -417,7 +544,7 @@ fun AddAssetDetailScreen(
                         title = "备注",
                         subtitle = null,
                         trailing = note.ifBlank { "请输入备注" },
-                        onClick = {}
+                        onClick = {},
                     )
                     OutlinedTextField(
                         value = note,
@@ -430,7 +557,10 @@ fun AddAssetDetailScreen(
                 }
             }
 
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            ) {
                 Column {
                     SwitchRow(
                         title = "计入总资产",
@@ -452,6 +582,7 @@ fun AddAssetDetailScreen(
 
             Button(
                 onClick = {
+                    isSaving = true
                     viewModel.viewModelScope.launch {
                         viewModel.addAccount(
                             preset = preset,
@@ -462,7 +593,8 @@ fun AddAssetDetailScreen(
                             isDefaultIncomeExpense = isDefaultIncomeExpense,
                             startDateTime = startDateTime,
                         )
-                        onSaved()
+                        isSaving = false
+                        showSuccessDialog = true
                     }
                 },
                 enabled = canSave,
@@ -486,7 +618,27 @@ fun AddAssetDetailScreen(
             onConfirm = {
                 startDateTime = it
                 showDatePicker = false
-            }
+            },
+        )
+    }
+
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showSuccessDialog = false
+                onSaved()
+            },
+            title = { Text("添加成功", style = IcokieTextStyles.titleMedium) },
+            text = { Text("账户「$accountName」已成功添加。", style = IcokieTextStyles.bodyMedium) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showSuccessDialog = false
+                    onSaved()
+                }) {
+                    Text("确定")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
         )
     }
 }
@@ -504,7 +656,11 @@ fun EditAssetAccountScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(accountId) {
-        val uuid = try { UUID.fromString(accountId) } catch (e: Exception) { null }
+        val uuid = try {
+            UUID.fromString(accountId)
+        } catch (e: Exception) {
+            null
+        }
         account = uuid?.let { viewModel.getAccountById(it) }
         isLoading = false
     }
@@ -524,13 +680,16 @@ fun EditAssetAccountScreen(
     }
 
     val currentAccount = account!!
-    var amount by remember { mutableStateOf(currentAccount.currentBalance.abs().setScale(2, RoundingMode.HALF_UP).toPlainString()) }
+    var amount by remember {
+        mutableStateOf(currentAccount.currentBalance.abs().setScale(2, RoundingMode.HALF_UP).toPlainString())
+    }
     var accountName by remember { mutableStateOf(currentAccount.name) }
     var note by remember { mutableStateOf(currentAccount.note ?: "") }
     var includeInTotalAssets by remember { mutableStateOf(currentAccount.includeInTotalAssets) }
     var isDefaultIncomeExpense by remember { mutableStateOf(currentAccount.isDefaultIncomeExpense) }
+    var isSaving by remember { mutableStateOf(false) }
 
-    val canSave = accountName.isNotBlank()
+    val canSave = accountName.isNotBlank() && !isSaving
 
     Scaffold(
         topBar = {
@@ -548,7 +707,7 @@ fun EditAssetAccountScreen(
                         style = IcokieTextStyles.labelMedium,
                         modifier = Modifier
                             .padding(end = 16.dp)
-                            .clickable { showDeleteDialog = true }
+                            .clickable { showDeleteDialog = true },
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -561,9 +720,12 @@ fun EditAssetAccountScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -581,13 +743,16 @@ fun EditAssetAccountScreen(
                 }
             }
 
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     SettingRow(
                         title = "账户名称",
                         subtitle = null,
                         trailing = accountName,
-                        onClick = {}
+                        onClick = {},
                     )
                     OutlinedTextField(
                         value = accountName,
@@ -602,7 +767,7 @@ fun EditAssetAccountScreen(
                         title = "备注",
                         subtitle = null,
                         trailing = note.ifBlank { "请输入备注" },
-                        onClick = {}
+                        onClick = {},
                     )
                     OutlinedTextField(
                         value = note,
@@ -615,7 +780,10 @@ fun EditAssetAccountScreen(
                 }
             }
 
-            Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            ) {
                 Column {
                     SwitchRow(
                         title = "计入总资产",
@@ -637,6 +805,7 @@ fun EditAssetAccountScreen(
 
             Button(
                 onClick = {
+                    isSaving = true
                     viewModel.viewModelScope.launch {
                         viewModel.updateAccount(
                             account = currentAccount,
@@ -675,7 +844,7 @@ fun EditAssetAccountScreen(
                             showDeleteDialog = false
                             onSaved()
                         }
-                    }
+                    },
                 ) {
                     Text("删除", color = MaterialTheme.colorScheme.error)
                 }
@@ -685,7 +854,7 @@ fun EditAssetAccountScreen(
                     Text("取消")
                 }
             },
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface,
         )
     }
 }
@@ -721,6 +890,29 @@ class AssetManagementViewModel @Inject constructor(
             initialValue = AssetSummary(),
         )
 
+    private val _selectedAccountIds = kotlinx.coroutines.flow.MutableStateFlow<Set<UUID>>(emptySet())
+    val selectedAccountIds: StateFlow<Set<UUID>> = _selectedAccountIds
+
+    fun toggleSelection(accountId: UUID) {
+        _selectedAccountIds.value = if (_selectedAccountIds.value.contains(accountId)) {
+            _selectedAccountIds.value - accountId
+        } else {
+            _selectedAccountIds.value + accountId
+        }
+    }
+
+    fun clearSelection() {
+        _selectedAccountIds.value = emptySet()
+    }
+
+    suspend fun deleteSelectedAccounts() {
+        val ids = _selectedAccountIds.value.toList()
+        if (ids.isNotEmpty()) {
+            accountRepository.deleteAccountsByIds(ids)
+            _selectedAccountIds.value = emptySet()
+        }
+    }
+
     suspend fun addAccount(
         preset: AccountPreset,
         accountName: String,
@@ -749,7 +941,7 @@ class AssetManagementViewModel @Inject constructor(
                 isDefaultIncomeExpense = isDefaultIncomeExpense,
                 createdAt = AppDateTime.toInstant(startDateTime),
                 updatedAt = AppDateTime.toInstant(startDateTime),
-            )
+            ),
         )
     }
 
@@ -777,7 +969,7 @@ class AssetManagementViewModel @Inject constructor(
                 includeInTotalAssets = includeInTotalAssets,
                 isDefaultIncomeExpense = isDefaultIncomeExpense,
                 updatedAt = Instant.now(),
-            )
+            ),
         )
     }
 
@@ -829,7 +1021,7 @@ private fun accountPresetSections(): List<AccountPresetSection> {
                 AccountPreset("alipay", "支付宝", "🔵", AccountType.DIGITAL_WALLET, "支付宝", 0xFF0EA5E9.toInt()),
                 AccountPreset("cash", "现金", "💰", AccountType.CASH, "现金", 0xFFF59E0B.toInt()),
                 AccountPreset.customAsset(),
-            )
+            ),
         ),
         AccountPresetSection(
             title = "💳信用账户（负债）",
@@ -838,7 +1030,7 @@ private fun accountPresetSections(): List<AccountPresetSection> {
                 AccountPreset("huabei", "花呗", "🔵", AccountType.CREDIT_CARD, "花呗", 0xFF3B82F6.toInt()),
                 AccountPreset("jd_baitiao", "京东白条", "🟧", AccountType.CREDIT_CARD, "京东白条", 0xFFFB923C.toInt()),
                 AccountPreset("jiebei", "借呗", "🐧", AccountType.CREDIT_CARD, "借呗", 0xFF2563EB.toInt()),
-            )
+            ),
         ),
         AccountPresetSection(
             title = "📈理财账户（资产）",
@@ -848,7 +1040,7 @@ private fun accountPresetSections(): List<AccountPresetSection> {
                 AccountPreset("yu_e_bao", "余额宝", "🟡", AccountType.INVESTMENT, "余额宝", 0xFFEAB308.toInt()),
                 AccountPreset("ling_qian_tong", "零钱通", "💎", AccountType.INVESTMENT, "零钱通", 0xFF22C55E.toInt()),
                 AccountPreset("small_piggy", "攒钱小荷包", "💰", AccountType.INVESTMENT, "攒钱小荷包", 0xFFEAB308.toInt()),
-            )
+            ),
         ),
     )
 }
@@ -862,12 +1054,7 @@ private fun AccountType.isLiability(): Boolean {
 }
 
 @Composable
-private fun SettingRow(
-    title: String,
-    subtitle: String?,
-    trailing: String,
-    onClick: () -> Unit,
-) {
+private fun SettingRow(title: String, subtitle: String?, trailing: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -898,12 +1085,7 @@ private fun SettingRow(
 }
 
 @Composable
-private fun SwitchRow(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
+private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -914,7 +1096,11 @@ private fun SwitchRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, style = IcokieTextStyles.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = subtitle, style = IcokieTextStyles.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = subtitle,
+                style = IcokieTextStyles.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }

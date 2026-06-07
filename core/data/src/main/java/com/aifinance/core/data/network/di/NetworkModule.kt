@@ -37,17 +37,14 @@ object NetworkModule {
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = HttpLoggingInterceptor.Level.BODY
-                }
+                },
             )
             .build()
     }
 
     @Provides
     @Singleton
-    fun provideDeepSeekApi(
-        okHttpClient: OkHttpClient,
-        json: Json
-    ): DeepSeekApi {
+    fun provideDeepSeekApi(okHttpClient: OkHttpClient, json: Json): DeepSeekApi {
         return Retrofit.Builder()
             .baseUrl(DeepSeekApi.BASE_URL)
             .client(okHttpClient)
@@ -58,10 +55,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun providePaddleOCRApi(
-        okHttpClient: OkHttpClient,
-        json: Json
-    ): PaddleOCRApi {
+    fun providePaddleOCRApi(okHttpClient: OkHttpClient, json: Json): PaddleOCRApi {
         return Retrofit.Builder()
             .baseUrl(PaddleOCRApi.BASE_URL)
             .client(okHttpClient)

@@ -24,7 +24,7 @@ class HeatMapSquareTest {
                 activity = DayActivity.None,
                 isToday = false,
                 dayNumber = 1,
-                daysInMonth = 31
+                daysInMonth = 31,
             )
         }
         composeTestRule.onNodeWithText("1").assertIsDisplayed()
@@ -37,7 +37,7 @@ class HeatMapSquareTest {
                 activity = DayActivity.ExpenseOnly,
                 isToday = false,
                 dayNumber = 15,
-                daysInMonth = 31
+                daysInMonth = 31,
             )
         }
         composeTestRule.onNodeWithText("15").assertIsDisplayed()
@@ -50,7 +50,7 @@ class HeatMapSquareTest {
                 activity = DayActivity.WithIncome,
                 isToday = false,
                 dayNumber = 31,
-                daysInMonth = 31
+                daysInMonth = 31,
             )
         }
         composeTestRule.onNodeWithText("31").assertIsDisplayed()
@@ -63,7 +63,7 @@ class HeatMapSquareTest {
                 activity = DayActivity.ExpenseOnly,
                 isToday = true,
                 dayNumber = 15,
-                daysInMonth = 31
+                daysInMonth = 31,
             )
         }
         composeTestRule.onNodeWithText("今").assertIsDisplayed()
@@ -77,7 +77,7 @@ class HeatMapSquareTest {
                 activity = DayActivity.None,
                 isToday = false,
                 dayNumber = 2,
-                daysInMonth = 31
+                daysInMonth = 31,
             )
         }
         composeTestRule.onNodeWithText("2").assertDoesNotExist()
@@ -90,13 +90,13 @@ private fun HeatMapSquareWrapper(
     isToday: Boolean,
     dayNumber: Int,
     daysInMonth: Int = 31,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
 ) {
     HeatMapSquare(
         activity = activity,
         isToday = isToday,
         dayNumber = dayNumber,
         daysInMonth = daysInMonth,
-        onClick = onClick
+        onClick = onClick,
     )
 }

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,7 +22,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.CalendarToday
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.Button
@@ -63,11 +61,9 @@ import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import java.math.BigDecimal
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import java.util.UUID
 
 @Composable
@@ -133,7 +129,9 @@ private fun TransactionDetailEditorScreen(
     onBack: () -> Unit,
     onSave: (TransactionEditorValue) -> Unit,
 ) {
-    var amountText by remember(transaction.id) { mutableStateOf(transaction.amount.stripTrailingZeros().toPlainString()) }
+    var amountText by remember(
+        transaction.id,
+    ) { mutableStateOf(transaction.amount.stripTrailingZeros().toPlainString()) }
     var selectedType by remember(transaction.id) { mutableStateOf(transaction.type) }
     var selectedAccountId by remember(transaction.id) { mutableStateOf(transaction.accountId) }
     var selectedDateTime by remember(transaction.id) {
@@ -179,7 +177,11 @@ private fun TransactionDetailEditorScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(text = "金额", style = IcokieTextStyles.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            text = "金额",
+                            style = IcokieTextStyles.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
                         OutlinedTextField(
                             value = amountText,
                             onValueChange = { input ->
@@ -195,7 +197,10 @@ private fun TransactionDetailEditorScreen(
             }
 
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp)) {
                         Text(
                             text = "类型",
@@ -232,7 +237,10 @@ private fun TransactionDetailEditorScreen(
             }
 
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         SelectionRow(
                             icon = Icons.Default.Wallet,
@@ -251,7 +259,10 @@ private fun TransactionDetailEditorScreen(
             }
 
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         SelectionRow(
                             icon = Icons.Default.CalendarToday,
@@ -285,7 +296,10 @@ private fun TransactionDetailEditorScreen(
             }
 
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                         Text(
                             text = "备注",
@@ -305,7 +319,10 @@ private fun TransactionDetailEditorScreen(
             }
 
             item {
-                Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                ) {
                     SelectionRow(
                         icon = Icons.Default.AttachFile,
                         title = "图片",
@@ -326,7 +343,7 @@ private fun TransactionDetailEditorScreen(
                                 dateTime = selectedDateTime,
                                 type = selectedType,
                                 remark = remark.trim().ifBlank { null },
-                            )
+                            ),
                         )
                     },
                     enabled = canSave,
@@ -364,7 +381,7 @@ private fun TransactionDetailEditorScreen(
                             selectedDateTime = LocalDateTime.of(selectedDate, selectedDateTime.toLocalTime())
                         }
                         showDatePicker = false
-                    }
+                    },
                 ) {
                     Text("确定")
                 }
@@ -382,11 +399,7 @@ private fun TransactionDetailEditorScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TransactionDetailFallbackScreen(
-    title: String,
-    message: String,
-    onBack: () -> Unit,
-) {
+private fun TransactionDetailFallbackScreen(title: String, message: String, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -411,16 +424,17 @@ private fun TransactionDetailFallbackScreen(
 }
 
 @Composable
-private fun RefinedTypeChip(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun RefinedTypeChip(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .background(
-                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant,
+                if (selected) {
+                    MaterialTheme.colorScheme.primary.copy(
+                        alpha = 0.12f,
+                    )
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                },
                 RoundedCornerShape(12.dp),
             )
             .clickable(onClick = onClick)
@@ -473,11 +487,7 @@ private fun SelectionRow(
 }
 
 @Composable
-private fun AccountSelectorGrid(
-    accounts: List<Account>,
-    selectedAccountId: UUID,
-    onSelect: (UUID) -> Unit,
-) {
+private fun AccountSelectorGrid(accounts: List<Account>, selectedAccountId: UUID, onSelect: (UUID) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -495,7 +505,13 @@ private fun AccountSelectorGrid(
                         modifier = Modifier
                             .weight(1f)
                             .background(
-                                if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant,
+                                if (selected) {
+                                    MaterialTheme.colorScheme.primary.copy(
+                                        alpha = 0.12f,
+                                    )
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceVariant
+                                },
                                 RoundedCornerShape(12.dp),
                             )
                             .clickable { onSelect(account.id) }

@@ -23,9 +23,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -43,8 +43,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
-
-
 import com.aifinance.core.model.CatalogCategory
 import com.aifinance.core.model.TransactionType
 import java.util.UUID
@@ -185,11 +183,7 @@ fun CategoryPickerContent(
  * A single category item in the grid with explicit selected state treatment.
  */
 @Composable
-private fun CategoryGridItem(
-    category: CategoryOption,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-) {
+private fun CategoryGridItem(category: CategoryOption, isSelected: Boolean, onClick: () -> Unit) {
     val backgroundColor = if (isSelected) {
         category.color.copy(alpha = 0.16f)
     } else {
@@ -270,11 +264,7 @@ private fun CategoryGridItem(
  * Shows the currently selected category with a subtle tap affordance.
  */
 @Composable
-fun CategoryPickerChip(
-    category: CategoryOption?,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun CategoryPickerChip(category: CategoryOption?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     if (category == null) return
     val categoryColor = category.color
 
@@ -335,11 +325,7 @@ fun CategoryPickerList(
  * A single category item for list-style picker.
  */
 @Composable
-private fun CategoryListItem(
-    category: CategoryOption,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-) {
+private fun CategoryListItem(category: CategoryOption, isSelected: Boolean, onClick: () -> Unit) {
     val backgroundColor = if (isSelected) {
         category.color.copy(alpha = 0.12f)
     } else {

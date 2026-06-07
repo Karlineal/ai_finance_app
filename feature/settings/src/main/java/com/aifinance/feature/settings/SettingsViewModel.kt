@@ -6,12 +6,12 @@ import com.aifinance.core.data.repository.AppThemeMode
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.data.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class SettingsUiState(
     val themeMode: AppThemeMode = AppThemeMode.LIGHT,

@@ -11,7 +11,7 @@ interface DeepSeekApi {
     @POST("chat/completions")
     suspend fun chatCompletion(
         @Header("Authorization") authorization: String,
-        @Body request: DeepSeekRequest
+        @Body request: DeepSeekRequest,
     ): DeepSeekResponse
 
     companion object {

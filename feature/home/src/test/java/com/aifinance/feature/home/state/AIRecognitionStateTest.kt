@@ -125,7 +125,7 @@ class AIRecognitionStateTest {
             category = "餐饮",
             merchant = "麦当劳",
             date = "2024-03-29",
-            type = TransactionType.INCOME
+            type = TransactionType.INCOME,
         )
 
         assertEquals(100.50, result.amount, 0.0001)
@@ -143,7 +143,7 @@ class AIRecognitionStateTest {
             AIRecognitionState.Idle,
             AIRecognitionState.Processing(ProcessingStep.UPLOADING),
             AIRecognitionState.Success(AIRecognitionResult()),
-            AIRecognitionState.Error("错误")
+            AIRecognitionState.Error("错误"),
         )
 
         states.forEach { state ->
