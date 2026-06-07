@@ -67,6 +67,7 @@ import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.StatisticsAnalysisBridge
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.CategoryCatalog
+import com.aifinance.core.model.AnalysisCategorySummary
 import com.aifinance.core.model.StatisticsAnalysisContext
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
@@ -294,13 +295,23 @@ class StatisticsViewModel @Inject constructor(
         viewModelScope.launch {
             val currentState = uiState.value
             val context = StatisticsAnalysisContext(
-                period = currentState.period,
-                totalIncome = currentState.aggregate.income,
-                totalExpense = currentState.aggregate.expense,
-                categoryBreakdown = currentState.compositionItems,
+                periodKey = currentState.period.name,
+                periodLabel = currentState.period.label,
+                anchorDateIso = currentState.anchorDate.toString(),
+                expense = currentState.aggregate.expense.toPlainString(),
+                income = currentState.aggregate.income.toPlainString(),
+                balance = currentState.aggregate.balance.toPlainString(),
+                transactionCount = currentState.compositionItems.sumOf { it.count },
+                topCategories = currentState.compositionItems.map {
+                    AnalysisCategorySummary(
+                        name = it.name,
+                        amount = it.amount.toPlainString(),
+                        count = it.count,
+                    )
+                },
+                suggestions = emptyList(),
             )
-            statisticsAnalysisBridge.setPendingStatisticsContext(context)
-            statisticsAnalysisBridge.navigateToAiWithContext()
+            statisticsAnalysisBridge.navigateToAiWithContext(context)
         }
     }
 }
