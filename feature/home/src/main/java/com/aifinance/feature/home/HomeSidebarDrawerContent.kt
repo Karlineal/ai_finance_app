@@ -152,6 +152,7 @@ fun HomeSidebarDrawerContent(
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 @Composable
 private fun LoginHeader(
     isLoggedIn: Boolean,
