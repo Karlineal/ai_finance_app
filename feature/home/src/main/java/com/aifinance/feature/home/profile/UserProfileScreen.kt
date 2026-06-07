@@ -75,10 +75,12 @@ fun UserProfileScreen(
 ) {
     val nickname by viewModel.nickname.collectAsStateWithLifecycle()
     val gender by viewModel.gender.collectAsStateWithLifecycle()
-    val phone by viewModel.phone.collectAsStateWithLifecycle()
     val avatarUri by viewModel.avatarUri.collectAsStateWithLifecycle()
+    val email by viewModel.email.collectAsStateWithLifecycle()
 
     var showEditDialog by remember { mutableStateOf<String?>(null) }
+    var showGenderDialog by remember { mutableStateOf(false) }
+    var showFeaturesDialog by remember { mutableStateOf(false) }
     var editValue by remember { mutableStateOf("") }
     val context = LocalContext.current
 
@@ -193,7 +195,7 @@ fun UserProfileScreen(
                     Surface(
                         color = MaterialTheme.colorScheme.tertiary,
                         shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.clickable { /* Handle details click */ }
+                        modifier = Modifier.clickable { showFeaturesDialog = true }
                     ) {
                         Text(
                             text = "查看详情",
@@ -222,35 +224,13 @@ fun UserProfileScreen(
                     ProfileDivider()
                     ProfileItemRow(
                         label = "性别", value = gender, showEdit = true,
-                        onEditClick = { showEditDialog = "性别"; editValue = gender }
+                        onEditClick = { showGenderDialog = true }
                     )
                     ProfileDivider()
                     ProfileItemRow(
-                        label = "手机", value = phone, showEdit = true,
-                        onEditClick = { showEditDialog = "手机"; editValue = phone }
+                        label = "邮箱", value = email.ifEmpty { "未绑定" }, showEdit = true,
+                        onEditClick = { showEditDialog = "邮箱"; editValue = email }
                     )
-                    ProfileDivider()
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("微信", color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.clickable { /* Handle bind click */ }
-                        ) {
-                            Text(
-                                "去绑定",
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                            )
-                        }
-                    }
                     ProfileDivider()
                     ProfileItemRow(label = "ID", value = "7YHBM6AR", showCopy = true)
                     ProfileDivider()
@@ -282,6 +262,60 @@ fun UserProfileScreen(
             Spacer(modifier = Modifier.height(40.dp))
         }
 
+        if (showFeaturesDialog) {
+            AlertDialog(
+                onDismissRequest = { showFeaturesDialog = false },
+                title = { Text("iCookie 功能介绍") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        FeatureItem(icon = "🤖", title = "AI 智能记账", description = "拍照识别账单，自动分类记录")
+                        FeatureItem(icon = "📊", title = "统计分析", description = "多维度财务分析，洞察消费习惯")
+                        FeatureItem(icon = "💰", title = "攒钱计划", description = "52周/365天存钱法，养成储蓄习惯")
+                        FeatureItem(icon = "📅", title = "定时记账", description = "自动提醒，周期性记账")
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showFeaturesDialog = false }) {
+                        Text("知道了")
+                    }
+                }
+            )
+        }
+
+        if (showGenderDialog) {
+            AlertDialog(
+                onDismissRequest = { showGenderDialog = false },
+                title = { Text("选择性别") },
+                text = {
+                    Column {
+                        listOf("男", "女").forEach { option ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        viewModel.updateGender(option)
+                                        showGenderDialog = false
+                                    }
+                                    .padding(vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(option, fontSize = 16.sp)
+                                if (gender == option) {
+                                    Text("✓", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showGenderDialog = false }) {
+                        Text("取消")
+                    }
+                }
+            )
+        }
+
         if (showEditDialog != null) {
             AlertDialog(
                 onDismissRequest = { showEditDialog = null },
@@ -298,8 +332,7 @@ fun UserProfileScreen(
                     TextButton(onClick = {
                         when (showEditDialog) {
                             "昵称" -> viewModel.updateNickname(editValue)
-                            "性别" -> viewModel.updateGender(editValue)
-                            "手机" -> viewModel.updatePhone(editValue)
+                            "邮箱" -> viewModel.updateEmail(editValue)
                         }
                         showEditDialog = null
                     }) {
@@ -366,4 +399,15 @@ private fun ProfileDivider() {
             .height(0.5.dp)
             .background(MaterialTheme.colorScheme.outlineVariant)
     )
+}
+
+@Composable
+private fun FeatureItem(icon: String, title: String, description: String) {
+    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(text = icon, fontSize = 24.sp)
+        Column {
+            Text(text = title, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(text = description, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }
