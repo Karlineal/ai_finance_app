@@ -67,6 +67,10 @@ fun EmailAuthScreen(
                 Toast.makeText(context, "登录成功", Toast.LENGTH_SHORT).show()
                 onLoginSuccess()
             }
+            is EmailAuthState.PasswordResetSent -> {
+                Toast.makeText(context, "密码重置邮件已发送至您的邮箱", Toast.LENGTH_SHORT).show()
+                viewModel.clearError()
+            }
             is EmailAuthState.Error -> {
                 val message = (uiState as EmailAuthState.Error).message
                 Toast.makeText(context, message, Toast.LENGTH_LONG).show()

@@ -14,15 +14,23 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EmailAuthViewModel @Inject constructor(
+    private val auth: FirebaseAuth,
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
-    private val auth = FirebaseAuth.getInstance()
-    
+
     private val _uiState = MutableStateFlow<EmailAuthState>(EmailAuthState.Idle)
     val uiState: StateFlow<EmailAuthState> = _uiState.asStateFlow()
 
     fun authenticate(email: String, password: String, isLogin: Boolean) {
         viewModelScope.launch {
+            if (email.isBlank() || password.isBlank()) {
+                _uiState.value = EmailAuthState.Error("请输入邮箱和密码")
+                return@launch
+            }
+            if (!isValidEmail(email)) {
+                _uiState.value = EmailAuthState.Error("请输入有效的邮箱地址")
+                return@launch
+            }
             _uiState.value = EmailAuthState.Loading
             try {
                 if (isLogin) {
@@ -44,19 +52,28 @@ class EmailAuthViewModel @Inject constructor(
                 _uiState.value = EmailAuthState.Error("请先输入邮箱地址")
                 return@launch
             }
+            if (!isValidEmail(email)) {
+                _uiState.value = EmailAuthState.Error("请输入有效的邮箱地址")
+                return@launch
+            }
+            _uiState.value = EmailAuthState.Loading
             try {
                 auth.sendPasswordResetEmail(email).await()
-                _uiState.value = EmailAuthState.Error("密码重置邮件已发送至您的邮箱")
+                _uiState.value = EmailAuthState.PasswordResetSent
             } catch (e: Exception) {
-                _uiState.value = EmailAuthState.Error(e.message ?: "发送失败")
+                _uiState.value = EmailAuthState.Error(e.message ?: "发送重置邮件失败")
             }
         }
     }
-    
+
     fun clearError() {
         if (_uiState.value is EmailAuthState.Error) {
             _uiState.value = EmailAuthState.Idle
         }
+    }
+
+    private fun isValidEmail(email: String): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 }
 
@@ -64,5 +81,6 @@ sealed interface EmailAuthState {
     data object Idle : EmailAuthState
     data object Loading : EmailAuthState
     data object Success : EmailAuthState
+    data object PasswordResetSent : EmailAuthState
     data class Error(val message: String) : EmailAuthState
 }

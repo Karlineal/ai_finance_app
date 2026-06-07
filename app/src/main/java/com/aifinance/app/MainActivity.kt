@@ -37,7 +37,7 @@ import com.aifinance.feature.budget.navigation.BUDGET_ENTRY_ROUTE
 import com.aifinance.feature.category_management.navigation.CATEGORY_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.ASSET_MANAGEMENT_ROUTE
 import com.aifinance.feature.home.HomeSidebarDrawerContent
-import com.aifinance.feature.home.login.LOGIN_ROUTE
+import com.aifinance.feature.home.login.EMAIL_AUTH_ROUTE
 import com.aifinance.feature.home.profile.USER_PROFILE_ROUTE
 import com.aifinance.feature.home.navigation.HOME_ROUTE
 import com.aifinance.feature.importer.navigation.BILL_IMPORT_ROUTE
@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
                             Row(modifier = Modifier.fillMaxSize()) {
                                 HomeSidebarDrawerContent(
                                     onNavigateToLogin = {
-                                        navController.navigate(LOGIN_ROUTE) {
+                                        navController.navigate(EMAIL_AUTH_ROUTE) {
                                             launchSingleTop = true
                                         }
                                         closeDrawer()

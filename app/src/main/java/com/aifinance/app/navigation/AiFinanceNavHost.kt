@@ -47,9 +47,6 @@ import com.aifinance.feature.transactions.navigation.calendarTransactionsScreen
 import com.aifinance.feature.transactions.navigation.navigateToTransactionDetail
 import com.aifinance.feature.transactions.navigation.transactionDetailScreen
 import com.aifinance.feature.transactions.navigation.transactionsScreen
-import com.aifinance.feature.home.login.loginScreen
-import com.aifinance.feature.home.login.enterCodeScreen
-import com.aifinance.feature.home.login.navigateToEnterCode
 import com.aifinance.feature.home.profile.userProfileScreen
 import com.aifinance.feature.home.login.emailAuthScreen
 import com.aifinance.feature.home.login.navigateToEmailAuth
@@ -96,21 +93,6 @@ fun AiFinanceNavHost(navController: NavHostController, onOpenDrawer: () -> Unit,
             onNavigateToTransactionDetail = { transactionId ->
                 navController.navigateToTransactionDetail(transactionId)
             },
-        )
-
-        loginScreen(
-            onNavigateToEnterCode = { phoneNumber ->
-                navController.navigateToEnterCode(phoneNumber)
-            },
-            onNavigateToEmailAuth = {
-                navController.navigateToEmailAuth()
-            },
-            onBack = { navController.popBackStack() },
-        )
-
-        enterCodeScreen(
-            onLoginSuccess = { navController.popBackStack(HOME_ROUTE, inclusive = false) },
-            onBack = { navController.popBackStack() },
         )
 
         emailAuthScreen(
