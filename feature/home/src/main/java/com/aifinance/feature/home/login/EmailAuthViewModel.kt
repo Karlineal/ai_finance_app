@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -43,9 +44,13 @@ class EmailAuthViewModel @Inject constructor(
                 // 保存用户信息到本地
                 userPreferencesRepository.setEmail(userEmail)
                 userPreferencesRepository.setLoggedIn(true)
-                // 使用邮箱前缀作为默认昵称
-                val defaultNickname = userEmail.substringBefore("@")
-                userPreferencesRepository.setNickname(defaultNickname)
+                // 仅在昵称为空时设置默认昵称（避免覆盖用户手动设置的昵称）
+                userPreferencesRepository.nickname.first().let { currentNickname ->
+                    if (currentNickname.isBlank() || currentNickname == "小皮皮") {
+                        val defaultNickname = userEmail.substringBefore("@")
+                        userPreferencesRepository.setNickname(defaultNickname)
+                    }
+                }
                 _uiState.value = EmailAuthState.Success
             } catch (e: Exception) {
                 _uiState.value = EmailAuthState.Error(e.message ?: "操作失败")
