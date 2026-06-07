@@ -24,13 +24,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -60,8 +64,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.CategoryRepository
+import com.aifinance.core.data.repository.StatisticsAnalysisBridge
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.CategoryCatalog
+import com.aifinance.core.model.StatisticsAnalysisContext
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -71,6 +77,7 @@ import io.github.koalaplot.core.pie.PieChart
 import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -161,6 +168,9 @@ class StatisticsViewModel @Inject constructor(
     transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
+
+    @Inject
+    lateinit var statisticsAnalysisBridge: StatisticsAnalysisBridge
 
     private val periodFlow = MutableStateFlow(StatisticsPeriod.MONTH)
     private val anchorDateFlow = MutableStateFlow(LocalDate.now())
@@ -279,6 +289,20 @@ class StatisticsViewModel @Inject constructor(
     fun toggleRanking() {
         rankingExpandedFlow.value = !rankingExpandedFlow.value
     }
+
+    fun requestAiAnalysis() {
+        viewModelScope.launch {
+            val currentState = uiState.value
+            val context = StatisticsAnalysisContext(
+                period = currentState.period,
+                totalIncome = currentState.aggregate.income,
+                totalExpense = currentState.aggregate.expense,
+                categoryBreakdown = currentState.compositionItems,
+            )
+            statisticsAnalysisBridge.setPendingStatisticsContext(context)
+            statisticsAnalysisBridge.navigateToAiWithContext()
+        }
+    }
 }
 
 @Composable
@@ -321,7 +345,9 @@ fun StatisticsScreen(
         }
 
         item {
-            AiPlaceholderCard()
+            AiAnalysisCard(
+                onAnalyze = { viewModel.requestAiAnalysis() }
+            )
         }
 
         item {
@@ -494,18 +520,54 @@ private fun AggregateItem(label: String, value: BigDecimal, color: Color) {
 }
 
 @Composable
-private fun AiPlaceholderCard() {
+fun AiAnalysisCard(
+    onAnalyze: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(text = "AI分析", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Psychology,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = "AI 智能分析",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "AI分析功能后续接入，这里预留分析卡片位。",
+                text = "基于您的消费数据，AI 可以提供个性化的财务洞察和建议",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = onAnalyze,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("开始分析")
+            }
         }
     }
 }
