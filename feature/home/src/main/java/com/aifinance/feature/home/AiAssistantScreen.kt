@@ -285,7 +285,7 @@ private fun CapabilityItem(emoji: String, text: String) {
 }
 
 @Composable
-private fun ICookieAvatar(size: androidx.compose.ui.unit.Dp = 80.dp, modifier: Modifier = Modifier) {
+private fun LegacyICookieAvatar(size: androidx.compose.ui.unit.Dp = 80.dp, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.size(size),
         contentAlignment = Alignment.Center,
