@@ -4,7 +4,6 @@ import android.net.Uri
 import app.cash.turbine.test
 import com.aifinance.core.data.repository.ai.AIRepository
 import com.aifinance.core.model.TransactionType
-import com.aifinance.feature.home.state.AIRecognitionResult
 import com.aifinance.feature.home.state.AIRecognitionState
 import com.aifinance.feature.home.state.ProcessingStep
 import io.mockk.MockKAnnotations
@@ -19,7 +18,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -98,7 +96,7 @@ class AIRecordViewModelTest {
         val file = File("test.jpg")
 
         coEvery { aiRepository.recognizeImage(file) } returns Result.failure(
-            Exception("Network error")
+            Exception("Network error"),
         )
 
         // Act & Assert
@@ -127,7 +125,7 @@ class AIRecordViewModelTest {
 
         coEvery { aiRepository.recognizeImage(file) } returns Result.success(ocrText)
         coEvery { aiRepository.sendMessage(any()) } returns Result.failure(
-            Exception("AI service error")
+            Exception("AI service error"),
         )
 
         // Act & Assert
@@ -274,7 +272,7 @@ class AIRecordViewModelTest {
  */
 @ExperimentalCoroutinesApi
 class MainDispatcherRule(
-    val testDispatcher: TestDispatcher = StandardTestDispatcher()
+    val testDispatcher: TestDispatcher = StandardTestDispatcher(),
 ) : TestWatcher() {
     override fun starting(description: Description) {
         Dispatchers.setMain(testDispatcher)

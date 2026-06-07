@@ -27,7 +27,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AIRecordViewModel @Inject constructor(
-    private val aiRepository: AIRepository
+    private val aiRepository: AIRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AIRecognitionState>(AIRecognitionState.Idle)
@@ -65,14 +65,14 @@ class AIRecordViewModel @Inject constructor(
                         .onFailure { error ->
                             _uiState.value = AIRecognitionState.Error(
                                 message = "AI解析失败: ${error.message}",
-                                canRetry = true
+                                canRetry = true,
                             )
                         }
                 }
                 .onFailure { error ->
                     _uiState.value = AIRecognitionState.Error(
                         message = "OCR识别失败: ${error.message}",
-                        canRetry = true
+                        canRetry = true,
                     )
                 }
         }
@@ -159,7 +159,7 @@ class AIRecordViewModel @Inject constructor(
         val paymentAccount: Float = 1.0f,
         val description: Float = 1.0f,
         val type: Float = 1.0f,
-        val category: Float = 1.0f
+        val category: Float = 1.0f,
     )
 
     /**
@@ -178,7 +178,7 @@ class AIRecordViewModel @Inject constructor(
         val paymentMethod: String? = null,
         val paymentAccount: String? = null,
         val description: String? = null,
-        val confidence: ConfidenceResponse? = null
+        val confidence: ConfidenceResponse? = null,
     )
 
     private fun parseAndEmitSuccess(json: String) {
@@ -194,7 +194,7 @@ class AIRecordViewModel @Inject constructor(
                     paymentAccount = it.paymentAccount,
                     description = it.description,
                     type = it.type,
-                    category = it.category
+                    category = it.category,
                 )
             } ?: com.aifinance.feature.home.state.RecognitionConfidence()
 
@@ -208,13 +208,13 @@ class AIRecordViewModel @Inject constructor(
                 paymentAccount = response.paymentAccount,
                 description = response.description,
                 type = TransactionType.valueOf(response.type),
-                confidence = confidence
+                confidence = confidence,
             )
             _uiState.value = AIRecognitionState.Success(result)
         } catch (e: Exception) {
             _uiState.value = AIRecognitionState.Error(
                 message = "解析结果失败: ${e.message}",
-                canRetry = true
+                canRetry = true,
             )
         }
     }

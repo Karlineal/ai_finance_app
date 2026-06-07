@@ -154,11 +154,7 @@ fun CategoryManagementScreen(
 }
 
 @Composable
-private fun CategoryTabs(
-    selectedType: TransactionType,
-    onSelectExpense: () -> Unit,
-    onSelectIncome: () -> Unit,
-) {
+private fun CategoryTabs(selectedType: TransactionType, onSelectExpense: () -> Unit, onSelectIncome: () -> Unit) {
     TabRow(selectedTabIndex = if (selectedType == TransactionType.EXPENSE) 0 else 1) {
         Tab(
             selected = selectedType == TransactionType.EXPENSE,
@@ -174,10 +170,7 @@ private fun CategoryTabs(
 }
 
 @Composable
-private fun CategoryRow(
-    category: Category,
-    onDelete: () -> Unit,
-) {
+private fun CategoryRow(category: Category, onDelete: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

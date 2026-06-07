@@ -30,7 +30,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -47,16 +46,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -69,6 +65,10 @@ import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.koalaplot.core.pie.BezierLabelConnector
+import io.github.koalaplot.core.pie.DefaultSlice
+import io.github.koalaplot.core.pie.PieChart
+import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -81,14 +81,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
-import kotlin.math.PI
-import kotlin.math.cos
 import kotlin.math.max
-import kotlin.math.sin
-import io.github.koalaplot.core.pie.BezierLabelConnector
-import io.github.koalaplot.core.pie.DefaultSlice
-import io.github.koalaplot.core.pie.PieChart
-import io.github.koalaplot.core.util.ExperimentalKoalaPlotApi
 
 private val ExpenseBlue = Color(0xFF2F67DE)
 private val IncomeOrange = Color(0xFFFF8A00)
@@ -203,7 +196,7 @@ class StatisticsViewModel @Inject constructor(
             anchorDate = LocalDate.now(),
             trendMetric = TrendMetric.EXPENSE,
             compositionMode = CompositionMode.EXPENSE,
-        )
+        ),
     )
 
     val uiState: StateFlow<StatisticsUiState> = combine(
@@ -387,10 +380,7 @@ private fun StatisticsHeader(onBack: () -> Unit) {
 }
 
 @Composable
-private fun PeriodSwitchCard(
-    period: StatisticsPeriod,
-    onSelect: (StatisticsPeriod) -> Unit,
-) {
+private fun PeriodSwitchCard(period: StatisticsPeriod, onSelect: (StatisticsPeriod) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -403,12 +393,19 @@ private fun PeriodSwitchCard(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .background(if (selected) MaterialTheme.colorScheme.surface else Color.Transparent, RoundedCornerShape(18.dp))
+                    .background(
+                        if (selected) MaterialTheme.colorScheme.surface else Color.Transparent,
+                        RoundedCornerShape(18.dp),
+                    )
                     .clickable { onSelect(item) }
                     .padding(vertical = 10.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(text = item.label, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text = item.label,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
             }
         }
     }
@@ -436,15 +433,31 @@ private fun PeriodAnchorBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "上一周期", modifier = Modifier.clickable(onClick = onPrevious))
-        Text(text = title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "下一周期", modifier = Modifier.clickable(onClick = onNext))
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "上一周期",
+            modifier = Modifier.clickable(onClick = onPrevious),
+        )
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            contentDescription = "下一周期",
+            modifier = Modifier.clickable(onClick = onNext),
+        )
     }
 }
 
 @Composable
 private fun AggregateCard(aggregate: AggregateStats) {
-    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -482,7 +495,10 @@ private fun AggregateItem(label: String, value: BigDecimal, color: Color) {
 
 @Composable
 private fun AiPlaceholderCard() {
-    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(text = "AI分析", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(
@@ -501,9 +517,16 @@ private fun TrendCard(
     trendHeadline: String,
     onMetricSelect: (TrendMetric) -> Unit,
 ) {
-    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
                     text = when (trendMetric) {
                         TrendMetric.EXPENSE -> "每日支出趋势"
@@ -527,7 +550,11 @@ private fun TrendCard(
                     .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             ) {
-                Text(text = trendHeadline, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text = trendHeadline,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
             }
 
             TrendChart(
@@ -544,11 +571,7 @@ private fun TrendCard(
 }
 
 @Composable
-private fun TrendChart(
-    metric: TrendMetric,
-    buckets: List<TrendBucket>,
-    modifier: Modifier = Modifier,
-) {
+private fun TrendChart(metric: TrendMetric, buckets: List<TrendBucket>, modifier: Modifier = Modifier) {
     val values = buckets.map {
         when (metric) {
             TrendMetric.EXPENSE -> it.expense.toFloatSafe()
@@ -617,7 +640,12 @@ private fun AxisLabels(labels: List<String>) {
     if (labels.isEmpty()) return
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         labels.forEach {
-            Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
@@ -631,9 +659,16 @@ private fun CompositionCard(
     onToggleRanking: () -> Unit,
 ) {
     var expandedCategory by rememberSaveable(mode) { mutableStateOf<String?>(null) }
-    Card(shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
                     text = if (mode == CompositionMode.EXPENSE) "支出分类构成" else "收入分类构成",
                     style = MaterialTheme.typography.titleLarge,
@@ -694,7 +729,7 @@ private fun DonutChart(items: List<CategoryItem>, centerTitle: String) {
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(296.dp)
+                    .height(296.dp),
             ) {
                 val center = Offset(x = size.width / 2f, y = size.height * 0.57f)
                 val outerRadius = minOf(size.width * 0.23f, size.height * 0.24f)
@@ -751,18 +786,22 @@ private fun DonutChart(items: List<CategoryItem>, centerTitle: String) {
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = centerTitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(text = "¥${total.pretty()}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(
+                text = centerTitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "¥${total.pretty()}",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
         }
     }
 }
 
 @Composable
-private fun CategoryRow(
-    item: CategoryItem,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-) {
+private fun CategoryRow(item: CategoryItem, expanded: Boolean, onToggle: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -787,7 +826,11 @@ private fun CategoryRow(
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(text = "¥${item.amount.pretty()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "¥${item.amount.pretty()}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
                 val chevronRotation by animateFloatAsState(
                     targetValue = if (expanded) 180f else 0f,
                     animationSpec = tween(durationMillis = 240, easing = LinearOutSlowInEasing),
@@ -816,7 +859,12 @@ private fun CategoryRow(
                     .background(item.color, RoundedCornerShape(10.dp)),
             )
         }
-        Text(text = "${item.count}笔", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.End))
+        Text(
+            text = "${item.count}笔",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.align(Alignment.End),
+        )
 
         AnimatedVisibility(
             visible = expanded,
@@ -855,10 +903,7 @@ private fun CategoryRow(
 }
 
 @Composable
-private fun TransactionDetailRow(
-    transaction: Transaction,
-    accentColor: Color,
-) {
+private fun TransactionDetailRow(transaction: Transaction, accentColor: Color) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -884,7 +929,11 @@ private fun TransactionDetailRow(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = transaction.date.toDisplayLabel() + " " + transaction.time.toTimeLabel() + (transaction.description?.takeIf { it.isNotBlank() }?.let { " · $it" } ?: ""),
+                    text = transaction.date.toDisplayLabel() + " " + transaction.time.toTimeLabel() + (
+                        transaction.description?.takeIf {
+                            it.isNotBlank()
+                        }?.let { " · $it" } ?: ""
+                        ),
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -893,7 +942,9 @@ private fun TransactionDetailRow(
             }
         }
         Text(
-            text = prettyMoneyWithSign(if (transaction.type == TransactionType.EXPENSE) transaction.amount.negate() else transaction.amount),
+            text = prettyMoneyWithSign(
+                if (transaction.type == TransactionType.EXPENSE) transaction.amount.negate() else transaction.amount,
+            ),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = if (transaction.type == TransactionType.EXPENSE) ExpenseBlue else IncomeOrange,
@@ -904,7 +955,10 @@ private fun TransactionDetailRow(
 
 @Composable
 private fun SummaryCard(rows: SummaryRows) {
-    Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -937,11 +991,7 @@ private fun SummaryCard(rows: SummaryRows) {
 }
 
 @Composable
-private fun SummaryHeaderCell(
-    text: String,
-    modifier: Modifier = Modifier,
-    textAlign: TextAlign,
-) {
+private fun SummaryHeaderCell(text: String, modifier: Modifier = Modifier, textAlign: TextAlign) {
     Text(
         text = text,
         modifier = modifier,
@@ -953,11 +1003,7 @@ private fun SummaryHeaderCell(
 }
 
 @Composable
-private fun SummaryDataRow(
-    title: String,
-    stats: AggregateStats,
-    emphasize: Boolean,
-) {
+private fun SummaryDataRow(title: String, stats: AggregateStats, emphasize: Boolean) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = title,
@@ -974,11 +1020,7 @@ private fun SummaryDataRow(
 }
 
 @Composable
-private fun RowScope.SummaryAmountCell(
-    value: BigDecimal,
-    color: Color,
-    emphasize: Boolean,
-) {
+private fun RowScope.SummaryAmountCell(value: BigDecimal, color: Color, emphasize: Boolean) {
     val text = prettyMoneyWithSign(value)
     // 动态计算字体大小，避免换行
     val maxChars = if (emphasize) 10 else 11
@@ -1011,11 +1053,7 @@ private fun SummaryDivider() {
 }
 
 @Composable
-private fun SegmentedToggle(
-    labels: List<String>,
-    selectedLabel: String,
-    onSelect: (String) -> Unit,
-) {
+private fun SegmentedToggle(labels: List<String>, selectedLabel: String, onSelect: (String) -> Unit) {
     Row(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(20.dp))
@@ -1045,9 +1083,8 @@ private fun List<TrendBucket>.axisLabels(): List<String> {
     return listOf(first().label, get(size / 2).label, last().label)
 }
 
-private fun List<Transaction>.sumAmount(type: TransactionType): BigDecimal =
-    filter { it.type == type }
-        .fold(BigDecimal.ZERO) { sum, transaction -> sum + transaction.amount }
+private fun List<Transaction>.sumAmount(type: TransactionType): BigDecimal = filter { it.type == type }
+    .fold(BigDecimal.ZERO) { sum, transaction -> sum + transaction.amount }
 
 private fun LocalDate.inPeriod(period: StatisticsPeriod, anchor: LocalDate): Boolean {
     return when (period) {
@@ -1126,21 +1163,45 @@ private fun buildCategoryItems(
 
     val grouped = target.groupBy { it.toCategoryKey(mode, customCategories) }
     val palette = if (mode == CompositionMode.EXPENSE) {
-        listOf(Color(0xFF2F67DE), Color(0xFFFF8A00), Color(0xFF4CCB93), Color(0xFF8B5CF6), Color(0xFFF04452), Color(0xFF10B8D4))
+        listOf(
+            Color(0xFF2F67DE),
+            Color(0xFFFF8A00),
+            Color(0xFF4CCB93),
+            Color(0xFF8B5CF6),
+            Color(0xFFF04452),
+            Color(0xFF10B8D4),
+        )
     } else {
-        listOf(Color(0xFF4CCB93), Color(0xFFFF8A00), Color(0xFF2F67DE), Color(0xFF8B5CF6), Color(0xFF10B8D4), Color(0xFFF59E0B))
+        listOf(
+            Color(0xFF4CCB93),
+            Color(0xFFFF8A00),
+            Color(0xFF2F67DE),
+            Color(0xFF8B5CF6),
+            Color(0xFF10B8D4),
+            Color(0xFFF59E0B),
+        )
     }
 
     val sortedEntries = grouped.entries
         .map { entry ->
             val amount = entry.value.fold(BigDecimal.ZERO) { acc, transaction -> acc + transaction.amount }
-            val ratio = if (total == BigDecimal.ZERO) 0f else amount.divide(total, 4, RoundingMode.HALF_UP).toFloatSafe()
+            val ratio = if (total == BigDecimal.ZERO) {
+                0f
+            } else {
+                amount.divide(
+                    total,
+                    4,
+                    RoundingMode.HALF_UP,
+                ).toFloatSafe()
+            }
             val visual = entry.key.toVisual(mode, customCategories)
             CategoryGroup(
                 visual = visual,
                 amount = amount,
                 count = entry.value.size,
-                transactions = entry.value.sortedWith(compareByDescending<Transaction> { it.date }.thenByDescending { it.time }),
+                transactions = entry.value.sortedWith(
+                    compareByDescending<Transaction> { it.date }.thenByDescending { it.time },
+                ),
             ) to ratio
         }
         .sortedByDescending { it.first.amount }
@@ -1172,7 +1233,10 @@ private data class CategoryGroup(
     val transactions: List<Transaction>,
 )
 
-private fun Transaction.toCategoryKey(mode: CompositionMode, customCategories: List<com.aifinance.core.model.Category>): String {
+private fun Transaction.toCategoryKey(
+    mode: CompositionMode,
+    customCategories: List<com.aifinance.core.model.Category>,
+): String {
     val catalogCategory = categoryId?.let { CategoryCatalog.findById(it) }
     if (catalogCategory != null) {
         return catalogCategory.name
@@ -1197,7 +1261,10 @@ private fun Transaction.toCategoryKey(mode: CompositionMode, customCategories: L
     }
 }
 
-private fun String.toVisual(mode: CompositionMode, customCategories: List<com.aifinance.core.model.Category>): CategoryVisual {
+private fun String.toVisual(
+    mode: CompositionMode,
+    customCategories: List<com.aifinance.core.model.Category>,
+): CategoryVisual {
     val catalogCategory = CategoryCatalog.all.firstOrNull { it.name == this }
     if (catalogCategory != null) {
         return CategoryVisual(catalogCategory.name, catalogCategory.icon)
@@ -1220,15 +1287,12 @@ private fun String.toVisual(mode: CompositionMode, customCategories: List<com.ai
         "其他收入" -> CategoryVisual("其他收入", "📦")
         else -> CategoryVisual(
             if (mode == CompositionMode.EXPENSE) "其他支出" else "其他收入",
-            "📦"
+            "📦",
         )
     }
 }
 
-private fun buildTrendHeadline(
-    buckets: List<TrendBucket>,
-    metric: TrendMetric,
-): String {
+private fun buildTrendHeadline(buckets: List<TrendBucket>, metric: TrendMetric): String {
     if (buckets.isEmpty()) return "暂无数据"
     val index = buckets.indexOfLast {
         when (metric) {

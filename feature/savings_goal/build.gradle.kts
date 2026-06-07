@@ -45,6 +45,10 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
 
+    // kizitonwose Calendar for heatmap calendar
+    implementation(libs.kizitonwose.calendar.compose)
+    implementation(libs.kizitonwose.calendar.view)
+
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)

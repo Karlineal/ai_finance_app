@@ -34,8 +34,6 @@ import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.designsystem.theme.ExpenseAccent
 import com.aifinance.core.designsystem.theme.IcokieTextStyles
 import com.aifinance.core.designsystem.theme.IncomeDefault
-
-
 import com.aifinance.core.model.Category
 import com.aifinance.core.model.ScheduledEndMode
 import com.aifinance.core.model.ScheduledRecurrence
@@ -214,7 +212,13 @@ internal fun ScheduledRuleListCard(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
                         .background(
-                            if (rule.enabled) BrandPrimary.copy(alpha = 0.14f) else MaterialTheme.colorScheme.surfaceVariant,
+                            if (rule.enabled) {
+                                BrandPrimary.copy(
+                                    alpha = 0.14f,
+                                )
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            },
                         )
                         .clickable(onClick = onToggleEnabled)
                         .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -286,11 +290,7 @@ internal fun ScheduledCategoryIconWithLabel(
 }
 
 @Composable
-internal fun ScheduledInfoChip(
-    icon: String,
-    text: String,
-    onClick: () -> Unit,
-) {
+internal fun ScheduledInfoChip(icon: String, text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
@@ -311,11 +311,7 @@ internal fun ScheduledInfoChip(
 }
 
 @Composable
-internal fun EndModePill(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
+internal fun EndModePill(text: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))

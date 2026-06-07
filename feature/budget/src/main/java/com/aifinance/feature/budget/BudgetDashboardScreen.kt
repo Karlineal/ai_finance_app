@@ -7,37 +7,37 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,12 +48,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
-import kotlinx.coroutines.delay
 
 private val ColorLow = Color(0xFF22C55E) // green
 private val ColorMedium = Color(0xFFF59E0B) // amber
@@ -194,7 +194,17 @@ private fun SummaryCard(
     remainingBudget: BigDecimal,
     onReopenWizard: () -> Unit,
 ) {
-    val progress = if (totalBudget <= BigDecimal.ZERO) 0f else (spentToDate.divide(totalBudget, 4, java.math.RoundingMode.HALF_UP)).toFloat().coerceIn(0f, 1f)
+    val progress = if (totalBudget <= BigDecimal.ZERO) {
+        0f
+    } else {
+        (
+            spentToDate.divide(
+                totalBudget,
+                4,
+                java.math.RoundingMode.HALF_UP,
+            )
+            ).toFloat().coerceIn(0f, 1f)
+    }
     val deficitText = if (totalBudget <= BigDecimal.ZERO && spentToDate > BigDecimal.ZERO) "本月预算为 0（可能由固定支出超出收入导致）" else null
 
     Card(
@@ -213,10 +223,24 @@ private fun SummaryCard(
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("剩余金额", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("¥${formatAmount(remainingBudget)}", fontWeight = FontWeight.Bold, color = if (remainingBudget < BigDecimal.ZERO) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurface)
+                Text(
+                    "¥${formatAmount(remainingBudget)}",
+                    fontWeight = FontWeight.Bold,
+                    color = if (remainingBudget < BigDecimal.ZERO) {
+                        Color(
+                            0xFFEF4444,
+                        )
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                )
             }
 
-            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth(), color = Color(0xFF2E5FE6))
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth(),
+                color = Color(0xFF2E5FE6),
+            )
 
             deficitText?.let { t ->
                 Text(t, color = Color(0xFFEF4444), fontWeight = FontWeight.SemiBold)
@@ -234,9 +258,7 @@ private fun SummaryCard(
 }
 
 @Composable
-private fun DailyBudgetCard(
-    todayBudget: com.aifinance.core.model.TodayBudgetResult,
-) {
+private fun DailyBudgetCard(todayBudget: com.aifinance.core.model.TodayBudgetResult) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -246,9 +268,16 @@ private fun DailyBudgetCard(
             Text("动态日预算（0:00 刷新）", fontWeight = FontWeight.Bold)
             Text("今日可用预算：¥${formatAmount(todayBudget.todayBudget)}", fontWeight = FontWeight.SemiBold)
             if (todayBudget.deficit > BigDecimal.ZERO) {
-                Text("本月已透支 ¥${formatAmount(todayBudget.deficit)}", color = Color(0xFFEF4444), fontWeight = FontWeight.SemiBold)
+                Text(
+                    "本月已透支 ¥${formatAmount(todayBudget.deficit)}",
+                    color = Color(0xFFEF4444),
+                    fontWeight = FontWeight.SemiBold,
+                )
             } else {
-                Text("剩余金额：¥${formatAmount(todayBudget.remainingBudget)}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "剩余金额：¥${formatAmount(todayBudget.remainingBudget)}",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -308,7 +337,13 @@ private fun CalendarGrid(
                                     .weight(1f)
                                     .height(CalendarCellHeight)
                                     .background(
-                                        color = if (isHighlight) Color(0xFF2E5FE6) else MaterialTheme.colorScheme.surfaceVariant,
+                                        color = if (isHighlight) {
+                                            Color(
+                                                0xFF2E5FE6,
+                                            )
+                                        } else {
+                                            MaterialTheme.colorScheme.surfaceVariant
+                                        },
                                         shape = RoundedCornerShape(10.dp),
                                     )
                                     .combinedClickable(
@@ -339,10 +374,7 @@ private fun CalendarGrid(
 }
 
 @Composable
-private fun DailyRecordSheet(
-    date: LocalDate,
-    onClose: () -> Unit,
-) {
+private fun DailyRecordSheet(date: LocalDate, onClose: () -> Unit) {
     var tabIndex by remember { mutableStateOf(0) } // 0: 手动记账, 1: AI 记录
     var manualText by remember { mutableStateOf("") }
     var aiInput by remember { mutableStateOf("") }
@@ -395,7 +427,11 @@ private fun DailyRecordSheet(
         when (tabIndex) {
             0 -> {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("简单记录当日收支或备注：", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "简单记录当日收支或备注：",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     OutlinedTextField(
                         value = manualText,
                         onValueChange = { manualText = it },
@@ -414,7 +450,11 @@ private fun DailyRecordSheet(
             }
             1 -> {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("用一句话描述你的花费或心情，交给 AI 来理解和打标签。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "用一句话描述你的花费或心情，交给 AI 来理解和打标签。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     OutlinedTextField(
                         value = aiInput,
                         onValueChange = { aiInput = it },
@@ -480,9 +520,7 @@ private fun DailyRecordSheet(
 }
 
 @Composable
-private fun CategoryUsageList(
-    categoriesUsage: List<CategoryUsageUi>,
-) {
+private fun CategoryUsageList(categoriesUsage: List<CategoryUsageUi>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -495,7 +533,15 @@ private fun CategoryUsageList(
                 Text("当前 TotalBudget 为 0，暂无分类预算。", color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 categoriesUsage.forEach { c ->
-                    val progress = if (c.budgetAmount <= BigDecimal.ZERO) 0f else c.spentAmount.divide(c.budgetAmount, 4, java.math.RoundingMode.HALF_UP).toFloat()
+                    val progress = if (c.budgetAmount <= BigDecimal.ZERO) {
+                        0f
+                    } else {
+                        c.spentAmount.divide(
+                            c.budgetAmount,
+                            4,
+                            java.math.RoundingMode.HALF_UP,
+                        ).toFloat()
+                    }
                     val color = when (c.status) {
                         BudgetUsageStatus.LOW -> ColorLow
                         BudgetUsageStatus.MEDIUM -> ColorMedium
@@ -525,4 +571,3 @@ private fun CategoryUsageList(
 private fun formatAmount(amount: BigDecimal): String {
     return DecimalFormat("#,##0.00").format(amount)
 }
-

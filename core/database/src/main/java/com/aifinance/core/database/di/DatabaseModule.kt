@@ -4,14 +4,15 @@ import android.content.Context
 import androidx.room.Room
 import com.aifinance.core.database.AiFinanceDatabase
 import com.aifinance.core.database.DatabaseCallback
-import com.aifinance.core.database.migration.MIGRATION_6_7
-import com.aifinance.core.database.migration.MIGRATION_7_8
 import com.aifinance.core.database.dao.AccountDao
 import com.aifinance.core.database.dao.CategoryDao
 import com.aifinance.core.database.dao.SavingsGoalDao
 import com.aifinance.core.database.dao.SavingsRecordDao
 import com.aifinance.core.database.dao.ScheduledRuleDao
 import com.aifinance.core.database.dao.TransactionDao
+import com.aifinance.core.database.migration.MIGRATION_6_7
+import com.aifinance.core.database.migration.MIGRATION_7_8
+import com.aifinance.core.database.migration.MIGRATION_8_9
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,9 +38,9 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context,
             AiFinanceDatabase::class.java,
-            "ai_finance.db"
+            "ai_finance.db",
         )
-            .addMigrations(MIGRATION_6_7, MIGRATION_7_8)
+            .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
             .fallbackToDestructiveMigration()
             .addCallback(DatabaseCallback(accountDao, categoryDao, transactionDao, scheduledRuleDao, savingsGoalDao))
             .build()

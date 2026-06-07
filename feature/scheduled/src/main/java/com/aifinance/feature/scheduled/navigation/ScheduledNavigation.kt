@@ -18,10 +18,7 @@ fun NavController.navigateToScheduledTransactionAdd() {
     navigate(SCHEDULED_ADD_ROUTE)
 }
 
-fun NavGraphBuilder.scheduledTransactionScreen(
-    onBack: () -> Unit,
-    onNavigateToAdd: () -> Unit,
-) {
+fun NavGraphBuilder.scheduledTransactionScreen(onBack: () -> Unit, onNavigateToAdd: () -> Unit) {
     composable(SCHEDULED_TRANSACTION_ROUTE) {
         ScheduledTransactionListScreen(
             onBack = onBack,
@@ -30,9 +27,7 @@ fun NavGraphBuilder.scheduledTransactionScreen(
     }
 }
 
-fun NavGraphBuilder.scheduledTransactionAddScreen(
-    onBack: () -> Unit,
-) {
+fun NavGraphBuilder.scheduledTransactionAddScreen(onBack: () -> Unit) {
     composable(SCHEDULED_ADD_ROUTE) {
         ScheduledTransactionAddScreen(onBack = onBack)
     }

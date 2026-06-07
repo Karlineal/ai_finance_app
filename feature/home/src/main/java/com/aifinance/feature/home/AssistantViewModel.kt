@@ -7,7 +7,6 @@ import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.data.repository.ai.AIRepository
-import com.aifinance.core.model.Account
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
@@ -23,7 +22,6 @@ import java.io.File
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.UUID
 import javax.inject.Inject
 
@@ -61,7 +59,7 @@ class AssistantViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(
             inputText = "",
             messages = _uiState.value.messages + userMessage,
-            isLoading = true
+            isLoading = true,
         )
 
         viewModelScope.launch {
@@ -71,21 +69,21 @@ class AssistantViewModel @Inject constructor(
                     val processedResponse = processAIResponse(response)
                     val assistantMessage = AssistantMessage(
                         role = AssistantRole.ASSISTANT,
-                        content = processedResponse
+                        content = processedResponse,
                     )
                     _uiState.value = _uiState.value.copy(
                         messages = _uiState.value.messages + assistantMessage,
-                        isLoading = false
+                        isLoading = false,
                     )
                 }
                 .onFailure { error ->
                     val errorMessage = AssistantMessage(
                         role = AssistantRole.ASSISTANT,
-                        content = "抱歉，发生了错误：${error.message}"
+                        content = "抱歉，发生了错误：${error.message}",
                     )
                     _uiState.value = _uiState.value.copy(
                         messages = _uiState.value.messages + errorMessage,
-                        isLoading = false
+                        isLoading = false,
                     )
                 }
         }
@@ -103,32 +101,32 @@ class AssistantViewModel @Inject constructor(
                         .onSuccess { response ->
                             val assistantMessage = AssistantMessage(
                                 role = AssistantRole.ASSISTANT,
-                                content = response
+                                content = response,
                             )
                             _uiState.value = _uiState.value.copy(
                                 messages = _uiState.value.messages + assistantMessage,
-                                isLoading = false
+                                isLoading = false,
                             )
                         }
                         .onFailure { error ->
                             val errorMessage = AssistantMessage(
                                 role = AssistantRole.ASSISTANT,
-                                content = "OCR识别成功，但AI分析失败：${error.message}"
+                                content = "OCR识别成功，但AI分析失败：${error.message}",
                             )
                             _uiState.value = _uiState.value.copy(
                                 messages = _uiState.value.messages + errorMessage,
-                                isLoading = false
+                                isLoading = false,
                             )
                         }
                 }
                 .onFailure { error ->
                     val errorMessage = AssistantMessage(
                         role = AssistantRole.ASSISTANT,
-                        content = "OCR识别失败：${error.message}"
+                        content = "OCR识别失败：${error.message}",
                     )
                     _uiState.value = _uiState.value.copy(
                         messages = _uiState.value.messages + errorMessage,
-                        isLoading = false
+                        isLoading = false,
                     )
                 }
         }
@@ -138,7 +136,7 @@ class AssistantViewModel @Inject constructor(
         aiRepository.clearConversation()
         _uiState.value = _uiState.value.copy(
             messages = emptyList(),
-            inputText = ""
+            inputText = "",
         )
     }
 
@@ -177,34 +175,36 @@ class AssistantViewModel @Inject constructor(
             allTransactions.filter { !it.date.isBefore(start) && !it.date.isAfter(end) }
 
         val (todayIncome, todayExpense, todayCount) = calculateStats(
-            allTransactions.filter { it.date == now }
+            allTransactions.filter { it.date == now },
         )
         val (yesterdayIncome, yesterdayExpense, yesterdayCount) = calculateStats(
-            allTransactions.filter { it.date == yesterday }
+            allTransactions.filter { it.date == yesterday },
         )
         val (weekIncome, weekExpense, weekCount) = calculateStats(
-            filterByDateRange(weekStart, weekEnd)
+            filterByDateRange(weekStart, weekEnd),
         )
         val (lastWeekIncome, lastWeekExpense, lastWeekCount) = calculateStats(
-            filterByDateRange(lastWeekStart, lastWeekEnd)
+            filterByDateRange(lastWeekStart, lastWeekEnd),
         )
         val (sevenDaysIncome, sevenDaysExpense, sevenDaysCount) = calculateStats(
-            filterByDateRange(sevenDaysAgo, now)
+            filterByDateRange(sevenDaysAgo, now),
         )
         val (monthIncome, monthExpense, monthCount) = calculateStats(
-            filterByDateRange(monthStart, now)
+            filterByDateRange(monthStart, now),
         )
         val (lastMonthIncome, lastMonthExpense, lastMonthCount) = calculateStats(
-            filterByDateRange(lastMonthStart, lastMonthEnd)
+            filterByDateRange(lastMonthStart, lastMonthEnd),
         )
         val (thirtyDaysIncome, thirtyDaysExpense, thirtyDaysCount) = calculateStats(
-            filterByDateRange(thirtyDaysAgo, now)
+            filterByDateRange(thirtyDaysAgo, now),
         )
 
         val daysInMonth = now.lengthOfMonth()
         val avgDailyExpense = if (daysInMonth > 0) {
             monthExpense.divide(BigDecimal(daysInMonth), 2, java.math.RoundingMode.HALF_UP)
-        } else BigDecimal.ZERO
+        } else {
+            BigDecimal.ZERO
+        }
 
         val accountInfo = accounts.joinToString("\n") { acc ->
             "  - ${acc.name} (${acc.type}): ¥${acc.currentBalance}"
@@ -216,8 +216,9 @@ class AssistantViewModel @Inject constructor(
         val allCategoryIds = CategoryCatalog.all.map { it.id } + categories.map { it.id }
         val categoryStats = allCategoryIds.mapNotNull { catId ->
             val catTransactions = allTransactions.filter { it.categoryId == catId }
-            if (catTransactions.isEmpty()) null
-            else {
+            if (catTransactions.isEmpty()) {
+                null
+            } else {
                 val catIncome = catTransactions.filter { it.type == TransactionType.INCOME }
                     .fold(BigDecimal.ZERO) { acc, t -> acc + t.amount }
                 val catExpense = catTransactions.filter { it.type == TransactionType.EXPENSE }
@@ -284,22 +285,22 @@ $accountInfo
 
 【各分类交易统计】(按支出金额排序)
 ${categoryStats.joinToString("\n") { (name, income, expense) ->
-    "  - $name: 收入¥$income | 支出¥$expense"
-}}
+            "  - $name: 收入¥$income | 支出¥$expense"
+        }}
 
 【最近20笔交易详情】
 ${allTransactions.take(20).map { t ->
-    val catName = CategoryCatalog.all.find { it.id == t.categoryId }?.name
-        ?: categories.find { it.id == t.categoryId }?.name
-        ?: "未分类"
-    val typeStr = if (t.type == TransactionType.INCOME) "收入" else "支出"
-    val accName = accounts.find { it.id == t.accountId }?.name ?: "未知账户"
-    val timeStr = java.time.LocalDateTime.ofInstant(t.time, java.time.ZoneId.of("Asia/Shanghai"))
-        .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
-    val titleStr = t.title.takeIf { it != catName }?.let { "($it)" } ?: ""
-    val descStr = t.description?.let { " | 备注:$it" } ?: ""
-    "  - ${t.date} $timeStr [$catName]$titleStr: ${typeStr}¥${t.amount} (${accName})$descStr"
-}.joinToString("\n")}
+            val catName = CategoryCatalog.all.find { it.id == t.categoryId }?.name
+                ?: categories.find { it.id == t.categoryId }?.name
+                ?: "未分类"
+            val typeStr = if (t.type == TransactionType.INCOME) "收入" else "支出"
+            val accName = accounts.find { it.id == t.accountId }?.name ?: "未知账户"
+            val timeStr = java.time.LocalDateTime.ofInstant(t.time, java.time.ZoneId.of("Asia/Shanghai"))
+                .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+            val titleStr = t.title.takeIf { it != catName }?.let { "($it)" } ?: ""
+            val descStr = t.description?.let { " | 备注:$it" } ?: ""
+            "  - ${t.date} $timeStr [$catName]$titleStr: $typeStr¥${t.amount} ($accName)$descStr"
+        }.joinToString("\n")}
 
 【可用分类】
 默认分类：$defaultCategories
@@ -365,7 +366,7 @@ ${allTransactions.take(20).map { t ->
         val description: String?,
         val accountId: String?,
         val date: String?,
-        val time: String?
+        val time: String?,
     )
 
     private fun parseTransactionJson(json: String): AITransactionData {
@@ -387,7 +388,7 @@ ${allTransactions.take(20).map { t ->
             description = descriptionPattern.find(json)?.groupValues?.get(1)?.takeIf { it.isNotEmpty() },
             accountId = accountIdPattern.find(json)?.groupValues?.get(1)?.takeIf { it.isNotEmpty() },
             date = datePattern.find(json)?.groupValues?.get(1)?.takeIf { it.isNotEmpty() },
-            time = timePattern.find(json)?.groupValues?.get(1)?.takeIf { it.isNotEmpty() }
+            time = timePattern.find(json)?.groupValues?.get(1)?.takeIf { it.isNotEmpty() },
         )
     }
 
@@ -396,7 +397,7 @@ ${allTransactions.take(20).map { t ->
         val targetAccount = data.accountId?.let { uuid ->
             accounts.find { it.id.toString() == uuid }
         } ?: accounts.firstOrNull { it.isDefaultIncomeExpense } ?: accounts.firstOrNull()
-        ?: throw IllegalStateException("没有可用账户")
+            ?: throw IllegalStateException("没有可用账户")
 
         val transactionType = try {
             TransactionType.valueOf(data.type.uppercase())
@@ -440,7 +441,7 @@ ${allTransactions.take(20).map { t ->
             date = transactionDate,
             time = transactionTime,
             sourceType = TransactionSourceType.MANUAL,
-            isPending = false
+            isPending = false,
         )
 
         transactionRepository.insertTransaction(transaction)

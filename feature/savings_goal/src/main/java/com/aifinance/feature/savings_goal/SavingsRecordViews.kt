@@ -1,5 +1,6 @@
 package com.aifinance.feature.savings_goal
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,14 +15,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,23 +32,22 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.Canvas
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aifinance.core.data.repository.SavingsGoalCalculator
@@ -145,7 +140,10 @@ fun SavingsRecordSection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     Box(
                         modifier = Modifier
                             .size(8.dp)
@@ -181,6 +179,10 @@ fun SavingsRecordSection(
     }
 }
 
+/**
+ * 打卡卡片列表视图
+ * 使用非懒加载 Column + Row 布局，避免与外层 verticalScroll 产生嵌套滚动冲突
+ */
 @Composable
 private fun CheckInCardListView(
     goal: SavingsGoal,
@@ -189,34 +191,38 @@ private fun CheckInCardListView(
     onPeriodClick: (Int) -> Unit,
 ) {
     val periods = (1..totalPeriods).toList()
+    val chunked = periods.chunked(2)
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 520.dp, max = 4000.dp)
-            .wrapContentHeight(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    Column(
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        items(periods, key = { it }) { period ->
-            CheckInPeriodCard(
-                amountText = periodAmountDisplay(goal, period),
-                dateText = periodDateLabel(goal, period),
-                isCompleted = period in completedPeriods,
-                onClick = { onPeriodClick(period) },
-            )
+        chunked.forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                rowItems.forEach { period ->
+                    Box(modifier = Modifier.weight(1f)) {
+                        CheckInPeriodCard(
+                            amountText = periodAmountDisplay(goal, period),
+                            dateText = periodDateLabel(goal, period),
+                            isCompleted = period in completedPeriods,
+                            onClick = { onPeriodClick(period) },
+                        )
+                    }
+                }
+                // 奇数个时填充空白
+                if (rowItems.size < 2) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun CheckInPeriodCard(
-    amountText: String,
-    dateText: String,
-    isCompleted: Boolean,
-    onClick: () -> Unit,
-) {
+private fun CheckInPeriodCard(amountText: String, dateText: String, isCompleted: Boolean, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -278,10 +284,104 @@ private fun CheckInPeriodCard(
 
 /**
  * GitHub 风格年度热力图视图
- * 布局: 行=星期(一~日), 列=周数, 类似 GitHub Contribution Graph
+ *
+ * DAILY_365: 行=星期(一~日), 列=周数, 类似 GitHub Contribution Graph
+ * WEEKLY_52: 简单网格布局, 每格代表一周, 显示周序号
  */
 @Composable
 private fun YearHeatMapView(
+    goal: SavingsGoal,
+    totalPeriods: Int,
+    completedPeriods: Set<Int>,
+    onPeriodClick: (Int) -> Unit,
+) {
+    if (goal.savingsMethod == SavingsMethod.WEEKLY_52) {
+        Weekly52HeatMapView(
+            totalPeriods = totalPeriods,
+            completedPeriods = completedPeriods,
+            onPeriodClick = onPeriodClick,
+        )
+    } else {
+        Daily365HeatMapView(
+            goal = goal,
+            totalPeriods = totalPeriods,
+            completedPeriods = completedPeriods,
+            onPeriodClick = onPeriodClick,
+        )
+    }
+}
+
+/**
+ * 52周存钱法热力图
+ * 简单网格布局, 7行 x 8列 = 56格 (52周 + 4空白)
+ * 每格显示周序号, 已打卡的格子高亮
+ */
+@Composable
+private fun Weekly52HeatMapView(totalPeriods: Int, completedPeriods: Set<Int>, onPeriodClick: (Int) -> Unit) {
+    val isDark = isSystemInDarkTheme()
+    val columns = 8
+    val rows = (totalPeriods + columns - 1) / columns // ceil(52/8) = 7
+
+    val cellSize = 36.dp
+    val gap = 4.dp
+    val emptyColor = if (isDark) Color(0xFF2D2D2D) else Color(0xFFEBEDF0)
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(gap),
+    ) {
+        for (row in 0 until rows) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(gap),
+            ) {
+                for (col in 0 until columns) {
+                    val period = row * columns + col + 1
+                    if (period <= totalPeriods) {
+                        Box(
+                            modifier = Modifier
+                                .size(cellSize)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(
+                                    if (period in completedPeriods) {
+                                        primaryColor
+                                    } else {
+                                        emptyColor
+                                    },
+                                )
+                                .clickable { onPeriodClick(period) },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = "$period",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontSize = 11.sp,
+                                fontWeight = if (period in completedPeriods) FontWeight.Bold else FontWeight.Normal,
+                                color = if (period in completedPeriods) {
+                                    Color.White
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    } else {
+                        // 空白占位
+                        Spacer(modifier = Modifier.size(cellSize))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 365天存钱法热力图
+ * GitHub 风格: 行=星期(一~日), 列=周数
+ */
+@Composable
+private fun Daily365HeatMapView(
     goal: SavingsGoal,
     totalPeriods: Int,
     completedPeriods: Set<Int>,

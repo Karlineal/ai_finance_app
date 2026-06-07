@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -19,41 +18,39 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aifinance.core.model.UserRole
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.util.UUID
-import com.aifinance.core.model.UserRole
-import kotlinx.coroutines.launch
 
 private val ErrorRed = Color(0xFFFF4D4F)
 private val PrimaryBlue = Color(0xFF2E5FE6)
@@ -61,10 +58,7 @@ private val SavingsYellow = Color(0xFFFBBF24)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BudgetWizardScreen(
-    onBack: () -> Unit,
-    onCompleted: () -> Unit,
-) {
+fun BudgetWizardScreen(onBack: () -> Unit, onCompleted: () -> Unit) {
     val viewModel: BudgetWizardViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -176,10 +170,7 @@ fun BudgetWizardScreen(
 }
 
 @Composable
-private fun RoleSelectionStep(
-    selectedRole: UserRole?,
-    onSelect: (UserRole) -> Unit,
-) {
+private fun RoleSelectionStep(selectedRole: UserRole?, onSelect: (UserRole) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = "你目前的身份是？", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         RoleOption(label = "学生", role = UserRole.STUDENT, selectedRole = selectedRole, onSelect = onSelect)
@@ -190,18 +181,15 @@ private fun RoleSelectionStep(
 }
 
 @Composable
-private fun RoleOption(
-    label: String,
-    role: UserRole,
-    selectedRole: UserRole?,
-    onSelect: (UserRole) -> Unit,
-) {
+private fun RoleOption(label: String, role: UserRole, selectedRole: UserRole?, onSelect: (UserRole) -> Unit) {
     val selected = selectedRole == role
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onSelect(role) },
-        colors = CardDefaults.cardColors(containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+        ),
         shape = RoundedCornerShape(16.dp),
     ) {
         Row(
@@ -250,8 +238,10 @@ private fun IncomeInputStep(
 
         // 简化版刻度滑动：0 ~ 20,000 区间，步长约 100
         val maxIncome = 20_000f
-        val sliderValue = (totalIncome.coerceAtLeast(BigDecimal.ZERO)
-            .min(BigDecimal(maxIncome.toInt())))
+        val sliderValue = (
+            totalIncome.coerceAtLeast(BigDecimal.ZERO)
+                .min(BigDecimal(maxIncome.toInt()))
+            )
             .toFloat()
 
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -362,7 +352,11 @@ private fun FixedExpenseStep(
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text(text = "选择一个常见固定支出", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "选择一个常见固定支出",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
                     HorizontalDivider()
                     val templates = listOf("房租/房贷", "车贷", "水电/通讯", "保险")
                     templates.forEach { name ->
@@ -395,7 +389,11 @@ private fun RatioStep(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = "为你智能推荐预算方案", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Text(text = "依据 5/3/2 或 80/20 等比例，为你拆分预算与储蓄", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = "依据 5/3/2 或 80/20 等比例，为你拆分预算与储蓄",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
         Text(text = "可支配金额：¥${formatAmount(disposableFund)}", style = MaterialTheme.typography.bodyLarge)
         Spacer(modifier = Modifier.height(6.dp))
@@ -412,7 +410,10 @@ private fun RatioStep(
                     .weight(budgetRatio.coerceIn(0f, 1f).takeIf { it > 0f } ?: 0.001f)
                     .fillMaxWidth()
                     .height(10.dp)
-                    .background(color = PrimaryBlue, shape = RoundedCornerShape(topStart = 999.dp, bottomStart = 999.dp)),
+                    .background(
+                        color = PrimaryBlue,
+                        shape = RoundedCornerShape(topStart = 999.dp, bottomStart = 999.dp),
+                    ),
             )
             Box(
                 modifier = Modifier
@@ -441,7 +442,11 @@ private fun RatioStep(
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(text = "预算：¥${formatAmount(totalBudget)}", fontWeight = FontWeight.Bold, color = PrimaryBlue)
-            Text(text = "储蓄：¥${formatAmount(savingsAllocation)}", fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
+            Text(
+                text = "储蓄：¥${formatAmount(savingsAllocation)}",
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF16A34A),
+            )
         }
 
         if (disposableFund > BigDecimal.ZERO) {
@@ -477,7 +482,11 @@ private fun CategoryBreakdownStep(
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(text = "月度分类预算推荐", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         Text(text = "TotalBudget：¥${formatAmount(totalBudget)}", style = MaterialTheme.typography.bodyLarge)
-        Text(text = "未分配池：¥${formatAmount(unallocatedPool)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = "未分配池：¥${formatAmount(unallocatedPool)}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
         if (totalBudget <= BigDecimal.ZERO) {
             Card(
@@ -511,21 +520,36 @@ private fun CategoryBreakdownStep(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Column {
-                        Text(text = cat.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = cat.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                        )
                         Text(text = "预算：¥${formatAmount(cat.amount)}", color = PrimaryBlue)
                     }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         IconButton(
                             onClick = { onMinusPlus(cat.categoryId, BigDecimal("-50.00")) },
                             enabled = canMinus,
                         ) {
-                            Text(text = "-50", fontWeight = FontWeight.Bold, color = if (canMinus) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "-50",
+                                fontWeight = FontWeight.Bold,
+                                color = if (canMinus) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                         IconButton(
                             onClick = { onMinusPlus(cat.categoryId, BigDecimal("50.00")) },
                             enabled = canPlus,
                         ) {
-                            Text(text = "+50", fontWeight = FontWeight.Bold, color = if (canPlus) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "+50",
+                                fontWeight = FontWeight.Bold,
+                                color = if (canPlus) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                 }
@@ -583,7 +607,11 @@ private fun CategoryBreakdownStep(
                             ) {
                                 Text(text = candidate.name)
                                 if (exists) {
-                                    Text(text = "已添加", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                                    Text(
+                                        text = "已添加",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
                                 }
                             }
                         }
@@ -637,4 +665,3 @@ private fun formatAmount(amount: BigDecimal): String {
     val df = DecimalFormat("#,##0.00")
     return df.format(amount)
 }
-

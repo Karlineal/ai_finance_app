@@ -14,10 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun RowScope.ImportInProgressRow(
-    contentColor: Color,
-    label: String,
-) {
+fun RowScope.ImportInProgressRow(contentColor: Color, label: String) {
     CircularProgressIndicator(
         modifier = Modifier.size(18.dp),
         color = contentColor,
@@ -28,10 +25,7 @@ fun RowScope.ImportInProgressRow(
 }
 
 @Composable
-fun RowScope.ImportIdleUploadRow(
-    contentColor: Color,
-    label: String,
-) {
+fun RowScope.ImportIdleUploadRow(contentColor: Color, label: String) {
     Icon(
         imageVector = Icons.Default.UploadFile,
         contentDescription = null,

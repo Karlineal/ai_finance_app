@@ -18,10 +18,10 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -35,7 +35,7 @@ data class IcokieSpacing(
     val itemSpacing: Dp = 8.dp,
     val elementSpacing: Dp = 4.dp,
     val largeSpacing: Dp = 32.dp,
-    val extraLargeSpacing: Dp = 48.dp
+    val extraLargeSpacing: Dp = 48.dp,
 )
 
 @Immutable
@@ -45,7 +45,7 @@ data class IcokieElevation(
     val pressedCardElevation: Dp = 2.dp,
     val floatingActionButtonElevation: Dp = 6.dp,
     val dialogElevation: Dp = 8.dp,
-    val bottomSheetElevation: Dp = 8.dp
+    val bottomSheetElevation: Dp = 8.dp,
 )
 
 val LocalIcokieSpacing = staticCompositionLocalOf { IcokieSpacing() }
@@ -56,7 +56,7 @@ val IcokieShapes = Shapes(
     small = RoundedCornerShape(8.dp),
     medium = RoundedCornerShape(12.dp),
     large = RoundedCornerShape(16.dp),
-    extraLarge = RoundedCornerShape(24.dp)
+    extraLarge = RoundedCornerShape(24.dp),
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -87,7 +87,7 @@ private val LightColorScheme = lightColorScheme(
     scrim = OnSurfacePrimary.copy(alpha = 0.6f),
     inverseSurface = OnSurfacePrimary,
     inverseOnSurface = BackgroundPrimary,
-    inversePrimary = BrandPrimaryLight
+    inversePrimary = BrandPrimaryLight,
 )
 
 private val DarkColorScheme = darkColorScheme(
@@ -118,14 +118,14 @@ private val DarkColorScheme = darkColorScheme(
     scrim = Color(0xFF000000).copy(alpha = 0.7f),
     inverseSurface = Color(0xFFF1F5F9),
     inverseOnSurface = Color(0xFF0F172A),
-    inversePrimary = BrandPrimary
+    inversePrimary = BrandPrimary,
 )
 
 @Composable
 fun IcokieTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -149,13 +149,13 @@ fun IcokieTheme(
 
     CompositionLocalProvider(
         LocalIcokieSpacing provides IcokieSpacing(),
-        LocalIcokieElevation provides IcokieElevation()
+        LocalIcokieElevation provides IcokieElevation(),
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = IcokieTypography,
             shapes = IcokieShapes,
-            content = content
+            content = content,
         )
     }
 }
@@ -192,11 +192,11 @@ object IcokieTheme {
 fun AiFinanceTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     IcokieTheme(
         darkTheme = darkTheme,
         dynamicColor = dynamicColor,
-        content = content
+        content = content,
     )
 }

@@ -32,7 +32,7 @@ sealed class AIRecognitionState {
      */
     @Immutable
     data class Processing(
-        val step: ProcessingStep
+        val step: ProcessingStep,
     ) : AIRecognitionState()
 
     /**
@@ -44,7 +44,7 @@ sealed class AIRecognitionState {
      */
     @Immutable
     data class Success(
-        val result: AIRecognitionResult
+        val result: AIRecognitionResult,
     ) : AIRecognitionState()
 
     /**
@@ -58,7 +58,7 @@ sealed class AIRecognitionState {
     @Immutable
     data class Error(
         val message: String,
-        val canRetry: Boolean = true
+        val canRetry: Boolean = true,
     ) : AIRecognitionState()
 }
 
@@ -81,7 +81,7 @@ enum class ProcessingStep {
     /**
      * AI解析结果中
      */
-    PARSING
+    PARSING,
 }
 
 /**
@@ -111,7 +111,7 @@ data class AIRecognitionResult(
     val paymentAccount: String? = null,
     val description: String? = null,
     val type: TransactionType = TransactionType.EXPENSE,
-    val confidence: RecognitionConfidence = RecognitionConfidence()
+    val confidence: RecognitionConfidence = RecognitionConfidence(),
 )
 
 /**
@@ -137,16 +137,18 @@ data class RecognitionConfidence(
     val paymentAccount: Float = 1.0f,
     val description: Float = 1.0f,
     val type: Float = 1.0f,
-    val category: Float = 1.0f
+    val category: Float = 1.0f,
 ) {
     fun isLowConfidence(): Boolean {
         return amount < 0.7f || merchant < 0.7f || date < 0.7f ||
-               paymentTime < 0.7f || paymentMethod < 0.7f || paymentAccount < 0.7f ||
-               description < 0.7f || type < 0.7f || category < 0.7f
+            paymentTime < 0.7f || paymentMethod < 0.7f || paymentAccount < 0.7f ||
+            description < 0.7f || type < 0.7f || category < 0.7f
     }
 
     fun overallConfidence(): Float {
-        return minOf(amount, merchant, date, paymentTime, paymentMethod,
-                     paymentAccount, description, type, category)
+        return minOf(
+            amount, merchant, date, paymentTime, paymentMethod,
+            paymentAccount, description, type, category,
+        )
     }
 }

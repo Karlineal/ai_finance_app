@@ -60,7 +60,7 @@ class TransactionsViewModel @Inject constructor(
                 transaction.copy(
                     categoryId = category.id,
                     title = category.name,
-                )
+                ),
             )
         }
     }
@@ -81,7 +81,7 @@ class TransactionsViewModel @Inject constructor(
                     date = date,
                     type = type,
                     isPending = !includeInExpense,
-                )
+                ),
             )
         }
     }
@@ -103,7 +103,7 @@ class TransactionsViewModel @Inject constructor(
                     time = AppDateTime.toInstant(dateTime),
                     type = type,
                     description = remark,
-                )
+                ),
             )
         }
     }

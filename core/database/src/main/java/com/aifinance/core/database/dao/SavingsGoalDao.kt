@@ -53,7 +53,7 @@ interface SavingsGoalDao {
 
         val updatedGoal = currentGoal.copy(
             currentAmount = finalAmount,
-            updatedAt = updatedAt
+            updatedAt = updatedAt,
         )
         updateSavingsGoal(updatedGoal)
     }

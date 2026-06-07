@@ -18,13 +18,13 @@ interface PaddleOCRApi {
         @Header("Authorization") authorization: String,
         @Part("model") model: RequestBody,
         @Part("optionalPayload") optionalPayload: RequestBody?,
-        @Part file: MultipartBody.Part?
+        @Part file: MultipartBody.Part?,
     ): PaddleOCRJobResponse
 
     @GET("api/v2/ocr/jobs/{jobId}")
     suspend fun getJobStatus(
         @Header("Authorization") authorization: String,
-        @Path("jobId") jobId: String
+        @Path("jobId") jobId: String,
     ): PaddleOCRJobResponse
 
     companion object {

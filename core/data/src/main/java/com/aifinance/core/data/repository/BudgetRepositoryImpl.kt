@@ -6,11 +6,11 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.aifinance.core.model.BudgetCategoryAllocation
-import com.aifinance.core.model.BudgetWizardState
-import com.aifinance.core.model.MonthlyBudgetPlan
 import com.aifinance.core.model.BudgetSource
-import com.aifinance.core.model.UserRole
+import com.aifinance.core.model.BudgetWizardState
 import com.aifinance.core.model.CurrencyCode
+import com.aifinance.core.model.MonthlyBudgetPlan
+import com.aifinance.core.model.UserRole
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -189,4 +189,3 @@ private fun MonthlyBudgetPlanDto.toDomain(): MonthlyBudgetPlan {
         },
     )
 }
-

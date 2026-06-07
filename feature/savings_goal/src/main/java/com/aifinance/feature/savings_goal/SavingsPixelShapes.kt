@@ -1,6 +1,5 @@
 package com.aifinance.feature.savings_goal
 
-
 data class PixelCell(
     val row: Int,
     val col: Int,
@@ -16,6 +15,7 @@ data class PixelShapeLayout(
 
 enum class SavingsColoringShape {
     HEART,
+
     /** 52 周：小木屋 */
     CABIN,
 }
@@ -54,16 +54,14 @@ object SavingsPixelShapes {
      * 用二分搜索找到合适的缩放因子，使心形恰好包含 [targetCells] 个格子。
      * 缩放越大 → 心形越小 → 格子越少。
      */
-    private fun findHeartCells(
-        width: Int,
-        height: Int,
-        targetCells: Int,
-    ): List<PixelCell> {
+    private fun findHeartCells(width: Int, height: Int, targetCells: Int): List<PixelCell> {
+        // scale 越大 → xScale/yScale 越小 → 格子越靠近心形中心 → 覆盖格子越多
+        // 365 格需要 scale ≈ 8.9，52 格需要 scale ≈ 2.5，上界留足余量
         var lo = 0.5f
-        var hi = 3.0f
+        var hi = 50.0f
         var result = heartCellsAtScale(width, height, targetCells, lo)
 
-        repeat(10) {
+        repeat(20) {
             val mid = (lo + hi) / 2f
             val count = countHeartCells(width, height, mid)
             if (count >= targetCells) {
@@ -96,12 +94,7 @@ object SavingsPixelShapes {
         return count
     }
 
-    private fun heartCellsAtScale(
-        width: Int,
-        height: Int,
-        targetCells: Int,
-        scale: Float,
-    ): List<PixelCell> {
+    private fun heartCellsAtScale(width: Int, height: Int, targetCells: Int, scale: Float): List<PixelCell> {
         val xScale = width.toFloat() / (2f * scale)
         val yScale = height.toFloat() / (2f * scale)
         val slots = mutableListOf<Pair<Int, Int>>()
@@ -161,14 +154,14 @@ object SavingsPixelShapes {
 
     private val CABIN_52_MATRIX = arrayOf(
         //  0  1  2  3  4  5  6  7  8  9
-        booleanArrayOf(F,F,F,F,T,T,F,F,F,F),  // row 0 — 烟囱
-        booleanArrayOf(F,F,F,T,T,T,T,F,F,F),  // row 1
-        booleanArrayOf(F,F,T,T,T,T,T,T,F,F),  // row 2
-        booleanArrayOf(F,T,T,T,T,T,T,T,T,F),  // row 3
-        booleanArrayOf(T,T,T,T,T,T,T,T,T,T),  // row 4 — 屋顶底
-        booleanArrayOf(T,T,T,T,T,T,T,T,T,T),  // row 5 — 墙壁
-        booleanArrayOf(T,T,T,T,T,T,T,T,T,T),  // row 6
-        booleanArrayOf(F,F,F,F,T,T,F,F,F,F),  // row 7 — 门
+        booleanArrayOf(F, F, F, F, T, T, F, F, F, F), // row 0 — 烟囱
+        booleanArrayOf(F, F, F, T, T, T, T, F, F, F), // row 1
+        booleanArrayOf(F, F, T, T, T, T, T, T, F, F), // row 2
+        booleanArrayOf(F, T, T, T, T, T, T, T, T, F), // row 3
+        booleanArrayOf(T, T, T, T, T, T, T, T, T, T), // row 4 — 屋顶底
+        booleanArrayOf(T, T, T, T, T, T, T, T, T, T), // row 5 — 墙壁
+        booleanArrayOf(T, T, T, T, T, T, T, T, T, T), // row 6
+        booleanArrayOf(F, F, F, F, T, T, F, F, F, F), // row 7 — 门
     )
 }
 

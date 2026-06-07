@@ -1,8 +1,10 @@
 package com.aifinance.feature.home
 
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
@@ -22,13 +23,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,9 +36,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import android.webkit.WebView
-import android.webkit.WebViewClient
-
 
 private val quickPrompts = listOf(
     "记录一笔午餐支出",
@@ -59,9 +56,7 @@ private val CookieDark = Color(0xFFE08A00)
 private val CookieFace = Color(0xFF8B4513)
 
 @Composable
-fun AiAssistantScreen(
-    viewModel: AssistantViewModel = hiltViewModel(),
-) {
+fun AiAssistantScreen(viewModel: AssistantViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
@@ -74,10 +69,10 @@ fun AiAssistantScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.colorScheme.background),
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             Box(modifier = Modifier.weight(1f)) {
                 if (uiState.messages.isEmpty()) {
@@ -87,14 +82,14 @@ fun AiAssistantScreen(
                             viewModel.sendMessage()
                         },
                         suggestionGroupIndex = uiState.suggestionGroupIndex,
-                        onRotateSuggestions = { viewModel.rotateSuggestionGroup(suggestionGroups.size) }
+                        onRotateSuggestions = { viewModel.rotateSuggestionGroup(suggestionGroups.size) },
                     )
                 } else {
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         items(uiState.messages) { message ->
                             MessageItem(message = message)
@@ -112,18 +107,14 @@ fun AiAssistantScreen(
                 inputText = uiState.inputText,
                 onInputChange = viewModel::onInputChange,
                 onSend = viewModel::sendMessage,
-                isLoading = uiState.isLoading
+                isLoading = uiState.isLoading,
             )
         }
     }
 }
 
 @Composable
-private fun EmptyState(
-    onPromptClick: (String) -> Unit,
-    suggestionGroupIndex: Int,
-    onRotateSuggestions: () -> Unit
-) {
+private fun EmptyState(onPromptClick: (String) -> Unit, suggestionGroupIndex: Int, onRotateSuggestions: () -> Unit) {
     val currentSuggestions = suggestionGroups.getOrElse(suggestionGroupIndex) { suggestionGroups.first() }
 
     Column(
@@ -131,7 +122,7 @@ private fun EmptyState(
             .fillMaxSize()
             .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
+        verticalArrangement = Arrangement.Top,
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -142,7 +133,7 @@ private fun EmptyState(
         FeatureGuideCard(
             suggestions = currentSuggestions,
             onPromptClick = onPromptClick,
-            onRotate = onRotateSuggestions
+            onRotate = onRotateSuggestions,
         )
     }
 }
@@ -152,28 +143,28 @@ private fun HeroSection() {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) {
             Text(
                 text = "嗨！",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = "我是iCookie",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "你的专属智能记账助手",
                 fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -182,58 +173,54 @@ private fun HeroSection() {
 }
 
 @Composable
-private fun FeatureGuideCard(
-    suggestions: List<String>,
-    onPromptClick: (String) -> Unit,
-    onRotate: () -> Unit
-) {
+private fun FeatureGuideCard(suggestions: List<String>, onPromptClick: (String) -> Unit, onRotate: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(20.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Lightbulb,
                         contentDescription = null,
                         tint = CookiePrimary,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
                     Text(
                         text = "试试这样问我",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
 
                 TextButton(
                     onClick = onRotate,
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "换一换",
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(14.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "换一换",
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
                     )
                 }
             }
@@ -241,12 +228,12 @@ private fun FeatureGuideCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 suggestions.forEach { prompt ->
                     PromptTag(
                         text = prompt,
-                        onClick = { onPromptClick(prompt) }
+                        onClick = { onPromptClick(prompt) },
                     )
                 }
             }
@@ -255,31 +242,28 @@ private fun FeatureGuideCard(
 }
 
 @Composable
-private fun PromptTag(
-    text: String,
-    onClick: () -> Unit
-) {
+private fun PromptTag(text: String, onClick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = text,
                 fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = ">",
                 fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             )
         }
     }
@@ -289,25 +273,22 @@ private fun PromptTag(
 private fun CapabilityItem(emoji: String, text: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(text = emoji, fontSize = 16.sp)
         Text(
             text = text,
             fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
 
 @Composable
-private fun ICookieAvatar(
-    size: androidx.compose.ui.unit.Dp = 80.dp,
-    modifier: Modifier = Modifier
-) {
+private fun ICookieAvatar(size: androidx.compose.ui.unit.Dp = 80.dp, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.size(size),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val canvasWidth = size.toPx()
@@ -320,10 +301,10 @@ private fun ICookieAvatar(
                 brush = Brush.radialGradient(
                     colors = listOf(CookiePrimary, CookieDark),
                     center = Offset(centerX, centerY),
-                    radius = radius
+                    radius = radius,
                 ),
                 radius = radius,
-                center = Offset(centerX, centerY)
+                center = Offset(centerX, centerY),
             )
 
             val chipRadius = radius * 0.08f
@@ -339,7 +320,7 @@ private fun ICookieAvatar(
                 drawCircle(
                     color = CookieFace,
                     radius = chipRadius,
-                    center = pos
+                    center = pos,
                 )
             }
 
@@ -350,35 +331,35 @@ private fun ICookieAvatar(
             drawCircle(
                 color = Color.White,
                 radius = eyeRadius,
-                center = leftEyeCenter
+                center = leftEyeCenter,
             )
             drawCircle(
                 color = Color.White,
                 radius = eyeRadius,
-                center = rightEyeCenter
+                center = rightEyeCenter,
             )
 
             val pupilRadius = eyeRadius * 0.5f
             drawCircle(
                 color = Color.Black,
                 radius = pupilRadius,
-                center = Offset(leftEyeCenter.x, leftEyeCenter.y + pupilRadius * 0.2f)
+                center = Offset(leftEyeCenter.x, leftEyeCenter.y + pupilRadius * 0.2f),
             )
             drawCircle(
                 color = Color.Black,
                 radius = pupilRadius,
-                center = Offset(rightEyeCenter.x, rightEyeCenter.y + pupilRadius * 0.2f)
+                center = Offset(rightEyeCenter.x, rightEyeCenter.y + pupilRadius * 0.2f),
             )
 
             drawCircle(
                 color = Color.White,
                 radius = pupilRadius * 0.35f,
-                center = Offset(leftEyeCenter.x - pupilRadius * 0.3f, leftEyeCenter.y - pupilRadius * 0.3f)
+                center = Offset(leftEyeCenter.x - pupilRadius * 0.3f, leftEyeCenter.y - pupilRadius * 0.3f),
             )
             drawCircle(
                 color = Color.White,
                 radius = pupilRadius * 0.35f,
-                center = Offset(rightEyeCenter.x - pupilRadius * 0.3f, rightEyeCenter.y - pupilRadius * 0.3f)
+                center = Offset(rightEyeCenter.x - pupilRadius * 0.3f, rightEyeCenter.y - pupilRadius * 0.3f),
             )
 
             drawArc(
@@ -388,30 +369,30 @@ private fun ICookieAvatar(
                 useCenter = false,
                 topLeft = Offset(centerX - radius * 0.2f, centerY + radius * 0.05f),
                 size = Size(radius * 0.4f, radius * 0.25f),
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = radius * 0.04f)
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = radius * 0.04f),
             )
 
             drawCircle(
                 color = CookieDark,
                 radius = radius * 0.1f,
-                center = Offset(centerX - radius * 0.85f, centerY - radius * 0.3f)
+                center = Offset(centerX - radius * 0.85f, centerY - radius * 0.3f),
             )
             drawLine(
                 color = CookieDark,
                 start = Offset(centerX - radius * 0.75f, centerY - radius * 0.25f),
                 end = Offset(centerX - radius * 0.55f, centerY - radius * 0.15f),
-                strokeWidth = radius * 0.04f
+                strokeWidth = radius * 0.04f,
             )
             drawCircle(
                 color = CookieDark,
                 radius = radius * 0.1f,
-                center = Offset(centerX + radius * 0.85f, centerY - radius * 0.3f)
+                center = Offset(centerX + radius * 0.85f, centerY - radius * 0.3f),
             )
             drawLine(
                 color = CookieDark,
                 start = Offset(centerX + radius * 0.75f, centerY - radius * 0.25f),
                 end = Offset(centerX + radius * 0.55f, centerY - radius * 0.15f),
-                strokeWidth = radius * 0.04f
+                strokeWidth = radius * 0.04f,
             )
         }
     }
@@ -428,10 +409,10 @@ private fun DrawScope.drawMiniCookie() {
         brush = Brush.radialGradient(
             colors = listOf(CookiePrimary, CookieDark),
             center = Offset(centerX, centerY),
-            radius = radius
+            radius = radius,
         ),
         radius = radius,
-        center = Offset(centerX, centerY)
+        center = Offset(centerX, centerY),
     )
 
     listOf(
@@ -442,7 +423,7 @@ private fun DrawScope.drawMiniCookie() {
         drawCircle(
             color = CookieFace,
             radius = radius * 0.12f,
-            center = pos
+            center = pos,
         )
     }
 }
@@ -454,21 +435,21 @@ private fun MessageItem(message: AssistantMessage) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.Top,
     ) {
         if (!isUser) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(CookieSecondary),
-            contentAlignment = Alignment.Center
-        ) {
-            Canvas(modifier = Modifier.size(28.dp)) {
-                drawMiniCookie()
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(CookieSecondary),
+                contentAlignment = Alignment.Center,
+            ) {
+                Canvas(modifier = Modifier.size(28.dp)) {
+                    drawMiniCookie()
+                }
             }
-        }
-        Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(8.dp))
         }
 
         Column {
@@ -480,24 +461,24 @@ private fun MessageItem(message: AssistantMessage) {
                             topStart = if (isUser) 20.dp else 4.dp,
                             topEnd = if (isUser) 4.dp else 20.dp,
                             bottomStart = 20.dp,
-                            bottomEnd = 20.dp
-                        )
+                            bottomEnd = 20.dp,
+                        ),
                     )
                     .background(
                         if (isUser) {
                             MaterialTheme.colorScheme.primary
                         } else {
                             MaterialTheme.colorScheme.surfaceContainerHigh
-                        }
+                        },
                     )
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
                 if (isUser) {
                     Text(
                         text = message.content,
                         fontSize = 15.sp,
                         lineHeight = 22.sp,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
                     MarkdownText(content = message.content)
@@ -512,13 +493,13 @@ private fun MessageItem(message: AssistantMessage) {
                     .size(36.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = "我",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
         }
@@ -535,16 +516,23 @@ private fun MarkdownText(content: String) {
     val outlineVariant = MaterialTheme.colorScheme.outlineVariant
     val primary = MaterialTheme.colorScheme.primary
 
-    fun colorHex(color: Color): String =
-        String.format("#%06X", 0xFFFFFF and color.toArgb())
+    fun colorHex(color: Color): String = String.format("#%06X", 0xFFFFFF and color.toArgb())
 
     val escapedContent = content
         .replace("\\", "\\\\")
         .replace("'", "\\'")
         .replace("\n", "\\n")
 
-    val htmlContent = remember(content, onSurface, onSurfaceVariant, surfaceVariant,
-        surfaceContainer, surfaceContainerHigh, outlineVariant, primary) {
+    val htmlContent = remember(
+        content,
+        onSurface,
+        onSurfaceVariant,
+        surfaceVariant,
+        surfaceContainer,
+        surfaceContainerHigh,
+        outlineVariant,
+        primary,
+    ) {
         val textColor = colorHex(onSurface)
         val codeBg = colorHex(surfaceVariant.copy(alpha = 0.7f))
         val preBg = colorHex(surfaceContainer)
@@ -656,7 +644,7 @@ private fun MarkdownText(content: String) {
                 webView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
             }
         },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
@@ -665,14 +653,14 @@ private fun LoadingIndicator() {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.Top,
     ) {
         Box(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
                 .background(CookieSecondary),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Canvas(modifier = Modifier.size(28.dp)) {
                 drawMiniCookie()
@@ -684,11 +672,11 @@ private fun LoadingIndicator() {
             modifier = Modifier
                 .clip(RoundedCornerShape(20.dp))
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 repeat(3) { index ->
                     DotAnimation(index = index)
@@ -706,26 +694,21 @@ private fun DotAnimation(index: Int) {
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(400, delayMillis = index * 150),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "dot"
+        label = "dot",
     )
 
     Box(
         modifier = Modifier
             .size((6f * scale).dp)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
     )
 }
 
 @Composable
-private fun InputArea(
-    inputText: String,
-    onInputChange: (String) -> Unit,
-    onSend: () -> Unit,
-    isLoading: Boolean
-) {
+private fun InputArea(inputText: String, onInputChange: (String) -> Unit, onSend: () -> Unit, isLoading: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -733,14 +716,14 @@ private fun InputArea(
             .navigationBarsPadding()
             .imePadding(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
             color = MaterialTheme.colorScheme.surface,
             shadowElevation = 2.dp,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) {
             BasicTextField(
                 value = inputText,
@@ -748,7 +731,7 @@ private fun InputArea(
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = TextStyle(
                     fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 ),
                 singleLine = true,
                 enabled = !isLoading,
@@ -757,7 +740,7 @@ private fun InputArea(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 16.dp),
-                        contentAlignment = Alignment.CenterStart
+                        contentAlignment = Alignment.CenterStart,
                     ) {
                         if (inputText.isEmpty()) {
                             Text(
@@ -768,7 +751,7 @@ private fun InputArea(
                         }
                         innerTextField()
                     }
-                }
+                },
             )
         }
 
@@ -779,14 +762,14 @@ private fun InputArea(
                 .size(52.dp)
                 .clip(CircleShape)
                 .background(
-                    if (inputText.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer
-                )
+                    if (inputText.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
+                ),
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = "发送",
                 tint = if (inputText.isNotBlank()) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
             )
         }
     }

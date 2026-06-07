@@ -37,14 +37,12 @@ fun NavController.navigateToCheckInCalendar(savingsGoalId: UUID) {
     navigate("check_in_calendar/$savingsGoalId")
 }
 
-fun NavGraphBuilder.checkInCalendarScreen(
-    onNavigateBack: () -> Unit
-) {
+fun NavGraphBuilder.checkInCalendarScreen(onNavigateBack: () -> Unit) {
     composable(
         route = CHECK_IN_CALENDAR_ROUTE,
         arguments = listOf(
-            navArgument("savingsGoalId") { type = NavType.StringType }
-        )
+            navArgument("savingsGoalId") { type = NavType.StringType },
+        ),
     ) { backStackEntry ->
         val savingsGoalId = backStackEntry.arguments?.getString("savingsGoalId")?.let {
             runCatching { UUID.fromString(it) }.getOrNull()
@@ -52,7 +50,7 @@ fun NavGraphBuilder.checkInCalendarScreen(
         if (savingsGoalId != null) {
             CheckInCalendarScreen(
                 savingsGoalId = savingsGoalId,
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
             )
         }
     }
@@ -63,7 +61,7 @@ fun NavGraphBuilder.savingsGoalNavigation(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToEdit: (String) -> Unit,
     onNavigateToAddAccount: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
 ) {
     composable(SAVINGS_GOAL_LIST_ROUTE) {
         SavingsGoalListScreen(

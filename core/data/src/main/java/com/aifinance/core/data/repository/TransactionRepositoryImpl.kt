@@ -10,7 +10,6 @@ import com.aifinance.core.model.TransactionType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
-import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -95,7 +94,7 @@ class TransactionRepositoryImpl @Inject constructor(
                 date = existing.date,
                 amount = existing.amount.toPlainString(),
                 description = existing.description,
-                excludeId = existing.id
+                excludeId = existing.id,
             )?.toDomain()
         }
 
@@ -116,7 +115,7 @@ class TransactionRepositoryImpl @Inject constructor(
                 savingsGoalRepository.deleteRecordByGoalDateAmount(
                     savingsGoalId = goal.id,
                     date = existing.date,
-                    amount = existing.amount
+                    amount = existing.amount,
                 )
             }
         }
@@ -151,13 +150,13 @@ class TransactionRepositoryImpl @Inject constructor(
                 "TransactionRepo",
                 "Adjusting balance for account ${transaction.accountId}: " +
                     "type=${transaction.type}, amount=${transaction.amount}, " +
-                    "delta=$signedDelta, direction=$direction"
+                    "delta=$signedDelta, direction=$direction",
             )
             accountDao.adjustCurrentBalance(transaction.accountId, signedDelta)
         } else {
             Log.w(
                 "TransactionRepo",
-                "Skipping balance adjustment for transaction ${transaction.id}: delta is zero"
+                "Skipping balance adjustment for transaction ${transaction.id}: delta is zero",
             )
         }
     }

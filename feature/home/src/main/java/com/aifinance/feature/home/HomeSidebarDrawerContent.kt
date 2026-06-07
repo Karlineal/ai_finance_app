@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -51,7 +50,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aifinance.core.designsystem.theme.BrandPrimary
 import com.aifinance.core.model.TransactionType
 import com.aifinance.feature.home.component.DayActivity
 import com.aifinance.feature.home.component.RecordHeatMap
@@ -143,10 +141,7 @@ fun HomeSidebarDrawerContent(
 }
 
 @Composable
-private fun LoginHeader(
-    onNavigateHome: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun LoginHeader(onNavigateHome: () -> Unit, modifier: Modifier = Modifier) {
     var isLoggedIn by remember { mutableStateOf(false) }
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -206,10 +201,7 @@ private fun LoginHeader(
 }
 
 @Composable
-private fun PremiumAvatar(
-    isLoggedIn: Boolean,
-    modifier: Modifier = Modifier,
-) {
+private fun PremiumAvatar(isLoggedIn: Boolean, modifier: Modifier = Modifier) {
     val ringGradient = if (isLoggedIn) {
         Brush.linearGradient(listOf(Color(0xFF2E5FE6), Color(0xFF6A8EFF), Color(0xFF9BC0FF)))
     } else {
@@ -252,11 +244,7 @@ private fun PremiumAvatar(
 }
 
 @Composable
-private fun LoginChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
+private fun LoginChip(label: String, selected: Boolean, onClick: () -> Unit) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val bg = if (selected) {
         if (isDark) Color(0xFF1E3A5F) else Color(0xFFDDEBFF)
@@ -296,7 +284,7 @@ private fun HeatmapCard(
                 currentMonth = currentMonth,
                 monthActivity = monthActivity,
                 onDateClick = onDateClick,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Row(
@@ -314,8 +302,17 @@ private fun HeatmapCard(
 @Composable
 private fun HeatmapStatItem(value: String, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -364,8 +361,17 @@ private fun FunctionGridCard(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            Icon(imageVector = item.icon, contentDescription = null, tint = item.iconTint, modifier = Modifier.size(24.dp))
-                            Text(text = item.label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = null,
+                                tint = item.iconTint,
+                                modifier = Modifier.size(24.dp),
+                            )
+                            Text(
+                                text = item.label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
                         }
                     }
                     repeat(3 - rowItems.size) {
@@ -394,7 +400,11 @@ private fun SettingEntryCard(onNavigateSettings: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Icon(imageVector = Icons.Default.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Text(text = "设置", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
             Icon(

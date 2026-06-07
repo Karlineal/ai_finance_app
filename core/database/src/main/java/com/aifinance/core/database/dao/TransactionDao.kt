@@ -31,8 +31,15 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE linkedTransactionId = :linkedId AND id != :excludeId LIMIT 1")
     suspend fun getTransactionByLinkedId(linkedId: UUID, excludeId: UUID): TransactionEntity?
 
-    @Query("SELECT * FROM transactions WHERE type = 'TRANSFER' AND date = :date AND amount = :amount AND description = :description AND id != :excludeId LIMIT 1")
-    suspend fun findLinkedTransfer(date: LocalDate, amount: String, description: String?, excludeId: UUID): TransactionEntity?
+    @Query(
+        "SELECT * FROM transactions WHERE type = 'TRANSFER' AND date = :date AND amount = :amount AND description = :description AND id != :excludeId LIMIT 1",
+    )
+    suspend fun findLinkedTransfer(
+        date: LocalDate,
+        amount: String,
+        description: String?,
+        excludeId: UUID,
+    ): TransactionEntity?
 
     @Query("SELECT * FROM transactions WHERE type = 'TRANSFER' AND date = :date AND description = :description")
     suspend fun getTransfersByDescription(date: LocalDate, description: String?): List<TransactionEntity>

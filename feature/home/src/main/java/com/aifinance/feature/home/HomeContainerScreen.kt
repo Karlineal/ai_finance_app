@@ -28,7 +28,7 @@ fun HomeContainerScreen(
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(1f)
+                .weight(1f),
         ) {
             TopRecordAiBar(
                 selectedTab = selectedTopTab,

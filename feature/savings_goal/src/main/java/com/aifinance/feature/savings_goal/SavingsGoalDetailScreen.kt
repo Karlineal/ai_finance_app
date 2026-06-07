@@ -116,13 +116,16 @@ private fun GoalDetailContent(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showCheckInDialog by remember { mutableStateOf(false) }
     var checkInPeriod by remember { mutableStateOf<Int?>(null) }
-    
+
     val progress = SavingsGoalCalculator.calculateProgress(goal.currentAmount, goal.targetAmount)
     val remaining = goal.targetAmount.subtract(goal.currentAmount).coerceAtLeast(BigDecimal.ZERO)
     val daysRemaining = SavingsGoalCalculator.calculateDaysRemaining(goal.endDate)
     val statusColor = when {
         goal.status == SavingsGoalStatus.COMPLETED -> Color(0xFF22C55E)
-        goal.status == SavingsGoalStatus.FAILED || SavingsGoalCalculator.isOverdue(goal.endDate, goal.status) -> Color(0xFFEF4444)
+        goal.status == SavingsGoalStatus.FAILED || SavingsGoalCalculator.isOverdue(
+            goal.endDate,
+            goal.status,
+        ) -> Color(0xFFEF4444)
         else -> MaterialTheme.colorScheme.primary
     }
 
@@ -188,18 +191,18 @@ private fun GoalDetailContent(
             )
         }
 
-        if (goal.status == SavingsGoalStatus.ACTIVE) {
-            Button(
-                onClick = {
-                    checkInPeriod = null
-                    showCheckInDialog = true
-                },
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(16.dp)
-            ) {
-                Text("打卡存入", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-            }
+        Button(
+            onClick = {
+                checkInPeriod = null
+                showCheckInDialog = true
+            },
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(16.dp),
+        ) {
+            Text("打卡存入", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+        }
 
+        if (goal.status == SavingsGoalStatus.ACTIVE) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -223,8 +226,7 @@ private fun GoalDetailContent(
             }
         }
 
-        if ((goal.savingsMethod == SavingsMethod.DAILY_365 || goal.savingsMethod == SavingsMethod.WEEKLY_52)
-            && goal.status == SavingsGoalStatus.ACTIVE) {
+        if (goal.savingsMethod == SavingsMethod.DAILY_365 || goal.savingsMethod == SavingsMethod.WEEKLY_52) {
             SavingsRecordSection(
                 goal = goal,
                 records = records,
@@ -307,12 +309,12 @@ private fun GoalDetailContent(
                     date = date,
                     note = note,
                     periodIndex = period,
-                    createdAt = Instant.now()
+                    createdAt = Instant.now(),
                 )
                 onAddRecord(record, sourceAccountId)
                 showCheckInDialog = false
                 checkInPeriod = null
-            }
+            },
         )
     }
 }
@@ -320,20 +322,24 @@ private fun GoalDetailContent(
 @Composable
 private fun RecordItem(record: SavingsRecord, onDelete: () -> Unit) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
-    
+
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 "第${record.periodIndex}期 - ${record.date}",
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
             record.note?.takeIf { it.isNotBlank() }?.let { note ->
-                Text(note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    note,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
         Text("+¥${formatMoney(record.amount)}", style = MaterialTheme.typography.titleMedium, color = Color(0xFF22C55E))
@@ -355,7 +361,7 @@ private fun RecordItem(record: SavingsRecord, onDelete: () -> Unit) {
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) { Text("取消") }
-            }
+            },
         )
     }
 }
@@ -374,9 +380,15 @@ private fun CheckInDialog(
     var noteText by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
-    
-    val availableAccounts = accounts.filter { it.id != goal.accountId && (it.type == AccountType.BANK || it.type == AccountType.DIGITAL_WALLET || it.type == AccountType.CASH || it.type == AccountType.INVESTMENT) }
-    var selectedAccountId by remember { mutableStateOf(availableAccounts.firstOrNull { it.isDefaultIncomeExpense }?.id ?: availableAccounts.firstOrNull()?.id) }
+
+    val availableAccounts = accounts.filter {
+        it.id != goal.accountId && (it.type == AccountType.BANK || it.type == AccountType.DIGITAL_WALLET || it.type == AccountType.CASH || it.type == AccountType.INVESTMENT)
+    }
+    var selectedAccountId by remember {
+        mutableStateOf(
+            availableAccounts.firstOrNull { it.isDefaultIncomeExpense }?.id ?: availableAccounts.firstOrNull()?.id,
+        )
+    }
     val selectedAccount = availableAccounts.find { it.id == selectedAccountId }
 
     val currentPeriod = remember(dateText, initialPeriod) {
@@ -384,19 +396,30 @@ private fun CheckInDialog(
     }
 
     val periodAlreadySaved = currentPeriod in completedPeriods
-    
+
     val defaultAmount = remember(currentPeriod, goal) {
         when (goal.savingsMethod) {
-            SavingsMethod.WEEKLY_52 -> SavingsGoalCalculator.calculateWeek52Amount(currentPeriod, goal.baseAmount ?: BigDecimal(10))
-            SavingsMethod.DAILY_365 -> SavingsGoalCalculator.calculateDay365Amount(currentPeriod, goal.baseAmount ?: BigDecimal(1))
-            SavingsMethod.MONTHLY_12 -> SavingsGoalCalculator.calculateMonth12Amount(currentPeriod, goal.baseAmount ?: BigDecimal(100))
+            SavingsMethod.WEEKLY_52 -> SavingsGoalCalculator.calculateWeek52Amount(
+                currentPeriod,
+                goal.baseAmount ?: BigDecimal(10),
+            )
+            SavingsMethod.DAILY_365 -> SavingsGoalCalculator.calculateDay365Amount(
+                currentPeriod,
+                goal.baseAmount ?: BigDecimal(1),
+            )
+            SavingsMethod.MONTHLY_12 -> SavingsGoalCalculator.calculateMonth12Amount(
+                currentPeriod,
+                goal.baseAmount ?: BigDecimal(100),
+            )
             SavingsMethod.FIXED_AMOUNT -> goal.fixedAmount ?: BigDecimal.ZERO
             SavingsMethod.FLEXIBLE -> BigDecimal.ZERO
         }
     }
-    
-    var amountText by remember(currentPeriod) { mutableStateOf(if (defaultAmount > BigDecimal.ZERO) defaultAmount.stripTrailingZeros().toPlainString() else "") }
-    
+
+    var amountText by remember(currentPeriod) {
+        mutableStateOf(if (defaultAmount > BigDecimal.ZERO) defaultAmount.stripTrailingZeros().toPlainString() else "")
+    }
+
     val amount = amountText.toBigDecimalOrNull()
     val amountError = amountText.isNotBlank() && (amount == null || amount <= BigDecimal.ZERO)
 
@@ -430,9 +453,9 @@ private fun CheckInDialog(
                             Icon(Icons.Default.CalendarMonth, null)
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
-                
+
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = { expanded = !expanded },
@@ -446,7 +469,7 @@ private fun CheckInDialog(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                        modifier = Modifier.menuAnchor().fillMaxWidth(),
                     )
                     if (availableAccounts.isNotEmpty()) {
                         ExposedDropdownMenu(
@@ -459,7 +482,7 @@ private fun CheckInDialog(
                                     onClick = {
                                         selectedAccountId = acc.id
                                         expanded = false
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -474,7 +497,11 @@ private fun CheckInDialog(
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     isError = amountError,
-                    supportingText = if (amountError) { { Text("请输入大于 0 的金额") } } else null,
+                    supportingText = if (amountError) {
+                        { Text("请输入大于 0 的金额") }
+                    } else {
+                        null
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
@@ -482,7 +509,7 @@ private fun CheckInDialog(
                     onValueChange = { noteText = it },
                     label = { Text("备注 (可选)") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         },
@@ -491,7 +518,13 @@ private fun CheckInDialog(
                 enabled = amount != null && amount > BigDecimal.ZERO,
                 onClick = {
                     val date = runCatching { LocalDate.parse(dateText) }.getOrNull() ?: LocalDate.now()
-                    onConfirm(date, amount!!.setScale(2, RoundingMode.HALF_UP), noteText.ifBlank { null }, currentPeriod, selectedAccountId)
+                    onConfirm(
+                        date,
+                        amount!!.setScale(2, RoundingMode.HALF_UP),
+                        noteText.ifBlank { null },
+                        currentPeriod,
+                        selectedAccountId,
+                    )
                 },
             ) { Text("确认存入") }
         },
@@ -499,10 +532,12 @@ private fun CheckInDialog(
             TextButton(onClick = onDismiss) { Text("取消") }
         },
     )
-    
+
     if (showDatePicker) {
         val state = rememberDatePickerState(
-            initialSelectedDateMillis = runCatching { LocalDate.parse(dateText) }.getOrNull()?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
+            initialSelectedDateMillis = runCatching {
+                LocalDate.parse(dateText)
+            }.getOrNull()?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli(),
         )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -514,7 +549,7 @@ private fun CheckInDialog(
                     showDatePicker = false
                 }) { Text("确定") }
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("取消") } }
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("取消") } },
         ) {
             DatePicker(state)
         }
@@ -522,11 +557,7 @@ private fun CheckInDialog(
 }
 
 @Composable
-private fun DetailStatCard(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
+private fun DetailStatCard(label: String, value: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
@@ -555,10 +586,7 @@ private fun String.filterAmountInput(): String {
 }
 
 @Composable
-private fun MissingGoal(
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun MissingGoal(onBack: () -> Unit, modifier: Modifier = Modifier) {
     Box(modifier = modifier.background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Icon(Icons.Default.Savings, contentDescription = null, modifier = Modifier.size(42.dp))

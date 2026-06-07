@@ -12,7 +12,6 @@ import io.mockk.unmockkStatic
 import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -129,7 +128,7 @@ class PermissionUtilsTest {
         // Given: API < 33
         val expectedPermissions = arrayOf(
             Manifest.permission.CAMERA,
-            Manifest.permission.READ_EXTERNAL_STORAGE
+            Manifest.permission.READ_EXTERNAL_STORAGE,
         )
 
         // When: 获取所需权限
@@ -144,7 +143,7 @@ class PermissionUtilsTest {
         // Given: API >= 33
         val expectedPermissions = arrayOf(
             Manifest.permission.CAMERA,
-            Manifest.permission.READ_MEDIA_IMAGES
+            Manifest.permission.READ_MEDIA_IMAGES,
         )
 
         // When: 获取所需权限

@@ -1,0 +1,40 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+indent_size = 4
+max_line_length = 120
+ktlint_code_style = ktlint_official
+ktlint_standard_function-naming = disabled
+
+# Import ordering
+ij_kotlin_packages_to_use_import_on_demand = java.util.*,kotlinx.android.synthetic.*
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+# Method wrapping
+ij_kotlin_method_parameters_new_line_after_left_paren = true
+ij_kotlin_method_parameters_right_paren_on_new_line = true
+
+# Expression body
+ij_kotlin_expression_body_wrapping = off
+ij_kotlin_extends_list_wrap = off
+
+[*.{xml,json,yaml,yml}]
+indent_size = 2
+
+[*.{gradle,gradle.kts}]
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.properties]
+charset = utf-8

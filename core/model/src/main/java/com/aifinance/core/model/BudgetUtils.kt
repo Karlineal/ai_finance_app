@@ -27,10 +27,7 @@ data class CategoryWeightInput(
  * @param weights 各分类权重，权重可以不预先归一化
  * @return categoryId -> 分配金额（BigDecimal, scale=2）
  */
-fun allocateByWeights(
-    totalBudget: BigDecimal,
-    weights: List<CategoryWeightInput>,
-): Map<UUID, BigDecimal> {
+fun allocateByWeights(totalBudget: BigDecimal, weights: List<CategoryWeightInput>): Map<UUID, BigDecimal> {
     if (totalBudget <= BigDecimal.ZERO || weights.isEmpty()) {
         return emptyMap()
     }
@@ -159,4 +156,3 @@ fun calcTodayBudget(
         )
     }
 }
-
