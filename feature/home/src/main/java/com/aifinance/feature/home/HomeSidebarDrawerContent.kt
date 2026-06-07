@@ -77,6 +77,8 @@ fun HomeSidebarDrawerContent(
     val transactions by viewModel.recentTransactions.collectAsStateWithLifecycle()
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
     val avatarUri by viewModel.avatarUri.collectAsStateWithLifecycle()
+    val nickname by viewModel.nickname.collectAsStateWithLifecycle()
+    val email by viewModel.email.collectAsStateWithLifecycle()
     val currentMonth = remember { YearMonth.now() }
     val monthRecords = remember(transactions, currentMonth) {
         transactions.filter {
@@ -116,6 +118,8 @@ fun HomeSidebarDrawerContent(
         ) {
             LoginHeader(
                 isLoggedIn = isLoggedIn,
+                nickname = nickname,
+                email = email,
                 avatarUri = avatarUri,
                 onNavigateToLogin = onNavigateToLogin,
                 onNavigateToUserProfile = onNavigateToUserProfile,
@@ -152,6 +156,8 @@ fun HomeSidebarDrawerContent(
 @Composable
 private fun LoginHeader(
     isLoggedIn: Boolean,
+    nickname: String,
+    email: String,
     avatarUri: String,
     onNavigateToLogin: () -> Unit,
     onNavigateToUserProfile: () -> Unit,
@@ -180,14 +186,14 @@ private fun LoginHeader(
 
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = if (isLoggedIn) "用户已登录" else "点击登录",
+                    text = if (isLoggedIn && nickname.isNotEmpty()) nickname else "点击登录",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                if (isLoggedIn) {
+                if (isLoggedIn && email.isNotEmpty()) {
                     Text(
-                        text = "账号已绑定",
+                        text = email,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
