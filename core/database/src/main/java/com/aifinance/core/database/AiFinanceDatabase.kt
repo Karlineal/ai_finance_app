@@ -11,6 +11,7 @@ import com.aifinance.core.database.dao.ScheduledRuleDao
 import com.aifinance.core.database.dao.TransactionDao
 import com.aifinance.core.database.entity.AccountEntity
 import com.aifinance.core.database.entity.CategoryEntity
+import com.aifinance.core.database.entity.CheckInEntity
 import com.aifinance.core.database.entity.SavingsGoalEntity
 import com.aifinance.core.database.entity.SavingsRecordEntity
 import com.aifinance.core.database.entity.ScheduledRuleEntity
@@ -24,8 +25,9 @@ import com.aifinance.core.database.entity.TransactionEntity
         ScheduledRuleEntity::class,
         SavingsGoalEntity::class,
         SavingsRecordEntity::class,
+        CheckInEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

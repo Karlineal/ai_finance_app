@@ -21,22 +21,14 @@ object SavingsGoalCalculator {
         return maxOf(days, 0)
     }
 
-    fun calculateDailySuggestion(
-        saved: BigDecimal,
-        target: BigDecimal,
-        deadline: LocalDate
-    ): BigDecimal {
+    fun calculateDailySuggestion(saved: BigDecimal, target: BigDecimal, deadline: LocalDate): BigDecimal {
         val remaining = target.subtract(saved).max(BigDecimal.ZERO)
         val daysLeft = calculateDaysRemaining(deadline)
         if (daysLeft <= 0) return remaining
         return remaining.divide(BigDecimal(daysLeft), 2, RoundingMode.CEILING)
     }
 
-    fun calculateWeeklySuggestion(
-        saved: BigDecimal,
-        target: BigDecimal,
-        deadline: LocalDate
-    ): BigDecimal {
+    fun calculateWeeklySuggestion(saved: BigDecimal, target: BigDecimal, deadline: LocalDate): BigDecimal {
         val remaining = target.subtract(saved).max(BigDecimal.ZERO)
         val daysLeft = calculateDaysRemaining(deadline)
         if (daysLeft <= 0) return remaining
@@ -60,7 +52,12 @@ object SavingsGoalCalculator {
         return baseAmount.multiply(BigDecimal(monthIndex))
     }
 
-    fun calculateTotalTarget(method: SavingsMethod, baseAmount: BigDecimal?, fixedAmount: BigDecimal?, periods: Int?): BigDecimal {
+    fun calculateTotalTarget(
+        method: SavingsMethod,
+        baseAmount: BigDecimal?,
+        fixedAmount: BigDecimal?,
+        periods: Int?,
+    ): BigDecimal {
         return when (method) {
             SavingsMethod.WEEKLY_52 -> {
                 val base = baseAmount ?: BigDecimal(10)
@@ -86,7 +83,7 @@ object SavingsGoalCalculator {
     fun getCurrentPeriodIndex(startDate: LocalDate, method: SavingsMethod, frequency: SavingsFrequency?): Int {
         val now = LocalDate.now()
         if (now.isBefore(startDate)) return 1
-        
+
         return when (method) {
             SavingsMethod.WEEKLY_52 -> {
                 val weeks = ChronoUnit.WEEKS.between(startDate, now)

@@ -64,10 +64,7 @@ private fun mimeTypesFor(channel: ImportChannel): Array<String> = when (channel)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ImporterScreen(
-    onBack: () -> Unit,
-    viewModel: ImporterViewModel = hiltViewModel(),
-) {
+fun ImporterScreen(onBack: () -> Unit, viewModel: ImporterViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val filePickerLauncher = rememberLauncherForActivityResult(

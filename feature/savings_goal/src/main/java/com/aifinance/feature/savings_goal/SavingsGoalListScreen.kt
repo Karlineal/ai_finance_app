@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -54,7 +53,7 @@ fun SavingsGoalListScreen(
         SavingsGoalCreateEditScreen(
             goalId = null,
             onSaved = { /* It will automatically transition when goal is saved */ },
-            onBack = onBack
+            onBack = onBack,
         )
     } else {
         Scaffold(
@@ -85,7 +84,7 @@ fun SavingsGoalListScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item { Spacer(Modifier.size(4.dp)) }
-                
+
                 item {
                     SavingsEntryBanner(onClick = onNavigateToCreate)
                 }
@@ -106,10 +105,7 @@ fun SavingsGoalListScreen(
 }
 
 @Composable
-private fun SavingsEntryBanner(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun SavingsEntryBanner(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -120,7 +116,7 @@ private fun SavingsEntryBanner(
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Box(
                 modifier = Modifier
@@ -135,18 +131,18 @@ private fun SavingsEntryBanner(
                     text = "新建攒钱计划",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 Text(
                     text = "开启攒钱计划，快乐攒钱",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                 )
             }
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }
@@ -154,11 +150,7 @@ private fun SavingsEntryBanner(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SavingsGoalCard(
-    goal: SavingsGoal,
-    onClick: () -> Unit,
-    onQuickAmount: (String) -> Unit,
-) {
+private fun SavingsGoalCard(goal: SavingsGoal, onClick: () -> Unit, onQuickAmount: (String) -> Unit) {
     val progress = SavingsGoalCalculator.calculateProgress(goal.currentAmount, goal.targetAmount)
     val isOverdue = SavingsGoalCalculator.isOverdue(goal.endDate, goal.status)
     val accentColor = when {
@@ -201,7 +193,10 @@ private fun SavingsGoalCard(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
                         Text(
                             text = goal.name,
                             style = MaterialTheme.typography.titleMedium,
@@ -247,7 +242,7 @@ private fun SavingsGoalCard(
                 } else {
                     androidx.compose.material3.Button(
                         onClick = onClick,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text("去打卡")
                     }

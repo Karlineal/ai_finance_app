@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.dp
 
 /**
  * 彩色渐变玻璃卡片组件
- * 
+ *
  * 适用于金色、蓝色等彩色渐变背景，配合玻璃拟态效果
- * 
+ *
  * @param modifier Modifier
  * @param cornerRadius 圆角大小
  * @param gradientColors 渐变颜色列表（至少2个）
@@ -59,7 +59,7 @@ fun GradientGlassCard(
                     colors = gradientColors,
                     start = gradientStart,
                     end = gradientEnd,
-                )
+                ),
             )
             .border(1.dp, borderColor, cardShape)
             .drawWithCache {
@@ -98,7 +98,7 @@ fun GradientGlassCard(
                 .border(
                     1.dp,
                     Color.White.copy(alpha = 0.18f),
-                    RoundedCornerShape(cornerRadius - 1.dp)
+                    RoundedCornerShape(cornerRadius - 1.dp),
                 )
                 .padding(horizontal = 19.dp, vertical = 17.dp),
             content = content,
@@ -110,10 +110,7 @@ fun GradientGlassCard(
  * 预设的净资产卡片（金色渐变 / 深色模式深紫色渐变）
  */
 @Composable
-fun NetAssetGradientCard(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit,
-) {
+fun NetAssetGradientCard(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
     val isDark = isSystemInDarkTheme()
     GradientGlassCard(
         modifier = modifier,
@@ -140,10 +137,7 @@ fun NetAssetGradientCard(
  * 预设的月度支出卡片（蓝色渐变 / 深色模式深蓝色渐变）
  */
 @Composable
-fun MonthlyExpenseGradientCard(
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit,
-) {
+fun MonthlyExpenseGradientCard(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
     val isDark = isSystemInDarkTheme()
     GradientGlassCard(
         modifier = modifier,

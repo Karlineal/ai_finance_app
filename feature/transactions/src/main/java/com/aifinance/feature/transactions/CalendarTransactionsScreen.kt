@@ -46,7 +46,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aifinance.core.designsystem.theme.ExpenseDefault
 import com.aifinance.core.designsystem.theme.IncomeDefault
-import com.aifinance.core.model.Category
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
@@ -54,11 +53,8 @@ import com.aifinance.feature.home.component.RefinedTransactionItem
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.YearMonth
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.UUID
@@ -82,8 +78,8 @@ fun CalendarTransactionsScreen(
         derivedStateOf {
             transactions.filter {
                 it.date.year == currentMonth.year &&
-                        it.date.monthValue == currentMonth.monthValue &&
-                        !it.isPending
+                    it.date.monthValue == currentMonth.monthValue &&
+                    !it.isPending
             }
         }
     }
@@ -116,7 +112,7 @@ fun CalendarTransactionsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.background,
                 ),
             )
         },
@@ -138,7 +134,7 @@ fun CalendarTransactionsScreen(
                         val today = LocalDate.now()
                         selectedDate = today
                         currentMonth = YearMonth.from(today)
-                    }
+                    },
                 )
             }
 
@@ -178,7 +174,7 @@ fun CalendarTransactionsScreen(
                     val category = categoriesById[transaction.categoryId]
                         ?: CategoryCatalog.resolve(
                             categoryId = transaction.categoryId,
-                            type = transaction.type
+                            type = transaction.type,
                         ).asCategory()
 
                     RefinedTransactionItem(
@@ -214,12 +210,7 @@ fun CalendarTransactionsScreen(
 }
 
 @Composable
-private fun MonthSelector(
-    currentMonth: YearMonth,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
-    onToday: () -> Unit,
-) {
+private fun MonthSelector(currentMonth: YearMonth, onPrevious: () -> Unit, onNext: () -> Unit, onToday: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -329,9 +320,13 @@ private fun CalendarGrid(
                                 .aspectRatio(0.95f)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(
-                                    if (isSelected) MaterialTheme.colorScheme.primary
-                                    else if (hasData) MaterialTheme.colorScheme.surfaceVariant
-                                    else Color.Transparent
+                                    if (isSelected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else if (hasData) {
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    } else {
+                                        Color.Transparent
+                                    },
                                 )
                                 .border(
                                     width = if (isSelected) 0.dp else 0.5.dp,

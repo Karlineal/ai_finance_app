@@ -33,7 +33,7 @@ data class AddTransactionUiState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val amountError: String? = null,
-    val categoryError: String? = null
+    val categoryError: String? = null,
 )
 
 @HiltViewModel
@@ -48,13 +48,13 @@ class AddTransactionViewModel @Inject constructor(
 
     val categories: StateFlow<List<Category>> = combine(
         _uiState,
-        categoryRepository.getAllCategories()
+        categoryRepository.getAllCategories(),
     ) { state, customCategories ->
         mergeCategories(state.type, customCategories)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = CategoryCatalog.categoriesForType(TransactionType.EXPENSE)
+        initialValue = CategoryCatalog.categoriesForType(TransactionType.EXPENSE),
     )
 
     init {
@@ -76,7 +76,7 @@ class AddTransactionViewModel @Inject constructor(
         }
         _uiState.value = _uiState.value.copy(
             amount = finalAmount,
-            amountError = null
+            amountError = null,
         )
     }
 
@@ -87,7 +87,7 @@ class AddTransactionViewModel @Inject constructor(
     fun onCategorySelected(categoryId: UUID) {
         _uiState.value = _uiState.value.copy(
             categoryId = categoryId,
-            categoryError = null
+            categoryError = null,
         )
     }
 
@@ -161,20 +161,20 @@ class AddTransactionViewModel @Inject constructor(
                     description = currentState.note.takeIf { it.isNotBlank() },
                     date = currentState.date,
                     sourceType = TransactionSourceType.MANUAL,
-                    userConfirmed = true
+                    userConfirmed = true,
                 )
 
                 transactionRepository.insertTransaction(transaction)
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    isSuccess = true
+                    isSuccess = true,
                 )
                 onSuccess()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    amountError = "保存失败: ${e.message}"
+                    amountError = "保存失败: ${e.message}",
                 )
             }
         }

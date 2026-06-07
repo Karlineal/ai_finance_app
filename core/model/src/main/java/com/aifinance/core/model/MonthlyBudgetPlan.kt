@@ -115,4 +115,3 @@ enum class UserRole {
     FREELANCER,
     OTHER,
 }
-

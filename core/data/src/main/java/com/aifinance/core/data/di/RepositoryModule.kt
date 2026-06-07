@@ -26,44 +26,29 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindTransactionRepository(
-        impl: TransactionRepositoryImpl
-    ): TransactionRepository
+    abstract fun bindTransactionRepository(impl: TransactionRepositoryImpl): TransactionRepository
 
     @Binds
     @Singleton
-    abstract fun bindAccountRepository(
-        impl: AccountRepositoryImpl
-    ): AccountRepository
+    abstract fun bindAccountRepository(impl: AccountRepositoryImpl): AccountRepository
 
     @Binds
     @Singleton
-    abstract fun bindCategoryRepository(
-        impl: CategoryRepositoryImpl
-    ): CategoryRepository
+    abstract fun bindCategoryRepository(impl: CategoryRepositoryImpl): CategoryRepository
 
     @Binds
     @Singleton
-    abstract fun bindScheduledRuleRepository(
-        impl: ScheduledRuleRepositoryImpl
-    ): ScheduledRuleRepository
+    abstract fun bindScheduledRuleRepository(impl: ScheduledRuleRepositoryImpl): ScheduledRuleRepository
 
     @Binds
     @Singleton
-    abstract fun bindUserPreferencesRepository(
-        impl: UserPreferencesRepositoryImpl
-    ): UserPreferencesRepository
+    abstract fun bindUserPreferencesRepository(impl: UserPreferencesRepositoryImpl): UserPreferencesRepository
 
     @Binds
     @Singleton
-    abstract fun bindBudgetRepository(
-        impl: BudgetRepositoryImpl
-    ): BudgetRepository
+    abstract fun bindBudgetRepository(impl: BudgetRepositoryImpl): BudgetRepository
 
     @Binds
     @Singleton
-    abstract fun bindSavingsGoalRepository(
-        impl: SavingsGoalRepositoryImpl
-    ): SavingsGoalRepository
-
+    abstract fun bindSavingsGoalRepository(impl: SavingsGoalRepositoryImpl): SavingsGoalRepository
 }

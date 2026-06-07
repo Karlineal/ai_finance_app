@@ -82,7 +82,11 @@ class SavingsGoalRepositoryImpl @Inject constructor(
         return savingsGoalDao.getGoalByAccountId(accountId)?.toDomain()
     }
 
-    override suspend fun deleteRecordByGoalDateAmount(savingsGoalId: UUID, date: java.time.LocalDate, amount: BigDecimal) {
+    override suspend fun deleteRecordByGoalDateAmount(
+        savingsGoalId: UUID,
+        date: java.time.LocalDate,
+        amount: BigDecimal,
+    ) {
         val record = savingsRecordDao.getRecordByGoalDateAmount(savingsGoalId, date, amount)
         if (record != null) {
             savingsRecordDao.deleteRecord(record)

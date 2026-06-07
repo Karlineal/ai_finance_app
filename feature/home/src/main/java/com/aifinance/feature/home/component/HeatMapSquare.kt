@@ -26,7 +26,7 @@ fun HeatMapSquare(
     dayNumber: Int = 0,
     daysInMonth: Int = 0,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
@@ -53,21 +53,21 @@ fun HeatMapSquare(
             .clip(RoundedCornerShape(6.dp))
             .background(backgroundColor)
             .clickable { onClick() },
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         if (isToday) {
             Text(
                 text = "今",
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (activity == DayActivity.None) todayPrimaryColor else Color.White
+                color = if (activity == DayActivity.None) todayPrimaryColor else Color.White,
             )
         } else if (shouldShowDayNumber) {
             Text(
                 text = dayNumber.toString(),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
-                color = dayNumberColor
+                color = dayNumberColor,
             )
         }
     }

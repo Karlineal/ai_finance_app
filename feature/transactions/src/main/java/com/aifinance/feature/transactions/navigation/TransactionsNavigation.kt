@@ -16,7 +16,7 @@ const val TRANSACTION_DETAIL_ROUTE = "transaction_detail/{transactionId}"
 const val ALL_RECORDS_ROUTE = "all_records/{dateString}"
 
 fun transactionDetailRoute(transactionId: UUID): String = "transaction_detail/$transactionId"
-fun allRecordsRoute(date: LocalDate): String = "all_records/${date}"
+fun allRecordsRoute(date: LocalDate): String = "all_records/$date"
 
 fun NavController.navigateToTransactions(navOptions: NavOptions? = null) {
     navigate(TRANSACTIONS_ROUTE, navOptions)
@@ -30,9 +30,7 @@ fun NavController.navigateToAllRecords(date: LocalDate, navOptions: NavOptions? 
     navigate(allRecordsRoute(date), navOptions)
 }
 
-fun NavGraphBuilder.transactionsScreen(
-    onNavigateToTransactionDetail: (UUID) -> Unit = {},
-) {
+fun NavGraphBuilder.transactionsScreen(onNavigateToTransactionDetail: (UUID) -> Unit = {}) {
     composable(TRANSACTIONS_ROUTE) {
         TransactionsScreen(
             onNavigateToTransactionDetail = onNavigateToTransactionDetail,
@@ -62,27 +60,16 @@ fun NavGraphBuilder.calendarTransactionsScreen(
     }
 }
 
-fun NavGraphBuilder.transactionDetailScreen(
-    onBack: () -> Unit,
-) {
+fun NavGraphBuilder.transactionDetailScreen(onBack: () -> Unit, onSaved: () -> Unit) {
     composable(
         route = TRANSACTION_DETAIL_ROUTE,
         arguments = listOf(navArgument("transactionId") { type = NavType.StringType }),
     ) { backStackEntry ->
-        val transactionIdStr = backStackEntry.arguments?.getString("transactionId")
-
-        // 💡 修复点 1：将 String 安全转换为 UUID 类型
-        val transactionId = try {
-            transactionIdStr?.let { UUID.fromString(it) } ?: UUID.randomUUID()
-        } catch (_: Exception) {
-            UUID.randomUUID()
-        }
-
-        // 💡 修复点 2：严格对应 TransactionDetailRoute 的形参名称
+        val transactionIdArg = backStackEntry.arguments?.getString("transactionId")
         com.aifinance.feature.transactions.TransactionDetailRoute(
-            transactionIdArg = transactionIdStr, 
+            transactionIdArg = transactionIdArg,
             onBack = onBack,
-            onSaved = onBack // Default behavior to go back on save
+            onSaved = onSaved,
         )
     }
 }

@@ -8,10 +8,10 @@ import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.Account
 import com.aifinance.core.model.AccountType
 import com.aifinance.core.model.CategoryCatalog
-import com.aifinance.core.model.SavingsGoal
-import com.aifinance.core.model.SavingsMethod
 import com.aifinance.core.model.SavingsFrequency
+import com.aifinance.core.model.SavingsGoal
 import com.aifinance.core.model.SavingsGoalStatus
+import com.aifinance.core.model.SavingsMethod
 import com.aifinance.core.model.SavingsRecord
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
@@ -34,21 +34,21 @@ class SavingsGoalViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val transactionRepository: TransactionRepository,
     private val scheduledRuleRepository: com.aifinance.core.data.repository.ScheduledRuleRepository,
-    private val scheduledRuleScheduler: com.aifinance.core.data.scheduler.ScheduledRuleScheduler
+    private val scheduledRuleScheduler: com.aifinance.core.data.scheduler.ScheduledRuleScheduler,
 ) : ViewModel() {
 
     val goals: StateFlow<List<SavingsGoal>> = savingsGoalRepository.getAllGoals()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
+            initialValue = emptyList(),
         )
 
     val accounts: StateFlow<List<Account>> = accountRepository.getActiveAccounts()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
+            initialValue = emptyList(),
         )
 
     fun createGoal(goal: SavingsGoal, isAutoDeduct: Boolean = false) {
@@ -65,17 +65,19 @@ class SavingsGoalViewModel @Inject constructor(
                 icon = "💰",
                 note = "攒钱计划专属账户",
                 includeInTotalAssets = true,
-                isDefaultIncomeExpense = false
+                isDefaultIncomeExpense = false,
             )
             accountRepository.insertAccount(newAccount)
-            
+
             val goalWithAccount = goal.copy(accountId = accountId)
             savingsGoalRepository.createGoal(goalWithAccount)
 
             if (isAutoDeduct) {
                 val defaultAccount = accountRepository.getActiveAccounts().firstOrNull()?.firstOrNull { it.isDefaultIncomeExpense }
-                    ?: accountRepository.getActiveAccounts().firstOrNull()?.firstOrNull { it.type == AccountType.CASH || it.type == AccountType.BANK }
-                
+                    ?: accountRepository.getActiveAccounts().firstOrNull()?.firstOrNull {
+                        it.type == AccountType.CASH || it.type == AccountType.BANK
+                    }
+
                 if (defaultAccount != null) {
                     val recurrence = when (goal.savingsMethod) {
                         SavingsMethod.DAILY_365 -> com.aifinance.core.model.ScheduledRecurrence.DAILY
@@ -105,7 +107,7 @@ class SavingsGoalViewModel @Inject constructor(
                         recurrence = recurrence,
                         endMode = com.aifinance.core.model.ScheduledEndMode.END_DATE,
                         endDate = goal.endDate,
-                        maxOccurrences = null
+                        maxOccurrences = null,
                     )
                     scheduledRuleRepository.insert(rule)
                     val nextBase = java.time.LocalDateTime.of(goal.startDate, java.time.LocalTime.of(10, 0))
@@ -113,9 +115,12 @@ class SavingsGoalViewModel @Inject constructor(
                         start = nextBase,
                         recurrence = recurrence,
                         zone = java.time.ZoneId.systemDefault(),
-                        now = Instant.now()
+                        now = Instant.now(),
                     )
-                    scheduledRuleScheduler.enqueueKnownNext(rule.id, nextLocal.atZone(java.time.ZoneId.systemDefault()).toInstant())
+                    scheduledRuleScheduler.enqueueKnownNext(
+                        rule.id,
+                        nextLocal.atZone(java.time.ZoneId.systemDefault()).toInstant(),
+                    )
                 }
             }
         }
@@ -144,7 +149,7 @@ class SavingsGoalViewModel @Inject constructor(
             val defaultAccount = accountRepository.getActiveAccounts().firstOrNull()
                 ?.firstOrNull { it.isDefaultIncomeExpense }
                 ?: accountRepository.getActiveAccounts().firstOrNull()
-                ?.firstOrNull { it.type == AccountType.CASH || it.type == AccountType.BANK }
+                    ?.firstOrNull { it.type == AccountType.CASH || it.type == AccountType.BANK }
 
             val record = SavingsRecord(
                 id = UUID.randomUUID(),
@@ -153,7 +158,7 @@ class SavingsGoalViewModel @Inject constructor(
                 date = LocalDate.now(),
                 note = "快速存入",
                 periodIndex = 0,
-                createdAt = Instant.now()
+                createdAt = Instant.now(),
             )
 
             addRecord(record, defaultAccount?.id)
@@ -173,14 +178,14 @@ class SavingsGoalViewModel @Inject constructor(
     fun addRecord(record: SavingsRecord, sourceAccountId: UUID? = null) {
         viewModelScope.launch {
             savingsGoalRepository.addRecord(record)
-            
+
             if (sourceAccountId != null) {
                 val goal = savingsGoalRepository.getGoalById(record.savingsGoalId).firstOrNull()
                 if (goal != null) {
                     val targetAccountId = goal.accountId
                     val now = Instant.now()
                     val today = LocalDate.now()
-                    
+
                     val pairId = UUID.randomUUID()
 
                     val txOut = Transaction(
@@ -194,7 +199,7 @@ class SavingsGoalViewModel @Inject constructor(
                         description = "攒钱计划：${goal.name} 打卡",
                         date = today,
                         time = now,
-                        linkedTransactionId = pairId
+                        linkedTransactionId = pairId,
                     )
 
                     val txIn = Transaction(
@@ -208,7 +213,7 @@ class SavingsGoalViewModel @Inject constructor(
                         description = "攒钱计划：${goal.name} 打卡",
                         date = today,
                         time = now,
-                        linkedTransactionId = pairId
+                        linkedTransactionId = pairId,
                     )
 
                     transactionRepository.insertTransaction(txOut)

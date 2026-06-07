@@ -17,10 +17,10 @@ import java.util.UUID
             entity = SavingsGoalEntity::class,
             parentColumns = ["id"],
             childColumns = ["savingsGoalId"],
-            onDelete = ForeignKey.CASCADE
-        )
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
-    indices = [Index(value = ["savingsGoalId"])]
+    indices = [Index(value = ["savingsGoalId"])],
 )
 data class SavingsRecordEntity(
     @PrimaryKey val id: UUID,

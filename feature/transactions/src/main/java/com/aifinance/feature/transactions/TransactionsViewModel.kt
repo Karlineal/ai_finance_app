@@ -64,7 +64,7 @@ class TransactionsViewModel @Inject constructor(
                 transaction.copy(
                     categoryId = category.id,
                     title = category.name,
-                )
+                ),
             )
         }
     }
@@ -85,7 +85,7 @@ class TransactionsViewModel @Inject constructor(
                     date = date,
                     type = type,
                     isPending = !includeInExpense,
-                )
+                ),
             )
         }
     }
@@ -107,10 +107,11 @@ class TransactionsViewModel @Inject constructor(
                     time = AppDateTime.toInstant(dateTime),
                     type = type,
                     description = remark,
-                )
+                ),
             )
         }
     }
+
     fun addTransactionReceipts(context: Context, transaction: Transaction, uris: List<Uri>) {
         if (uris.isEmpty()) return
         viewModelScope.launch(Dispatchers.IO) {
@@ -129,13 +130,11 @@ class TransactionsViewModel @Inject constructor(
                 val updatedPaths = (existingPaths + newPaths).joinToString(",")
 
                 transactionRepository.updateTransaction(
-                    transaction.copy(receiptImagePath = updatedPaths)
+                    transaction.copy(receiptImagePath = updatedPaths),
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
-
 }
-

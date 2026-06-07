@@ -12,9 +12,7 @@ fun NavController.navigateToCategoryManagement(navOptions: NavOptions? = null) {
     navigate(CATEGORY_MANAGEMENT_ROUTE, navOptions)
 }
 
-fun NavGraphBuilder.categoryManagementScreen(
-    onBack: () -> Unit,
-) {
+fun NavGraphBuilder.categoryManagementScreen(onBack: () -> Unit) {
     composable(CATEGORY_MANAGEMENT_ROUTE) {
         CategoryManagementScreen(onBack = onBack)
     }

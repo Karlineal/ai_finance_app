@@ -58,7 +58,7 @@ class CategoryManagementViewModel @Inject constructor(
                     order = nextOrder,
                     createdAt = Instant.now(),
                     updatedAt = Instant.now(),
-                )
+                ),
             )
         }
     }

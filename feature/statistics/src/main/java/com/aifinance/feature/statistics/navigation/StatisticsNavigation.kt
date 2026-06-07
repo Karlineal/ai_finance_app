@@ -12,9 +12,7 @@ fun NavController.navigateToStatistics(navOptions: NavOptions? = null) {
     navigate(STATISTICS_ROUTE, navOptions)
 }
 
-fun NavGraphBuilder.statisticsScreen(
-    onBack: () -> Unit,
-) {
+fun NavGraphBuilder.statisticsScreen(onBack: () -> Unit) {
     composable(STATISTICS_ROUTE) {
         StatisticsScreen(onBack = onBack)
     }

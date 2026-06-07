@@ -3,29 +3,27 @@ package com.aifinance.feature.budget
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.BudgetRepository
+import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.MonthlyBudgetPlan
 import com.aifinance.core.model.TodayBudgetResult
-import com.aifinance.core.model.calcTodayBudget
-import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.model.Transaction
 import com.aifinance.core.model.TransactionType
-import com.aifinance.core.model.UserRole
+import com.aifinance.core.model.calcTodayBudget
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.YearMonth
-import java.time.ZoneId
 import java.math.RoundingMode
+import java.time.LocalDate
+import java.time.ZoneId
 import javax.inject.Inject
 
 enum class BudgetUsageStatus { LOW, MEDIUM, HIGH }
@@ -153,7 +151,14 @@ class BudgetDashboardViewModel @Inject constructor(
 
         val categoriesUsage = plan.categories.map { c ->
             val spent = categorySpentById[c.categoryId] ?: BigDecimal.ZERO
-            val ratio = if (c.amount.compareTo(BigDecimal.ZERO) == 0) BigDecimal.ZERO else spent.divide(c.amount, 4, java.math.RoundingMode.HALF_UP)
+            val ratio = if (c.amount.compareTo(
+                    BigDecimal.ZERO,
+                ) == 0
+            ) {
+                BigDecimal.ZERO
+            } else {
+                spent.divide(c.amount, 4, java.math.RoundingMode.HALF_UP)
+            }
             val status = when {
                 ratio < BigDecimal("0.6") -> BudgetUsageStatus.LOW
                 ratio <= BigDecimal("0.8") -> BudgetUsageStatus.MEDIUM
@@ -183,4 +188,3 @@ class BudgetDashboardViewModel @Inject constructor(
         )
     }
 }
-

@@ -31,12 +31,12 @@ object FileUtils {
         val tempFile = File.createTempFile(
             "camera_${System.currentTimeMillis()}",
             ".jpg",
-            context.cacheDir
+            context.cacheDir,
         )
         return FileProvider.getUriForFile(
             context,
             "${context.packageName}.fileprovider",
-            tempFile
+            tempFile,
         )
     }
 

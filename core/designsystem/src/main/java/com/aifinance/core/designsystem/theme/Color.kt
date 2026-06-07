@@ -121,3 +121,13 @@ val SavingsPigBorderDark = Color(0xFF334155)
 val SavingsFormBgDark = Color(0xFF1E293B)
 val SavingsSwitchTrackDark = Color(0xFF3B5998)
 val SavingsDashedLineDark = Color(0xFF475569)
+
+// Savings Goal — Coloring grid colors (light theme)
+val ColoringGridBg = Color(0xFFF8F9FC) // 更柔和的浅灰背景
+val ColoringTileBg = Color(0xFFD6E4F0) // 清新的浅蓝格子
+val ColoringTileBgEnd = Color(0xFFFFE4B5) // end 标记使用暖橙色
+
+// Savings Goal — Coloring grid colors (dark theme)
+val ColoringGridBgDark = Color(0xFF0F172A) // 深邃的深蓝背景
+val ColoringTileBgDark = Color(0xFF1E3A5F) // 更明显的蓝色格子
+val ColoringTileBgEndDark = Color(0xFF8B5E3C) // end 标记使用棕色
