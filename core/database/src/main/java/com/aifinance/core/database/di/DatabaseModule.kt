@@ -13,6 +13,7 @@ import com.aifinance.core.database.dao.TransactionDao
 import com.aifinance.core.database.migration.MIGRATION_6_7
 import com.aifinance.core.database.migration.MIGRATION_7_8
 import com.aifinance.core.database.migration.MIGRATION_8_9
+import com.aifinance.core.database.migration.MIGRATION_9_10
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,7 +41,7 @@ object DatabaseModule {
             AiFinanceDatabase::class.java,
             "ai_finance.db",
         )
-            .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+            .addMigrations(MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
             .fallbackToDestructiveMigration()
             .addCallback(DatabaseCallback(accountDao, categoryDao, transactionDao, scheduledRuleDao, savingsGoalDao))
             .build()
