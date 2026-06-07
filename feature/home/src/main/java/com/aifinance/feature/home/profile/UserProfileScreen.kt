@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
@@ -116,48 +117,31 @@ fun UserProfileScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Avatar Section
-            Box(contentAlignment = Alignment.BottomEnd) {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (avatarUri.isNotEmpty()) {
-                        AsyncImage(
-                            model = Uri.parse(avatarUri),
-                            contentDescription = "Avatar",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Avatar",
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(80.dp)
-                        )
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .clickable {
-                            photoPickerLauncher.launch(
-                                androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                            )
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                if (avatarUri.isNotEmpty()) {
+                    AsyncImage(
+                        model = Uri.parse(avatarUri),
+                        contentDescription = "点击更换头像",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
                     Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "Change avatar",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(16.dp)
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = "点击更换头像",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(80.dp)
                     )
                 }
             }
