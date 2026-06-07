@@ -40,7 +40,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -92,11 +94,11 @@ fun LoginScreen(
                     .background(BrandPrimary.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "AI",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = BrandPrimary,
-                    fontWeight = FontWeight.Bold
+                Icon(
+                    painter = painterResource(id = com.aifinance.feature.home.R.drawable.app_icon),
+                    contentDescription = "App Icon",
+                    modifier = Modifier.size(60.dp),
+                    contentScale = ContentScale.Fit
                 )
             }
 
