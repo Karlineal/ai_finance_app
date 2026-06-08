@@ -60,11 +60,17 @@ fun AiAssistantScreen(viewModel: AssistantViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
+    LaunchedEffect(Unit) {
+        viewModel.consumeStatisticsContext()
+    }
+
     LaunchedEffect(uiState.messages.size) {
         if (uiState.messages.isNotEmpty()) {
             listState.animateScrollToItem(uiState.messages.size - 1)
         }
     }
+
+    val hasMessages = uiState.messages.isNotEmpty()
 
     Box(
         modifier = Modifier
@@ -75,7 +81,7 @@ fun AiAssistantScreen(viewModel: AssistantViewModel = hiltViewModel()) {
             modifier = Modifier.fillMaxSize(),
         ) {
             Box(modifier = Modifier.weight(1f)) {
-                if (uiState.messages.isEmpty()) {
+                if (!hasMessages) {
                     EmptyState(
                         onPromptClick = { prompt ->
                             viewModel.onInputChange(prompt)
@@ -89,10 +95,17 @@ fun AiAssistantScreen(viewModel: AssistantViewModel = hiltViewModel()) {
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         items(uiState.messages) { message ->
-                            MessageItem(message = message)
+                            when (message.role) {
+                                AssistantRole.USER -> {
+                                    UserMessageItem(message = message)
+                                }
+                                AssistantRole.ASSISTANT -> {
+                                    DocumentView(content = message.content)
+                                }
+                            }
                         }
                         if (uiState.isLoading) {
                             item {
@@ -285,7 +298,7 @@ private fun CapabilityItem(emoji: String, text: String) {
 }
 
 @Composable
-private fun ICookieAvatar(size: androidx.compose.ui.unit.Dp = 80.dp, modifier: Modifier = Modifier) {
+private fun LegacyICookieAvatar(size: androidx.compose.ui.unit.Dp = 80.dp, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.size(size),
         contentAlignment = Alignment.Center,
@@ -429,80 +442,38 @@ private fun DrawScope.drawMiniCookie() {
 }
 
 @Composable
-private fun MessageItem(message: AssistantMessage) {
-    val isUser = message.role == AssistantRole.USER
-
+private fun UserMessageItem(message: AssistantMessage) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
+        horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.Top,
     ) {
-        if (!isUser) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(CookieSecondary),
-                contentAlignment = Alignment.Center,
-            ) {
-                Canvas(modifier = Modifier.size(28.dp)) {
-                    drawMiniCookie()
-                }
-            }
-            Spacer(modifier = Modifier.width(8.dp))
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.widthIn(max = 300.dp),
+        ) {
+            Text(
+                text = message.content,
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+            )
         }
+    }
+}
 
-        Column {
-            Box(
-                modifier = Modifier
-                    .widthIn(max = 340.dp)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = if (isUser) 20.dp else 4.dp,
-                            topEnd = if (isUser) 4.dp else 20.dp,
-                            bottomStart = 20.dp,
-                            bottomEnd = 20.dp,
-                        ),
-                    )
-                    .background(
-                        if (isUser) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainerHigh
-                        },
-                    )
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-            ) {
-                if (isUser) {
-                    Text(
-                        text = message.content,
-                        fontSize = 15.sp,
-                        lineHeight = 22.sp,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                } else {
-                    MarkdownText(content = message.content)
-                }
-            }
-        }
-
-        if (isUser) {
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "我",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-        }
+@Composable
+private fun DocumentView(content: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 12.dp, bottomEnd = 12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(horizontal = 4.dp, vertical = 0.dp),
+    ) {
+        MarkdownText(content = content)
     }
 }
 
@@ -644,44 +615,33 @@ private fun MarkdownText(content: String) {
                 webView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
             }
         },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 12.dp),
     )
 }
 
 @Composable
 private fun LoadingIndicator() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.Top,
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        contentAlignment = Alignment.CenterStart,
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(CookieSecondary),
-            contentAlignment = Alignment.Center,
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Canvas(modifier = Modifier.size(28.dp)) {
-                drawMiniCookie()
+            repeat(3) { index ->
+                DotAnimation(index = index)
             }
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                repeat(3) { index ->
-                    DotAnimation(index = index)
-                }
-            }
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "思考中...",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
