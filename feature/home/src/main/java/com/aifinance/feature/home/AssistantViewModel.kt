@@ -5,9 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.CategoryRepository
-import com.aifinance.core.data.repository.PangkaReplyStyle
 import com.aifinance.core.data.repository.TransactionRepository
-import com.aifinance.core.data.repository.UserPreferencesRepository
 import com.aifinance.core.data.repository.ai.AIRepository
 import com.aifinance.core.model.AppDateTime
 import com.aifinance.core.model.CategoryCatalog
@@ -36,7 +34,6 @@ class AssistantViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val categoryRepository: CategoryRepository,
     private val statisticsAnalysisBridge: StatisticsAnalysisBridge,
-    private val userPreferencesRepository: UserPreferencesRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AssistantUiState())
@@ -69,7 +66,7 @@ class AssistantViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            val systemContext = buildSystemContextWithReplyStyle()
+            val systemContext = buildSystemContext()
             aiRepository.sendMessageWithContext(text, systemContext)
                 .onSuccess { response ->
                     val processedResponse = processAIResponse(response)
@@ -103,7 +100,7 @@ class AssistantViewModel @Inject constructor(
             aiRepository.recognizeImage(file)
                 .onSuccess { ocrText ->
                     val prompt = "我上传了一张账单图片，OCR识别结果如下：\n\n$ocrText\n\n请帮我提取关键信息（金额、日期、商家、分类等），并建议如何记录这笔交易。"
-                    aiRepository.sendMessageWithContext(prompt, buildReplyStyleContext())
+                    aiRepository.sendMessage(prompt)
                         .onSuccess { response ->
                             val assistantMessage = AssistantMessage(
                                 role = AssistantRole.ASSISTANT,
@@ -158,7 +155,7 @@ class AssistantViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            val systemContext = buildSystemContextWithReplyStyle()
+            val systemContext = buildSystemContext()
             aiRepository.sendMessageWithContext(prompt, systemContext)
                 .onSuccess { response ->
                     val processedResponse = processAIResponse(response)
@@ -211,20 +208,6 @@ $suggestions
 3. 具体的省钱建议
 4. 下个月的预算建议
         """.trimIndent()
-    }
-
-    private suspend fun buildSystemContextWithReplyStyle(): String {
-        return buildSystemContext() + "\n\n" + buildReplyStyleContext()
-    }
-
-    private suspend fun buildReplyStyleContext(): String {
-        val style = userPreferencesRepository.settingsPreferences.first().pangkaReplyStyle
-        val instruction = when (style) {
-            PangkaReplyStyle.CONCISE -> "用简洁直接的方式回答，优先给结论和必要步骤，避免长篇解释。"
-            PangkaReplyStyle.BALANCED -> "用自然友好的方式回答，先给结论，再补充关键原因和可执行建议。"
-            PangkaReplyStyle.DETAILED -> "用更完整的方式回答，包含分析过程、依据、风险提醒和后续建议。"
-        }
-        return "【胖咔回复风格】\n$instruction"
     }
 
     private suspend fun buildSystemContext(): String {

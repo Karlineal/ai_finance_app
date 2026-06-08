@@ -91,7 +91,6 @@ fun AddTransactionBottomSheet(
     onDismiss: () -> Unit,
     onSuccess: () -> Unit,
     onNavigateToAssetManagement: () -> Unit,
-    showLocationInRecords: Boolean = true,
     viewModel: AddTransactionViewModel = hiltViewModel(),
 ) {
     val sheetState = rememberModalBottomSheetState(
@@ -120,7 +119,6 @@ fun AddTransactionBottomSheet(
                 }
             },
             onNavigateToAssetManagement = onNavigateToAssetManagement,
-            showLocationInRecords = showLocationInRecords,
             viewModel = viewModel,
         )
     }
@@ -131,7 +129,6 @@ private fun AddTransactionSheetContent(
     onClose: () -> Unit,
     onSuccess: () -> Unit,
     onNavigateToAssetManagement: () -> Unit,
-    showLocationInRecords: Boolean,
     viewModel: AddTransactionViewModel,
 ) {
     val context = LocalContext.current
@@ -359,20 +356,6 @@ private fun AddTransactionSheetContent(
                             }
                             showDateTimePicker = true
                         },
-                    )
-                }
-            }
-
-            if (showLocationInRecords) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                ) {
-                    InfoChip(
-                        icon = "\uD83D\uDCCD",
-                        text = "系统定位",
-                        onClick = {},
                     )
                 }
             }

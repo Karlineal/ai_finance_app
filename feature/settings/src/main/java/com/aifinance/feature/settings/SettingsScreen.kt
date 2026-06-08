@@ -43,7 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aifinance.core.data.repository.AppThemeMode
-import com.aifinance.core.data.repository.PangkaReplyStyle
 
 @Composable
 fun SettingsScreen(
@@ -60,7 +59,6 @@ fun SettingsScreen(
     }
     var showThemeDialog by remember { mutableStateOf(false) }
     var showMonthStartDialog by remember { mutableStateOf(false) }
-    var showPangkaReplyDialog by remember { mutableStateOf(false) }
     var showHelpDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
@@ -102,20 +100,10 @@ fun SettingsScreen(
                 value = "每月${uiState.monthlyStatsStartDay}日",
                 onClick = { showMonthStartDialog = true },
             )
-            SettingArrowRow(
-                title = "胖咔回复设置",
-                value = uiState.pangkaReplyStyle.label,
-                onClick = { showPangkaReplyDialog = true },
-            )
             SettingSwitchRow(
                 title = "展示记录图片",
                 checked = uiState.showRecordImages,
                 onCheckedChange = viewModel::setShowRecordImages,
-            )
-            SettingSwitchRow(
-                title = "记录时展示位置信息",
-                checked = uiState.showLocationInRecords,
-                onCheckedChange = viewModel::setShowLocationInRecords,
             )
         }
 
@@ -170,17 +158,6 @@ fun SettingsScreen(
                 showMonthStartDialog = false
             },
             onDismiss = { showMonthStartDialog = false },
-        )
-    }
-
-    if (showPangkaReplyDialog) {
-        PangkaReplyDialog(
-            currentStyle = uiState.pangkaReplyStyle,
-            onStyleSelected = { style ->
-                viewModel.setPangkaReplyStyle(style)
-                showPangkaReplyDialog = false
-            },
-            onDismiss = { showPangkaReplyDialog = false },
         )
     }
 
@@ -357,34 +334,6 @@ private fun MonthStartDayDialog(
 }
 
 @Composable
-private fun PangkaReplyDialog(
-    currentStyle: PangkaReplyStyle,
-    onStyleSelected: (PangkaReplyStyle) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("胖咔回复设置") },
-        text = {
-            Column {
-                PangkaReplyStyle.entries.forEach { style ->
-                    SelectableOptionRow(
-                        label = style.label,
-                        selected = currentStyle == style,
-                        onClick = { onStyleSelected(style) },
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        },
-    )
-}
-
-@Composable
 private fun InfoDialog(
     title: String,
     message: String,
@@ -457,11 +406,4 @@ private val AppThemeMode.label: String
         AppThemeMode.LIGHT -> "浅色主题"
         AppThemeMode.DARK -> "深色主题"
         AppThemeMode.SYSTEM -> "跟随系统"
-    }
-
-private val PangkaReplyStyle.label: String
-    get() = when (this) {
-        PangkaReplyStyle.BALANCED -> "智能平衡"
-        PangkaReplyStyle.CONCISE -> "简洁回复"
-        PangkaReplyStyle.DETAILED -> "详细回复"
     }

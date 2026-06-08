@@ -245,7 +245,6 @@ fun RecordHomeContent(
                                             accountName = accountsById.value[transaction.accountId]?.name,
                                             category = categoriesById.value[transaction.categoryId],
                                             showRecordImages = settingsPreferences.value.showRecordImages,
-                                            showLocationInRecords = settingsPreferences.value.showLocationInRecords,
                                             onClick = { onNavigateToTransactionDetail(transaction.id) },
                                             onAmountClick = { onNavigateToTransactionDetail(transaction.id) },
                                             onCategoryClick = { categoryPickerTransaction = transaction },
@@ -316,7 +315,6 @@ fun RecordHomeContent(
                     showAddTransaction = false
                 },
                 onNavigateToAssetManagement = onNavigateToAssetManagement,
-                showLocationInRecords = settingsPreferences.value.showLocationInRecords,
             )
         }
 

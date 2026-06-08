@@ -17,18 +17,10 @@ enum class AppThemeMode {
     SYSTEM,
 }
 
-enum class PangkaReplyStyle {
-    BALANCED,
-    CONCISE,
-    DETAILED,
-}
-
 data class SettingsPreferences(
     val themeMode: AppThemeMode = AppThemeMode.LIGHT,
     val monthlyStatsStartDay: Int = 1,
-    val pangkaReplyStyle: PangkaReplyStyle = PangkaReplyStyle.BALANCED,
     val showRecordImages: Boolean = true,
-    val showLocationInRecords: Boolean = true,
 )
 
 interface UserPreferencesRepository {
@@ -36,9 +28,7 @@ interface UserPreferencesRepository {
     val settingsPreferences: Flow<SettingsPreferences>
     suspend fun setThemeMode(mode: AppThemeMode)
     suspend fun setMonthlyStatsStartDay(day: Int)
-    suspend fun setPangkaReplyStyle(style: PangkaReplyStyle)
     suspend fun setShowRecordImages(enabled: Boolean)
-    suspend fun setShowLocationInRecords(enabled: Boolean)
 
     val isLoggedIn: Flow<Boolean>
     suspend fun setLoggedIn(loggedIn: Boolean)
@@ -72,9 +62,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         SettingsPreferences(
             themeMode = preferences.themeMode,
             monthlyStatsStartDay = (preferences[MONTHLY_STATS_START_DAY_KEY] ?: 1).coerceIn(1, 28),
-            pangkaReplyStyle = preferences.pangkaReplyStyle,
             showRecordImages = preferences[SHOW_RECORD_IMAGES_KEY] ?: true,
-            showLocationInRecords = preferences[SHOW_LOCATION_IN_RECORDS_KEY] ?: true,
         )
     }
 
@@ -90,21 +78,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun setPangkaReplyStyle(style: PangkaReplyStyle) {
-        dataStore.edit { preferences ->
-            preferences[PANGKA_REPLY_STYLE_KEY] = style.name
-        }
-    }
-
     override suspend fun setShowRecordImages(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[SHOW_RECORD_IMAGES_KEY] = enabled
-        }
-    }
-
-    override suspend fun setShowLocationInRecords(enabled: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[SHOW_LOCATION_IN_RECORDS_KEY] = enabled
         }
     }
 
@@ -149,18 +125,10 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             return runCatching { AppThemeMode.valueOf(raw) }.getOrDefault(AppThemeMode.LIGHT)
         }
 
-    private val Preferences.pangkaReplyStyle: PangkaReplyStyle
-        get() {
-            val raw = this[PANGKA_REPLY_STYLE_KEY] ?: PangkaReplyStyle.BALANCED.name
-            return runCatching { PangkaReplyStyle.valueOf(raw) }.getOrDefault(PangkaReplyStyle.BALANCED)
-        }
-
     private companion object {
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         val MONTHLY_STATS_START_DAY_KEY = intPreferencesKey("monthly_stats_start_day")
-        val PANGKA_REPLY_STYLE_KEY = stringPreferencesKey("pangka_reply_style")
         val SHOW_RECORD_IMAGES_KEY = booleanPreferencesKey("show_record_images")
-        val SHOW_LOCATION_IN_RECORDS_KEY = booleanPreferencesKey("show_location_in_records")
         val IS_LOGGED_IN_KEY = booleanPreferencesKey("is_logged_in")
         val NICKNAME_KEY = stringPreferencesKey("nickname")
         val GENDER_KEY = stringPreferencesKey("gender")
