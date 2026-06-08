@@ -509,18 +509,20 @@ private fun Daily365HeatMapView(
             }
 
             // 热力图网格 (横向滚动)
+            // 背景放在 Canvas 上而非外层 Box，避免 Canvas 宽度不足时
+            // Box 深色背景在右侧露出造成"突然终断"的视觉问题
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .horizontalScroll(rememberScrollState())
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(if (isDark) Color(0xFF161B22) else Color(0xFFF6F8FA))
                     .padding(4.dp),
             ) {
                 Canvas(
                     modifier = Modifier
                         .width(canvasWidthDp)
                         .height(canvasHeightDp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isDark) Color(0xFF161B22) else Color(0xFFF6F8FA))
                         .pointerInput(completedPeriods, periodMap) {
                             detectTapGestures { offset ->
                                 val col = (offset.x / stepPx).toInt()
