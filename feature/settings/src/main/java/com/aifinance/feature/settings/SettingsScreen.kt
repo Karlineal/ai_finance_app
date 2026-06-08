@@ -1,7 +1,11 @@
 package com.aifinance.feature.settings
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,7 +58,12 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val versionName = remember(context) {
         runCatching {
-            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0)).versionName
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0).versionName
+            }
         }.getOrNull() ?: "未知"
     }
     var showThemeDialog by remember { mutableStateOf(false) }
@@ -168,7 +177,11 @@ fun SettingsScreen(
                     Intent.ACTION_VIEW,
                     Uri.parse("https://github.com/Karlineal/ai_finance_app/issues"),
                 )
-                runCatching { context.startActivity(intent) }
+                try {
+                    context.startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(context, "未找到浏览器应用", Toast.LENGTH_SHORT).show()
+                }
                 showHelpDialog = false
             },
             onDismiss = { showHelpDialog = false },

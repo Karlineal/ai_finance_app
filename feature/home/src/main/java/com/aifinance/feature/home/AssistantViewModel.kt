@@ -213,7 +213,9 @@ $suggestions
     private suspend fun buildSystemContext(): String {
         val accounts = accountRepository.getActiveAccounts().first()
         val categories = categoryRepository.getAllCategories().first()
+        val cutoffDate = LocalDate.now().minusDays(90)
         val allTransactions = transactionRepository.getAllTransactions().first()
+            .filter { it.date >= cutoffDate }
 
         val now = LocalDate.now()
         val yesterday = now.minusDays(1)
@@ -312,9 +314,10 @@ $suggestions
 昨天是 ${yesterday.year}年${yesterday.monthValue}月${yesterday.dayOfMonth}日，星期$yesterdayWeekDay
 
 【数据新鲜度说明】
-以下所有财务数据均为实时查询的最新数据（截至当前时间）。
+以下所有财务数据均为实时查询的最新数据（截至当前时间），基于用户最近90天的交易记录。
 请优先使用本次提供的最新数据回答用户问题。
 如果数据与之前对话有变化，请以本次最新数据为准。
+如果用户询问90天前的数据，请提示该数据不在当前分析范围内。
 
 【时间范围对照表】
 - "今天" = ${now.year}年${now.monthValue}月${now.dayOfMonth}日
@@ -358,7 +361,7 @@ ${categoryStats.joinToString("\n") { (name, income, expense) ->
             "  - $name: 收入¥$income | 支出¥$expense"
         }}
 
-【最近20笔交易详情】
+【用户最近90天的交易记录】(最近20笔)
 ${allTransactions.take(20).map { t ->
             val catName = CategoryCatalog.all.find { it.id == t.categoryId }?.name
                 ?: categories.find { it.id == t.categoryId }?.name

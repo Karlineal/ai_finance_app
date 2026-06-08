@@ -169,13 +169,11 @@ private data class StatisticsInputs(
 
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
-    transactionRepository: TransactionRepository,
+    private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
-    userPreferencesRepository: UserPreferencesRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val statisticsAnalysisBridge: StatisticsAnalysisBridge,
 ) : ViewModel() {
-
-    @Inject
-    lateinit var statisticsAnalysisBridge: StatisticsAnalysisBridge
 
     private val periodFlow = MutableStateFlow(StatisticsPeriod.MONTH)
     private val anchorDateFlow = MutableStateFlow(LocalDate.now())

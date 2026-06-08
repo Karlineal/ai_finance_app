@@ -34,7 +34,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.settingsPreferences.collect { preferences ->
                 _uiState.update { state ->
-                    state.copy(preferences)
+                    state.applyPreferences(preferences)
                 }
             }
         }
@@ -74,7 +74,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun SettingsUiState.copy(preferences: SettingsPreferences): SettingsUiState {
+    private fun SettingsUiState.applyPreferences(preferences: SettingsPreferences): SettingsUiState {
         return copy(
             themeMode = preferences.themeMode,
             monthlyStatsStartDay = preferences.monthlyStatsStartDay,

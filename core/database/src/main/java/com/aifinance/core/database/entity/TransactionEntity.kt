@@ -1,13 +1,20 @@
 package com.aifinance.core.database.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 
-@Entity(tableName = "transactions")
+@Entity(
+    tableName = "transactions",
+    indices = [
+        Index("accountId"),
+        Index("categoryId"),
+    ],
+)
 data class TransactionEntity(
     @PrimaryKey
     val id: UUID,

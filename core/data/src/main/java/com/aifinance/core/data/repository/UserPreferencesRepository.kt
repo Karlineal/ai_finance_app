@@ -54,10 +54,6 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>,
 ) : UserPreferencesRepository {
 
-    override val themeMode: Flow<AppThemeMode> = dataStore.data.map { preferences ->
-        preferences.themeMode
-    }
-
     override val settingsPreferences: Flow<SettingsPreferences> = dataStore.data.map { preferences ->
         SettingsPreferences(
             themeMode = preferences.themeMode,
@@ -65,6 +61,8 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             showRecordImages = preferences[SHOW_RECORD_IMAGES_KEY] ?: true,
         )
     }
+
+    override val themeMode: Flow<AppThemeMode> = settingsPreferences.map { it.themeMode }
 
     override suspend fun setThemeMode(mode: AppThemeMode) {
         dataStore.edit { preferences ->
