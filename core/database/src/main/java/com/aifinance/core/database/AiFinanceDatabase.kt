@@ -27,7 +27,7 @@ import com.aifinance.core.database.entity.TransactionEntity
         SavingsRecordEntity::class,
         CheckInEntity::class,
     ],
-    version = 10,
+    version = 11,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

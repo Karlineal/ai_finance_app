@@ -83,6 +83,7 @@ fun TransactionsScreen(
 ) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
+    val settingsPreferences by viewModel.settingsPreferences.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -162,6 +163,7 @@ fun TransactionsScreen(
                                         transaction = transaction,
                                         category = category,
                                         account = accounts.firstOrNull { it.id == transaction.accountId },
+                                        showRecordImages = settingsPreferences.showRecordImages,
                                         modifier = Modifier,
                                         onCategoryClick = { categoryPickerTransaction = transaction },
                                         onClick = { onNavigateToTransactionDetail(transaction.id) },
@@ -231,6 +233,7 @@ private fun TimelineTransactionItem(
     transaction: Transaction,
     category: Category,
     account: Account?,
+    showRecordImages: Boolean,
     modifier: Modifier = Modifier,
     onCategoryClick: () -> Unit,
     onClick: () -> Unit,
@@ -315,7 +318,7 @@ private fun TimelineTransactionItem(
                 )
             }
 
-            if (transaction.receiptImagePaths.isNotEmpty()) {
+            if (showRecordImages && transaction.receiptImagePaths.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 androidx.compose.foundation.lazy.LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),

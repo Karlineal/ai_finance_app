@@ -66,6 +66,7 @@ import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.CategoryRepository
 import com.aifinance.core.data.repository.StatisticsAnalysisBridge
 import com.aifinance.core.data.repository.TransactionRepository
+import com.aifinance.core.data.repository.UserPreferencesRepository
 import com.aifinance.core.model.CategoryCatalog
 import com.aifinance.core.model.AnalysisCategorySummary
 import com.aifinance.core.model.StatisticsAnalysisContext
@@ -81,12 +82,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.YearMonth
 import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
 import kotlin.math.max
@@ -145,6 +146,7 @@ data class SummaryRows(
 data class StatisticsUiState(
     val period: StatisticsPeriod = StatisticsPeriod.MONTH,
     val anchorDate: LocalDate = LocalDate.now(),
+    val monthlyStatsStartDay: Int = 1,
     val aggregate: AggregateStats = AggregateStats(),
     val trendMetric: TrendMetric = TrendMetric.EXPENSE,
     val trendBuckets: List<TrendBucket> = emptyList(),
@@ -160,18 +162,18 @@ private data class StatisticsInputs(
     val categories: List<com.aifinance.core.model.Category>,
     val period: StatisticsPeriod,
     val anchorDate: LocalDate,
+    val monthlyStatsStartDay: Int,
     val trendMetric: TrendMetric,
     val compositionMode: CompositionMode,
 )
 
 @HiltViewModel
 class StatisticsViewModel @Inject constructor(
-    transactionRepository: TransactionRepository,
+    private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val statisticsAnalysisBridge: StatisticsAnalysisBridge,
 ) : ViewModel() {
-
-    @Inject
-    lateinit var statisticsAnalysisBridge: StatisticsAnalysisBridge
 
     private val periodFlow = MutableStateFlow(StatisticsPeriod.MONTH)
     private val anchorDateFlow = MutableStateFlow(LocalDate.now())
@@ -181,19 +183,24 @@ class StatisticsViewModel @Inject constructor(
 
     private val transactionsFlow = transactionRepository.getAllTransactions()
     private val categoriesFlow = categoryRepository.getAllCategories()
+    private val monthlyStatsStartDayFlow = userPreferencesRepository.settingsPreferences
+        .map { it.monthlyStatsStartDay }
 
     private val baseInputs: StateFlow<StatisticsInputs> = combine(
-        combine(transactionsFlow, categoriesFlow) { t, c -> t to c },
+        combine(transactionsFlow, categoriesFlow, monthlyStatsStartDayFlow) { transactions, categories, monthlyStatsStartDay ->
+            Triple(transactions, categories, monthlyStatsStartDay)
+        },
         periodFlow,
         anchorDateFlow,
         trendMetricFlow,
         compositionModeFlow,
-    ) { transPair, period, anchorDate, trendMetric, compositionMode ->
+    ) { source, period, anchorDate, trendMetric, compositionMode ->
         StatisticsInputs(
-            transactions = transPair.first,
-            categories = transPair.second,
+            transactions = source.first,
+            categories = source.second,
             period = period,
             anchorDate = anchorDate,
+            monthlyStatsStartDay = source.third,
             trendMetric = trendMetric,
             compositionMode = compositionMode,
         )
@@ -205,6 +212,7 @@ class StatisticsViewModel @Inject constructor(
             categories = emptyList(),
             period = StatisticsPeriod.MONTH,
             anchorDate = LocalDate.now(),
+            monthlyStatsStartDay = 1,
             trendMetric = TrendMetric.EXPENSE,
             compositionMode = CompositionMode.EXPENSE,
         ),
@@ -218,19 +226,20 @@ class StatisticsViewModel @Inject constructor(
         val categories = inputs.categories
         val period = inputs.period
         val anchorDate = inputs.anchorDate
+        val monthlyStatsStartDay = inputs.monthlyStatsStartDay
         val trendMetric = inputs.trendMetric
         val compositionMode = inputs.compositionMode
 
         val cleanTransactions = transactions.filter { !it.isPending }
-        val filtered = cleanTransactions.filter { it.date.inPeriod(period, anchorDate) }
+        val filtered = cleanTransactions.filter { it.date.inPeriod(period, anchorDate, monthlyStatsStartDay) }
 
         val aggregate = AggregateStats(
             expense = filtered.sumAmount(TransactionType.EXPENSE),
             income = filtered.sumAmount(TransactionType.INCOME),
         )
-        val trendBuckets = buildTrendBuckets(filtered, period, anchorDate)
+        val trendBuckets = buildTrendBuckets(filtered, period, anchorDate, monthlyStatsStartDay)
         val compositionItems = buildCategoryItems(filtered, compositionMode, categories)
-        val divisor = period.divisor(anchorDate)
+        val divisor = period.divisor(anchorDate, monthlyStatsStartDay)
         val summaryRows = SummaryRows(
             total = aggregate,
             average = AggregateStats(
@@ -243,6 +252,7 @@ class StatisticsViewModel @Inject constructor(
         StatisticsUiState(
             period = period,
             anchorDate = anchorDate,
+            monthlyStatsStartDay = monthlyStatsStartDay,
             aggregate = aggregate,
             trendMetric = trendMetric,
             trendBuckets = trendBuckets,
@@ -346,6 +356,7 @@ fun StatisticsScreen(
             PeriodAnchorBar(
                 period = uiState.period,
                 anchorDate = uiState.anchorDate,
+                monthlyStatsStartDay = uiState.monthlyStatsStartDay,
                 onPrevious = viewModel::previousPeriod,
                 onNext = viewModel::nextPeriod,
             )
@@ -455,6 +466,7 @@ private fun PeriodSwitchCard(period: StatisticsPeriod, onSelect: (StatisticsPeri
 private fun PeriodAnchorBar(
     period: StatisticsPeriod,
     anchorDate: LocalDate,
+    monthlyStatsStartDay: Int,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
 ) {
@@ -465,7 +477,7 @@ private fun PeriodAnchorBar(
             "${start.year}.${start.monthValue}.${start.dayOfMonth} - ${end.monthValue}.${end.dayOfMonth}"
         }
 
-        StatisticsPeriod.MONTH -> "${anchorDate.year}年${anchorDate.monthValue}月"
+        StatisticsPeriod.MONTH -> anchorDate.monthPeriodLabel(monthlyStatsStartDay)
         StatisticsPeriod.YEAR -> "${anchorDate.year}年"
     }
     Row(
@@ -1162,7 +1174,7 @@ private fun List<TrendBucket>.axisLabels(): List<String> {
 private fun List<Transaction>.sumAmount(type: TransactionType): BigDecimal = filter { it.type == type }
     .fold(BigDecimal.ZERO) { sum, transaction -> sum + transaction.amount }
 
-private fun LocalDate.inPeriod(period: StatisticsPeriod, anchor: LocalDate): Boolean {
+private fun LocalDate.inPeriod(period: StatisticsPeriod, anchor: LocalDate, monthlyStatsStartDay: Int): Boolean {
     return when (period) {
         StatisticsPeriod.WEEK -> {
             val start = anchor.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
@@ -1170,23 +1182,30 @@ private fun LocalDate.inPeriod(period: StatisticsPeriod, anchor: LocalDate): Boo
             !isBefore(start) && !isAfter(end)
         }
 
-        StatisticsPeriod.MONTH -> year == anchor.year && monthValue == anchor.monthValue
+        StatisticsPeriod.MONTH -> {
+            val start = anchor.monthPeriodStart(monthlyStatsStartDay)
+            val end = start.plusMonths(1).minusDays(1)
+            !isBefore(start) && !isAfter(end)
+        }
         StatisticsPeriod.YEAR -> year == anchor.year
     }
 }
 
-private fun StatisticsPeriod.divisor(anchorDate: LocalDate): Int {
+private fun StatisticsPeriod.divisor(anchorDate: LocalDate, monthlyStatsStartDay: Int): Int {
     return when (this) {
         StatisticsPeriod.WEEK -> 7
-        StatisticsPeriod.MONTH -> YearMonth.of(anchorDate.year, anchorDate.monthValue).lengthOfMonth()
+        StatisticsPeriod.MONTH -> {
+            val start = anchorDate.monthPeriodStart(monthlyStatsStartDay)
+            start.datesUntil(start.plusMonths(1)).count().toInt()
+        }
         StatisticsPeriod.YEAR -> 12
     }
 }
-
 private fun buildTrendBuckets(
     filtered: List<Transaction>,
     period: StatisticsPeriod,
     anchorDate: LocalDate,
+    monthlyStatsStartDay: Int,
 ): List<TrendBucket> {
     return when (period) {
         StatisticsPeriod.WEEK -> {
@@ -1203,15 +1222,16 @@ private fun buildTrendBuckets(
         }
 
         StatisticsPeriod.MONTH -> {
-            val ym = YearMonth.of(anchorDate.year, anchorDate.monthValue)
-            (1..ym.lengthOfMonth()).map { day ->
-                val dayTransactions = filtered.filter { it.date.dayOfMonth == day }
+            val start = anchorDate.monthPeriodStart(monthlyStatsStartDay)
+            val endExclusive = start.plusMonths(1)
+            start.datesUntil(endExclusive).map { day ->
+                val dayTransactions = filtered.filter { it.date == day }
                 TrendBucket(
-                    label = "${day}日",
+                    label = "${day.monthValue}/${day.dayOfMonth}",
                     expense = dayTransactions.sumAmount(TransactionType.EXPENSE),
                     income = dayTransactions.sumAmount(TransactionType.INCOME),
                 )
-            }
+            }.toList()
         }
 
         StatisticsPeriod.YEAR -> {
@@ -1224,6 +1244,22 @@ private fun buildTrendBuckets(
                 )
             }
         }
+    }
+}
+
+private fun LocalDate.monthPeriodStart(monthlyStatsStartDay: Int): LocalDate {
+    val startDay = monthlyStatsStartDay.coerceIn(1, 28)
+    val currentMonthStart = withDayOfMonth(startDay)
+    return if (dayOfMonth >= startDay) currentMonthStart else currentMonthStart.minusMonths(1)
+}
+
+private fun LocalDate.monthPeriodLabel(monthlyStatsStartDay: Int): String {
+    val start = monthPeriodStart(monthlyStatsStartDay)
+    val end = start.plusMonths(1).minusDays(1)
+    return if (start.year == end.year) {
+        "${start.year}年${start.monthValue}月${start.dayOfMonth}日-${end.monthValue}月${end.dayOfMonth}日"
+    } else {
+        "${start.year}年${start.monthValue}月${start.dayOfMonth}日-${end.year}年${end.monthValue}月${end.dayOfMonth}日"
     }
 }
 

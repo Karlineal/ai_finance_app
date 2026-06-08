@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
@@ -414,7 +416,7 @@ private fun Daily365HeatMapView(
     }
 
     // --- 尺寸计算 ---
-    val cellSize = 12.dp
+    val cellSize = 14.dp
     val gap = 3.dp
     val density = LocalDensity.current
     val cellSizePx = with(density) { cellSize.toPx() }
@@ -442,6 +444,9 @@ private fun Daily365HeatMapView(
         }
     }
 
+    // 共享滚动状态，使月份标签与热力图同步滚动
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -450,7 +455,8 @@ private fun Daily365HeatMapView(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 20.dp)
-                .horizontalScroll(rememberScrollState()),
+                .horizontalScroll(scrollState)
+                .padding(horizontal = 4.dp),
         ) {
             val labelPaint = remember(isDark) {
                 android.graphics.Paint().apply {
@@ -509,42 +515,61 @@ private fun Daily365HeatMapView(
             }
 
             // 热力图网格 (横向滚动)
+            // 圆角和背景放在外层滚动容器 Box 上，右侧覆盖渐变淡出遮罩
             Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .horizontalScroll(rememberScrollState())
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(if (isDark) Color(0xFF161B22) else Color(0xFFF6F8FA))
-                    .padding(4.dp),
+                    .weight(1f),
             ) {
-                Canvas(
+                Box(
                     modifier = Modifier
-                        .width(canvasWidthDp)
-                        .height(canvasHeightDp)
-                        .pointerInput(completedPeriods, periodMap) {
-                            detectTapGestures { offset ->
-                                val col = (offset.x / stepPx).toInt()
-                                val row = (offset.y / stepPx).toInt()
-                                if (col in 0 until numWeeks && row in 0 until 7) {
-                                    periodMap[col to row]?.let { onPeriodClick(it) }
-                                }
-                            }
-                        },
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isDark) Color(0xFF161B22) else Color(0xFFF6F8FA))
+                        .horizontalScroll(scrollState)
+                        .padding(4.dp),
                 ) {
-                    for (w in 0 until numWeeks) {
-                        for (d in 0 until 7) {
-                            val period = periodMap[w to d] ?: continue
-                            val x = w * stepPx
-                            val y = d * stepPx
-                            drawRoundRect(
-                                color = if (period in completedPeriods) primaryColor else emptyColor,
-                                topLeft = Offset(x, y),
-                                size = Size(cellSizePx, cellSizePx),
-                                cornerRadius = CornerRadius(2f, 2f),
-                            )
+                    Canvas(
+                        modifier = Modifier
+                            .width(canvasWidthDp)
+                            .height(canvasHeightDp)
+                            .pointerInput(completedPeriods, periodMap) {
+                                detectTapGestures { offset ->
+                                    val col = (offset.x / stepPx).toInt()
+                                    val row = (offset.y / stepPx).toInt()
+                                    if (col in 0 until numWeeks && row in 0 until 7) {
+                                        periodMap[col to row]?.let { onPeriodClick(it) }
+                                    }
+                                }
+                            },
+                    ) {
+                        for (w in 0 until numWeeks) {
+                            for (d in 0 until 7) {
+                                val period = periodMap[w to d] ?: continue
+                                val x = w * stepPx
+                                val y = d * stepPx
+                                drawRoundRect(
+                                    color = if (period in completedPeriods) primaryColor else emptyColor,
+                                    topLeft = Offset(x, y),
+                                    size = Size(cellSizePx, cellSizePx),
+                                    cornerRadius = CornerRadius(2f, 2f),
+                                )
+                            }
                         }
                     }
                 }
+                // 右侧渐变淡出遮罩，优雅提示"还有更多内容"
+                val fadeColor = MaterialTheme.colorScheme.surface
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .width(24.dp)
+                        .fillMaxHeight()
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(Color.Transparent, fadeColor),
+                            ),
+                        ),
+                )
             }
         }
 

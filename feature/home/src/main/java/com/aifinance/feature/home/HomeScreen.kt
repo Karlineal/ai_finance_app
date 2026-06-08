@@ -127,6 +127,7 @@ fun RecordHomeContent(
     val totalBalance = viewModel.totalBalance.collectAsStateWithLifecycle()
     val accountsById = viewModel.accountsById.collectAsStateWithLifecycle()
     val categoriesById = viewModel.categoriesById.collectAsStateWithLifecycle()
+    val settingsPreferences = viewModel.settingsPreferences.collectAsStateWithLifecycle()
     val monthsList = remember {
         val current = LocalDate.now()
         (-6..6).map { offset ->
@@ -243,6 +244,7 @@ fun RecordHomeContent(
                                             transaction = transaction,
                                             accountName = accountsById.value[transaction.accountId]?.name,
                                             category = categoriesById.value[transaction.categoryId],
+                                            showRecordImages = settingsPreferences.value.showRecordImages,
                                             onClick = { onNavigateToTransactionDetail(transaction.id) },
                                             onAmountClick = { onNavigateToTransactionDetail(transaction.id) },
                                             onCategoryClick = { categoryPickerTransaction = transaction },

@@ -1,19 +1,25 @@
 package com.aifinance.feature.settings
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -36,23 +42,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aifinance.core.data.repository.AppThemeMode
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    var showRecordImage by remember { mutableStateOf(true) }
-    var showLocation by remember { mutableStateOf(true) }
-    var pushEnabled by remember { mutableStateOf(true) }
-    var pushDaily by remember { mutableStateOf(true) }
-    var pushBudget by remember { mutableStateOf(false) }
-    var pushRecommend by remember { mutableStateOf(true) }
-    var pushReview by remember { mutableStateOf(true) }
+    val versionName = remember(context) {
+        runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0)).versionName
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0).versionName
+            }
+        }.getOrNull() ?: "未知"
+    }
     var showThemeDialog by remember { mutableStateOf(false) }
+    var showMonthStartDialog by remember { mutableStateOf(false) }
+    var showHelpDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
+    var showClearHistoryDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -80,69 +98,27 @@ fun SettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel:
             Spacer(modifier = Modifier.size(28.dp))
         }
 
-        Card(
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                SettingArrowRow(
-                    title = "主题模式",
-                    value = when (uiState.themeMode) {
-                        AppThemeMode.LIGHT -> "浅色主题"
-                        AppThemeMode.DARK -> "深色主题"
-                        AppThemeMode.SYSTEM -> "跟随系统"
-                    },
-                    onClick = { showThemeDialog = true },
-                )
-                SettingArrowRow("月统计起始日", "每月1日")
-                SettingArrowRow("胖咔回复设置", "")
-                SettingSwitchRow("展示记录图片", showRecordImage) { showRecordImage = it }
-                SettingSwitchRow("记录时展示位置信息", showLocation) { showLocation = it }
-            }
-        }
-
-        if (showThemeDialog) {
-            ThemeSelectionDialog(
-                currentTheme = uiState.themeMode,
-                onThemeSelected = { mode ->
-                    viewModel.setThemeMode(mode)
-                    showThemeDialog = false
-                },
-                onDismiss = { showThemeDialog = false },
+        SettingsCard {
+            SettingArrowRow(
+                title = "主题模式",
+                value = uiState.themeMode.label,
+                onClick = { showThemeDialog = true },
+            )
+            SettingArrowRow(
+                title = "月统计起始日",
+                value = "每月${uiState.monthlyStatsStartDay}日",
+                onClick = { showMonthStartDialog = true },
+            )
+            SettingSwitchRow(
+                title = "展示记录图片",
+                checked = uiState.showRecordImages,
+                onCheckedChange = viewModel::setShowRecordImages,
             )
         }
 
-        Card(
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                SettingSwitchRow("推送服务", pushEnabled) { pushEnabled = it }
-                Card(
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                ) {
-                    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                        SettingCheckRow("每日记账", pushDaily) { pushDaily = !pushDaily }
-                        SettingCheckRow("预算提醒", pushBudget) { pushBudget = !pushBudget }
-                        SettingCheckRow("功能推荐", pushRecommend) { pushRecommend = !pushRecommend }
-                        SettingCheckRow("账单回顾", pushReview) { pushReview = !pushReview }
-                    }
-                }
-            }
-        }
-
-        Card(
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                SettingArrowRow("帮助与反馈", "")
-                SettingArrowRow("关于App", "")
-            }
+        SettingsCard {
+            SettingArrowRow("帮助与反馈", "", onClick = { showHelpDialog = true })
+            SettingArrowRow("关于App", "", onClick = { showAboutDialog = true })
         }
 
         Card(
@@ -152,6 +128,7 @@ fun SettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel:
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable(enabled = !uiState.isClearingHistory) { showClearHistoryDialog = true }
                     .padding(horizontal = 16.dp, vertical = 18.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
@@ -162,7 +139,7 @@ fun SettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel:
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = "删除",
+                    text = if (uiState.isClearingHistory) "删除中" else "删除",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Bold,
@@ -170,10 +147,98 @@ fun SettingsScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel:
             }
         }
     }
+
+    if (showThemeDialog) {
+        ThemeSelectionDialog(
+            currentTheme = uiState.themeMode,
+            onThemeSelected = { mode ->
+                viewModel.setThemeMode(mode)
+                showThemeDialog = false
+            },
+            onDismiss = { showThemeDialog = false },
+        )
+    }
+
+    if (showMonthStartDialog) {
+        MonthStartDayDialog(
+            currentDay = uiState.monthlyStatsStartDay,
+            onDaySelected = { day ->
+                viewModel.setMonthlyStatsStartDay(day)
+                showMonthStartDialog = false
+            },
+            onDismiss = { showMonthStartDialog = false },
+        )
+    }
+
+    if (showHelpDialog) {
+        HelpAndFeedbackDialog(
+            onOpenFeedback = {
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://github.com/Karlineal/ai_finance_app/issues"),
+                )
+                try {
+                    context.startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(context, "未找到浏览器应用", Toast.LENGTH_SHORT).show()
+                }
+                showHelpDialog = false
+            },
+            onDismiss = { showHelpDialog = false },
+        )
+    }
+
+    if (showAboutDialog) {
+        InfoDialog(
+            title = "关于App",
+            message = "AI Finance\n版本 $versionName\n\n面向个人记账、账单导入、预算规划和智能分析的财务管理应用。",
+            onDismiss = { showAboutDialog = false },
+        )
+    }
+
+    if (showClearHistoryDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearHistoryDialog = false },
+            title = { Text("删除历史账单数据") },
+            text = { Text("此操作会清空所有历史账单，并将账户余额归零。删除后无法从应用内恢复。") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.clearAllHistory()
+                        showClearHistoryDialog = false
+                    },
+                ) {
+                    Text("确认删除", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearHistoryDialog = false }) {
+                    Text("取消")
+                }
+            },
+        )
+    }
 }
 
 @Composable
-private fun SettingArrowRow(title: String, value: String, onClick: (() -> Unit)? = null) {
+private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            content = content,
+        )
+    }
+}
+
+@Composable
+private fun SettingArrowRow(
+    title: String,
+    value: String,
+    onClick: (() -> Unit)? = null,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -195,9 +260,29 @@ private fun SettingArrowRow(title: String, value: String, onClick: (() -> Unit)?
                 imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(14.dp),
+                modifier = Modifier
+                    .padding(start = 6.dp)
+                    .size(14.dp),
             )
         }
+    }
+}
+
+@Composable
+private fun SettingSwitchRow(
+    title: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 
@@ -212,21 +297,13 @@ private fun ThemeSelectionDialog(
         title = { Text("选择主题") },
         text = {
             Column {
-                ThemeOptionRow(
-                    label = "浅色主题",
-                    selected = currentTheme == AppThemeMode.LIGHT,
-                    onClick = { onThemeSelected(AppThemeMode.LIGHT) },
-                )
-                ThemeOptionRow(
-                    label = "深色主题",
-                    selected = currentTheme == AppThemeMode.DARK,
-                    onClick = { onThemeSelected(AppThemeMode.DARK) },
-                )
-                ThemeOptionRow(
-                    label = "跟随系统",
-                    selected = currentTheme == AppThemeMode.SYSTEM,
-                    onClick = { onThemeSelected(AppThemeMode.SYSTEM) },
-                )
+                AppThemeMode.entries.forEach { mode ->
+                    SelectableOptionRow(
+                        label = mode.label,
+                        selected = currentTheme == mode,
+                        onClick = { onThemeSelected(mode) },
+                    )
+                }
             }
         },
         confirmButton = {
@@ -238,7 +315,85 @@ private fun ThemeSelectionDialog(
 }
 
 @Composable
-private fun ThemeOptionRow(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun MonthStartDayDialog(
+    currentDay: Int,
+    onDaySelected: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("月统计起始日") },
+        text = {
+            Column(
+                modifier = Modifier
+                    .height(360.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                (1..28).forEach { day ->
+                    SelectableOptionRow(
+                        label = "每月${day}日",
+                        selected = currentDay == day,
+                        onClick = { onDaySelected(day) },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        },
+    )
+}
+
+@Composable
+private fun InfoDialog(
+    title: String,
+    message: String,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(message) },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("知道了")
+            }
+        },
+    )
+}
+
+@Composable
+private fun HelpAndFeedbackDialog(
+    onOpenFeedback: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("帮助与反馈") },
+        text = {
+            Text("提交反馈时请附上问题描述、复现步骤、设备信息和截图，便于快速定位处理。")
+        },
+        confirmButton = {
+            TextButton(onClick = onOpenFeedback) {
+                Text("提交反馈")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("关闭")
+            }
+        },
+    )
+}
+
+@Composable
+private fun SelectableOptionRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -247,10 +402,7 @@ private fun ThemeOptionRow(label: String, selected: Boolean, onClick: () -> Unit
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        Text(text = label, style = MaterialTheme.typography.bodyLarge)
         if (selected) {
             Icon(
                 imageVector = Icons.Default.Check,
@@ -262,50 +414,9 @@ private fun ThemeOptionRow(label: String, selected: Boolean, onClick: () -> Unit
     }
 }
 
-@Composable
-private fun SettingSwitchRow(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+private val AppThemeMode.label: String
+    get() = when (this) {
+        AppThemeMode.LIGHT -> "浅色主题"
+        AppThemeMode.DARK -> "深色主题"
+        AppThemeMode.SYSTEM -> "跟随系统"
     }
-}
-
-@Composable
-private fun SettingCheckRow(title: String, checked: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .border(
-                    1.dp,
-                    if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                    CircleShape,
-                )
-                .background(if (checked) MaterialTheme.colorScheme.primary else Color.Transparent, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (checked) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-        }
-    }
-}

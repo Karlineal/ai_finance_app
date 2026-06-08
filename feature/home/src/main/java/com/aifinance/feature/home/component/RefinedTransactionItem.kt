@@ -60,6 +60,7 @@ fun RefinedTransactionItem(
     transaction: Transaction,
     accountName: String?,
     category: Category? = null,
+    showRecordImages: Boolean = true,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     onCategoryClick: () -> Unit = {},
@@ -160,7 +161,7 @@ fun RefinedTransactionItem(
 
         Spacer(modifier = Modifier.size(6.dp))
 
-        if (transaction.receiptImagePaths.isNotEmpty()) {
+        if (showRecordImages && transaction.receiptImagePaths.isNotEmpty()) {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -325,6 +326,7 @@ fun SwipeableTransactionItem(
     transaction: Transaction,
     accountName: String?,
     category: Category? = null,
+    showRecordImages: Boolean = true,
     onClick: () -> Unit,
     onCategoryClick: () -> Unit,
     onAmountClick: () -> Unit,
@@ -335,6 +337,7 @@ fun SwipeableTransactionItem(
         transaction = transaction,
         accountName = accountName,
         category = category,
+        showRecordImages = showRecordImages,
         modifier = modifier,
         onClick = onClick,
         onCategoryClick = onCategoryClick,

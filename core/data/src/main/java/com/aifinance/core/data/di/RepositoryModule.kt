@@ -12,6 +12,8 @@ import com.aifinance.core.data.repository.ScheduledRuleRepository
 import com.aifinance.core.data.repository.ScheduledRuleRepositoryImpl
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.data.repository.TransactionRepositoryImpl
+import com.aifinance.core.data.repository.StatisticsAnalysisBridge
+import com.aifinance.core.data.repository.StatisticsAnalysisBridgeImpl
 import com.aifinance.core.data.repository.UserPreferencesRepository
 import com.aifinance.core.data.repository.UserPreferencesRepositoryImpl
 import dagger.Binds
@@ -51,4 +53,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindSavingsGoalRepository(impl: SavingsGoalRepositoryImpl): SavingsGoalRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindStatisticsAnalysisBridge(impl: StatisticsAnalysisBridgeImpl): StatisticsAnalysisBridge
 }

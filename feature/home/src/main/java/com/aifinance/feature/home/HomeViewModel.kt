@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.CategoryRepository
+import com.aifinance.core.data.repository.SettingsPreferences
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.data.repository.UserPreferencesRepository
 import com.aifinance.core.model.Account
@@ -44,9 +45,16 @@ class HomeViewModel @Inject constructor(
             initialValue = false,
         )
 
-    val nickname = userPreferencesRepository.nickname.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "小皮皮")
+    val settingsPreferences: StateFlow<SettingsPreferences> =
+        userPreferencesRepository.settingsPreferences.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = SettingsPreferences(),
+        )
+
+    val nickname = userPreferencesRepository.nickname.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "未设置")
     val gender = userPreferencesRepository.gender.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "未填写")
-    val phone = userPreferencesRepository.phone.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "185****2721")
+    val phone = userPreferencesRepository.phone.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "未绑定")
     val avatarUri = userPreferencesRepository.avatarUri.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
     val email = userPreferencesRepository.email.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 

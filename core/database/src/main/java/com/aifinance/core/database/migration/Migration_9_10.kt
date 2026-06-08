@@ -25,7 +25,11 @@ val MIGRATION_9_10 = object : Migration(9, 10) {
             """
             INSERT INTO `check_ins_new` (`id`, `savingsGoalId`, `date`, `amount`, `note`, `createdAt`)
             SELECT `id`, `savingsGoalId`, `date`, `amount`, `note`,
-                   CAST(strftime('%s', `createdAt`) AS INTEGER)
+                   CASE
+                       WHEN typeof(`createdAt`) = 'integer' THEN `createdAt`
+                       WHEN `createdAt` GLOB '[0-9]*' THEN CAST(`createdAt` AS INTEGER)
+                       ELSE CAST(strftime('%s', `createdAt`) AS INTEGER) * 1000
+                   END
             FROM `check_ins`
             """.trimIndent(),
         )
