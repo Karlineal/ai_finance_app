@@ -24,21 +24,26 @@ ai-finance-android/
 │   ├── model/                   # 数据模型定义
 │   ├── database/                # Room数据库（实体、DAO）
 │   └── data/                    # 数据仓库实现
-│       └── network/             # 网络层（API接口、数据模型）
-│           ├── api/             # DeepSeek API, PaddleOCR API
-│           └── repository/ai/   # AI Repository
+│       ├── network/             # 网络层（API接口、数据模型）
+│       │   ├── api/             # DeepSeek API, PaddleOCR API
+│       │   └── repository/ai/  # AI Repository
+│       └── repository/         # 数据仓库（StatisticsAnalysisBridge 等）
 │
 ├── feature/                      # 功能模块（按特性划分）
 │   ├── home/                    # 首页 - 记账记录与AI助手
+│   │   ├── AiAssistantScreen.kt # AI 对话界面（iCookie 软件图标）
 │   │   └── AddTransactionBottomSheet.kt  # 添加交易（手动记账 | AI记录）
 │   ├── transactions/            # 交易列表与详情
 │   ├── add_transaction/         # 添加交易
-│   ├── statistics/              # 统计分析
+│   ├── statistics/              # 统计分析（含 AI 分析桥接）
 │   ├── settings/                # 设置页面
 │   ├── budget/                  # 预算管理
 │   ├── scheduled/               # 定时记账
 │   ├── category_management/     # 分类管理
-│   └── importer/                # 交易导入（微信/支付宝/银行账单解析）
+│   ├── importer/                # 交易导入（微信/支付宝/银行账单解析）
+│   ├── savings_goal/            # 攒钱计划（热力图、打卡日历）
+│   ├── ai/                      # AI 对话功能
+│   └── ocr/                     # OCR 票据识别
 │
 └── build-logic/                  # 构建逻辑（Convention插件）
     └── convention/
@@ -51,7 +56,7 @@ ai-finance-android/
 | **UI** | Jetpack Compose + Material Design 3 |
 | **架构** | MVVM + Repository Pattern + Clean Architecture |
 | **依赖注入** | Hilt |
-| **数据库** | Room v2.6.1 (SQLite), 当前版本 v9 |
+| **数据库** | Room v2.6.1 (SQLite), 当前版本 v11 |
 | **网络** | Retrofit 2.9.0 + OkHttp 4.12.0 + Kotlinx Serialization |
 | **导航** | Compose Navigation |
 | **异步** | Kotlin Coroutines + Flow |
@@ -62,6 +67,21 @@ ai-finance-android/
 ---
 
 ## 最近更新
+
+### 2026-06
+
+- **Room 数据库迁移修复（v10→v11）**：
+  - 修复 Migration_10_11 SQL 语法错误 — CASE 表达式误放在 INSERT INTO 列名位置
+  - transactions 和 savings_records 表的 createdAt/updatedAt 字段从 TEXT 迁移到 INTEGER
+- **AI 对话界面图标恢复**：
+  - 恢复 PR#18 revert 时误删的 ICookieAvatar.kt 和 icookie_icon.png
+  - AI 对话界面 Hero 区域使用软件图标替代旧版手绘曲奇饼干
+- **热力图视觉优化**：
+  - 右侧渐变淡出遮罩（24dp），替代硬截断，深色/浅色主题自适应
+  - 格子尺寸 13dp → 14dp，视觉更饱满
+  - 容器结构重构：外层 Box + 内层滚动 Box + 渐变遮罩三层分离
+- **设置页面完善**：功能收窄到用户请求的范围，交互体验优化
+- **统计分析桥接**：新增 StatisticsAnalysisBridge，打通统计页与 AI 分析的数据通道
 
 ### 2025-06
 
