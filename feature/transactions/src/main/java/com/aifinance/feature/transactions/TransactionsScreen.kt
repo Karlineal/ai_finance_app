@@ -83,6 +83,7 @@ fun TransactionsScreen(
 ) {
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
+    val settingsPreferences by viewModel.settingsPreferences.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -162,6 +163,7 @@ fun TransactionsScreen(
                                         transaction = transaction,
                                         category = category,
                                         account = accounts.firstOrNull { it.id == transaction.accountId },
+                                        showRecordImages = settingsPreferences.showRecordImages,
                                         modifier = Modifier,
                                         onCategoryClick = { categoryPickerTransaction = transaction },
                                         onClick = { onNavigateToTransactionDetail(transaction.id) },
@@ -231,6 +233,7 @@ private fun TimelineTransactionItem(
     transaction: Transaction,
     category: Category,
     account: Account?,
+    showRecordImages: Boolean,
     modifier: Modifier = Modifier,
     onCategoryClick: () -> Unit,
     onClick: () -> Unit,
@@ -315,7 +318,7 @@ private fun TimelineTransactionItem(
                 )
             }
 
-            if (transaction.receiptImagePaths.isNotEmpty()) {
+            if (showRecordImages && transaction.receiptImagePaths.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 androidx.compose.foundation.lazy.LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -382,6 +385,7 @@ private fun CategoryPickerSheet(
 private fun TransactionDetailSheet(
     transaction: Transaction,
     accounts: List<Account>,
+    showLocationInRecords: Boolean,
     onDismiss: () -> Unit,
     onSave: (amount: BigDecimal, accountId: UUID, date: LocalDate, type: TransactionType, includeInExpense: Boolean) -> Unit,
 ) {
@@ -459,22 +463,24 @@ private fun TransactionDetailSheet(
                 Switch(checked = includeInExpense, onCheckedChange = { includeInExpense = it })
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(imageVector = Icons.Default.LocationOn, contentDescription = null)
-                Column {
-                    Text(text = "地点（系统定位）", style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        text = "暂不支持手动修改",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+            if (showLocationInRecords) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(imageVector = Icons.Default.LocationOn, contentDescription = null)
+                    Column {
+                        Text(text = "地点（系统定位）", style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            text = "暂不支持手动修改",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
             }
 

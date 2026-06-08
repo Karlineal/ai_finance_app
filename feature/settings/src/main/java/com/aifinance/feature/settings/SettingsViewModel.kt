@@ -3,6 +3,8 @@ package com.aifinance.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AppThemeMode
+import com.aifinance.core.data.repository.PangkaReplyStyle
+import com.aifinance.core.data.repository.SettingsPreferences
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.data.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +17,10 @@ import javax.inject.Inject
 
 data class SettingsUiState(
     val themeMode: AppThemeMode = AppThemeMode.LIGHT,
+    val monthlyStatsStartDay: Int = 1,
+    val pangkaReplyStyle: PangkaReplyStyle = PangkaReplyStyle.BALANCED,
+    val showRecordImages: Boolean = true,
+    val showLocationInRecords: Boolean = true,
     val isClearingHistory: Boolean = false,
 )
 
@@ -29,9 +35,9 @@ class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            userPreferencesRepository.themeMode.collect { mode ->
+            userPreferencesRepository.settingsPreferences.collect { preferences ->
                 _uiState.update { state ->
-                    state.copy(themeMode = mode)
+                    state.copy(preferences)
                 }
             }
         }
@@ -47,6 +53,30 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setMonthlyStatsStartDay(day: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setMonthlyStatsStartDay(day)
+        }
+    }
+
+    fun setPangkaReplyStyle(style: PangkaReplyStyle) {
+        viewModelScope.launch {
+            userPreferencesRepository.setPangkaReplyStyle(style)
+        }
+    }
+
+    fun setShowRecordImages(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setShowRecordImages(enabled)
+        }
+    }
+
+    fun setShowLocationInRecords(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setShowLocationInRecords(enabled)
+        }
+    }
+
     fun clearAllHistory() {
         if (_uiState.value.isClearingHistory) return
         viewModelScope.launch {
@@ -57,5 +87,15 @@ class SettingsViewModel @Inject constructor(
                 _uiState.update { it.copy(isClearingHistory = false) }
             }
         }
+    }
+
+    private fun SettingsUiState.copy(preferences: SettingsPreferences): SettingsUiState {
+        return copy(
+            themeMode = preferences.themeMode,
+            monthlyStatsStartDay = preferences.monthlyStatsStartDay,
+            pangkaReplyStyle = preferences.pangkaReplyStyle,
+            showRecordImages = preferences.showRecordImages,
+            showLocationInRecords = preferences.showLocationInRecords,
+        )
     }
 }

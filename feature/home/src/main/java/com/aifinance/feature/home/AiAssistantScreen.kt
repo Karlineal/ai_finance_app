@@ -181,7 +181,7 @@ private fun HeroSection() {
             )
         }
 
-        ICookieAvatar(size = 100.dp)
+        LegacyICookieAvatar(size = 100.dp)
     }
 }
 

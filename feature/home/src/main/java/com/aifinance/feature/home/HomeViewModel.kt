@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aifinance.core.data.repository.AccountRepository
 import com.aifinance.core.data.repository.CategoryRepository
+import com.aifinance.core.data.repository.SettingsPreferences
 import com.aifinance.core.data.repository.TransactionRepository
 import com.aifinance.core.data.repository.UserPreferencesRepository
 import com.aifinance.core.model.Account
@@ -42,6 +43,13 @@ class HomeViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = false,
+        )
+
+    val settingsPreferences: StateFlow<SettingsPreferences> =
+        userPreferencesRepository.settingsPreferences.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = SettingsPreferences(),
         )
 
     val nickname = userPreferencesRepository.nickname.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "小皮皮")

@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -60,6 +61,8 @@ fun RefinedTransactionItem(
     transaction: Transaction,
     accountName: String?,
     category: Category? = null,
+    showRecordImages: Boolean = true,
+    showLocationInRecords: Boolean = true,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     onCategoryClick: () -> Unit = {},
@@ -160,7 +163,7 @@ fun RefinedTransactionItem(
 
         Spacer(modifier = Modifier.size(6.dp))
 
-        if (transaction.receiptImagePaths.isNotEmpty()) {
+        if (showRecordImages && transaction.receiptImagePaths.isNotEmpty()) {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -191,6 +194,13 @@ fun RefinedTransactionItem(
                 text = accountName ?: "微信",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
             )
+            if (showLocationInRecords) {
+                InfoItem(
+                    icon = Icons.Default.LocationOn,
+                    text = "系统定位",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
+                )
+            }
         }
     }
 
@@ -325,6 +335,8 @@ fun SwipeableTransactionItem(
     transaction: Transaction,
     accountName: String?,
     category: Category? = null,
+    showRecordImages: Boolean = true,
+    showLocationInRecords: Boolean = true,
     onClick: () -> Unit,
     onCategoryClick: () -> Unit,
     onAmountClick: () -> Unit,
@@ -335,6 +347,8 @@ fun SwipeableTransactionItem(
         transaction = transaction,
         accountName = accountName,
         category = category,
+        showRecordImages = showRecordImages,
+        showLocationInRecords = showLocationInRecords,
         modifier = modifier,
         onClick = onClick,
         onCategoryClick = onCategoryClick,
