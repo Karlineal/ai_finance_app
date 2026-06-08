@@ -7,11 +7,17 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class DeepSeekRequest(
-    val model: String = "deepseek-reasoner",
+    val model: String = "deepseek-v4-flash",
     val messages: List<DeepSeekMessage>,
-    val temperature: Double = 0.7,
-    val max_tokens: Int = 2000,
+    val max_tokens: Int = 4000,
     val stream: Boolean = false,
+    val thinking: ThinkingConfig? = null,
+    val reasoning_effort: String? = null,
+)
+
+@Serializable
+data class ThinkingConfig(
+    val type: String = "enabled",
 )
 
 @Serializable

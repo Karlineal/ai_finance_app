@@ -357,7 +357,10 @@ fun StatisticsScreen(
 
         item {
             AiAnalysisCard(
-                onAnalyze = { viewModel.requestAiAnalysis() }
+                onAnalyze = {
+                    viewModel.requestAiAnalysis()
+                    onBack()
+                }
             )
         }
 

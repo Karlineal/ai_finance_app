@@ -6,6 +6,7 @@ import com.aifinance.core.data.network.api.PaddleOCRApi
 import com.aifinance.core.data.network.model.DeepSeekMessage
 import com.aifinance.core.data.network.model.DeepSeekRequest
 import com.aifinance.core.data.network.model.PaddleOCRJobResponse
+import com.aifinance.core.data.network.model.ThinkingConfig
 import com.aifinance.core.data.network.model.createAssistantMessage
 import com.aifinance.core.data.network.model.createSystemMessage
 import com.aifinance.core.data.network.model.createUserMessage
@@ -53,6 +54,8 @@ class AIRepository @Inject constructor(
 
             val request = DeepSeekRequest(
                 messages = conversationHistory.toList(),
+                thinking = ThinkingConfig(type = "enabled"),
+                reasoning_effort = "high",
             )
 
             android.util.Log.d("AIRepository", "Sending message to DeepSeek: $userMessage")
@@ -103,7 +106,11 @@ class AIRepository @Inject constructor(
 
                 messages.add(createUserMessage(userMessage))
 
-                val request = DeepSeekRequest(messages = messages)
+                val request = DeepSeekRequest(
+                    messages = messages,
+                    thinking = ThinkingConfig(type = "enabled"),
+                    reasoning_effort = "high",
+                )
 
                 android.util.Log.d("AIRepository", "Sending message with context to DeepSeek: $userMessage")
 
