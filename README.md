@@ -98,6 +98,7 @@ ai-finance-android/
   - 优化图例文案："少/多" → "未打卡/已打卡"
   - 已完成/失败的计划也能查看历史打卡记录
 - **死代码清理**：删除未使用的 CheckInCalendarViewModel 等4个文件
+- **弃用像素形状系统清理**：删除 `SavingsPixelShapes.kt`（心形/小木屋/小狗像素网格，已被卡片列表+热力图双视图替代）及相关文档
 - **代码质量提升**：
   - 自动格式化 187 个文件（spotlessApply）
   - 优化 ktlint 配置，禁用过于严格的规则
