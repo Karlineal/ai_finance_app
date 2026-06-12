@@ -1,5 +1,6 @@
 package com.aifinance.feature.home
 
+import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -172,6 +173,23 @@ private fun AddTransactionSheetContent(
         }
     }
 
+    // --- Receipt image attachment state (manual record tab) ---
+    var attachedImagePath by remember { mutableStateOf<String?>(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        uri?.let {
+            val file = FileUtils.uriToFile(context, it)
+            if (file != null) {
+                attachedImagePath = file.absolutePath
+                Toast.makeText(context, "图片已添加", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "无法读取图片文件", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -180,7 +198,7 @@ private fun AddTransactionSheetContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -220,7 +238,7 @@ private fun AddTransactionSheetContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 TypeButton(
@@ -257,7 +275,7 @@ private fun AddTransactionSheetContent(
                 LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp),
+                        .padding(vertical = 8.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
@@ -419,7 +437,7 @@ private fun AddTransactionSheetContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(modifier = Modifier.weight(1f)) {
@@ -439,20 +457,28 @@ private fun AddTransactionSheetContent(
                 }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = {
+                        galleryLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                        )
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Image,
-                            contentDescription = "添加图片",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            contentDescription = "从相册选择",
+                            tint = if (attachedImagePath != null) BrandPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    IconButton(onClick = { }) {
-                        Icon(
-                            imageVector = Icons.Default.CameraAlt,
-                            contentDescription = "拍照",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    if (attachedImagePath != null) {
+                        IconButton(onClick = { attachedImagePath = null }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "移除附件",
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
                     }
                 }
             }
@@ -527,6 +553,7 @@ private fun AddTransactionSheetContent(
                                 dateTime = selectedDateTime,
                                 accountId = accountId,
                                 targetAccountId = transferInAccountId,
+                                receiptImagePath = attachedImagePath,
                             )
                             if (selectedType == TransactionType.TRANSFER) {
                                 showTransferSuccessDialog = true
@@ -588,6 +615,7 @@ private fun AddTransactionSheetContent(
                                 dateTime = selectedDateTime,
                                 accountId = accountId,
                                 targetAccountId = transferInAccountId,
+                                receiptImagePath = attachedImagePath,
                             )
                             isSaving = false
                             amount = ""
@@ -595,6 +623,7 @@ private fun AddTransactionSheetContent(
                             note = ""
                             selectedDateTime = AppDateTime.now()
                             hasEditedDateTime = false
+                            attachedImagePath = null
                         }
                     }
                 },
@@ -979,7 +1008,7 @@ private fun NumberKeyboard(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(8.dp),
+            .padding(6.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -994,7 +1023,7 @@ private fun NumberKeyboard(
             }
             Box(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(1.15f)
                     .height(56.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surface)
@@ -1009,7 +1038,7 @@ private fun NumberKeyboard(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1025,11 +1054,11 @@ private fun NumberKeyboard(
             NumberKey(
                 text = "+",
                 onClick = { },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1.15f),
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1045,11 +1074,11 @@ private fun NumberKeyboard(
             NumberKey(
                 text = "-",
                 onClick = { },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1.15f),
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1086,7 +1115,7 @@ private fun NumberKeyboard(
             Button(
                 onClick = onConfirmClick,
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(1.15f)
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = confirmColor,

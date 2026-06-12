@@ -96,6 +96,7 @@ class AddTransactionViewModel @Inject constructor(
         dateTime: LocalDateTime,
         accountId: UUID,
         targetAccountId: UUID? = null,
+        receiptImagePath: String? = null,
     ) {
         if (amount.isEmpty()) {
             return
@@ -126,6 +127,7 @@ class AddTransactionViewModel @Inject constructor(
                         time = AppDateTime.toInstant(dateTime),
                         sourceType = TransactionSourceType.MANUAL,
                         importBatchId = transferBatchId,
+                        receiptImagePath = receiptImagePath,
                     )
                     val transferIn = Transaction(
                         accountId = targetAccountId,
@@ -139,6 +141,7 @@ class AddTransactionViewModel @Inject constructor(
                         time = AppDateTime.toInstant(dateTime),
                         sourceType = TransactionSourceType.MANUAL,
                         importBatchId = transferBatchId,
+                        receiptImagePath = receiptImagePath,
                     )
 
                     transactionRepository.insertTransaction(transferOut)
@@ -165,6 +168,7 @@ class AddTransactionViewModel @Inject constructor(
                         date = dateTime.toLocalDate(),
                         time = AppDateTime.toInstant(dateTime),
                         sourceType = TransactionSourceType.MANUAL,
+                        receiptImagePath = receiptImagePath,
                     )
 
                     transactionRepository.insertTransaction(transaction)
